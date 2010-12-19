@@ -1,0 +1,10 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+NetLogo is a programmable modeling environment for simulating natural and social phenomena. 
+
+
+= Details =
+
+See "[http://ccl.northwestern.edu/netlogo/faq.html What is NetLogo?]" for more information about NetLogo.
