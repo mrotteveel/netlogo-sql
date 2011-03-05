@@ -1,0 +1,2944 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<book version="5.0" xmlns="http://docbook.org/ns/docbook"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:svg="http://www.w3.org/2000/svg"
+      xmlns:m="http://www.w3.org/1998/Math/MathML"
+      xmlns:html="http://www.w3.org/1999/xhtml"
+      xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <title>NetLogo SQL Wrapper Usermanual</title>
+
+    <authorgroup>
+      <author>
+        <personname><firstname>Jan</firstname><surname>Blom</surname></personname>
+      </author>
+
+      <author>
+        <personname><firstname>Rene</firstname><surname>Quakkelaar</surname></personname>
+      </author>
+
+      <author>
+        <personname><firstname>Mark</firstname><surname>Rotteveel</surname></personname>
+      </author>
+    </authorgroup>
+
+    <releaseinfo>Covers SQL Wrapper version 1.0</releaseinfo>
+  </info>
+
+  <preface>
+    <title>Preface</title>
+
+    <section>
+      <title>Introduction to SQL Wrapper</title>
+
+      <para>SQL Wrapper is an extension to NetLogo which adds primitives to
+      the NetLogo modelling language to support access to databases using SQL
+      (Structured Query Language).</para>
+
+      <para>The following features are supported:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Querying data from a database
+          (<command>SELECT</command>)</para>
+        </listitem>
+
+        <listitem>
+          <para>Storing data into a database
+          (<command>INSERT</command>)</para>
+        </listitem>
+
+        <listitem>
+          <para>Changing data in a database (<command>UPDATE</command>,
+          <command>DELETE</command>)</para>
+        </listitem>
+
+        <listitem>
+          <para>Database connection per agent (turtle, patch)</para>
+        </listitem>
+
+        <listitem>
+          <para>(optional) Automatic connection management (creates
+          connections when needed, and closes when possible)</para>
+        </listitem>
+
+        <listitem>
+          <para>(optional) Transaction control</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>SQL Wrapper is released under the <link
+      linkend="lgpl">LGPL</link>. The sourcecode is available at <link
+      xlink:href="http://code.google.com/p/netlogo-sql/">http://code.google.com/p/netlogo-sql/</link>.</para>
+
+      <para>The extension was commissioned by Dr. Hendrik Drachsler, Assistant
+      Professor at the Centre for Learning Sciences and Technologies (CELSTEC)
+      of the Open University of the Netherlands (OUNL). Design and development
+      was done by Jan Blom, Rene Quakkelaar and Mark Rotteveel as part of the
+      final project of their Bachelor (BSc Computer Science) at the Open
+      University of the Netherlands (OUNL).</para>
+    </section>
+
+    <section>
+      <title>Extension Requirements</title>
+
+      <para>SQL Wrapper requires NetLogo 4.1 or 4.1.x in combination with Java
+      6.</para>
+
+      <para>Currently SQL Wrapper supports the following databases:</para>
+
+      <informaltable>
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>MySQL</entry>
+
+              <entry>4.1, 5.0, 5.1, 5.4, 5.5</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+
+    <section>
+      <title>This manual</title>
+
+      <para>This manual describes the language primitives the extension adds
+      to NetLogo, how to use them and more advanced information on usage and
+      pitfalls. We assume that readers of this manual and users of SQL Wrapper
+      are already knowledgeable on NetLogo and SQL, including knowledge on
+      designing databases (tables etc).</para>
+    </section>
+  </preface>
+
+  <part>
+    <title>Getting Started</title>
+
+    <chapter xml:id="installation">
+      <title>Installation</title>
+
+      <para>Before SQL Wrapper can be used, it needs to be installed in the
+      <filename>extensions</filename> folder of NetLogo. We assume that
+      NetLogo itself is already installed, and that you know where its program
+      folder is located. On most systems you will also need sufficient rights
+      to that program folder (eg Administrator rights on Windows) to be able
+      to install SQL Wrapper.</para>
+
+      <para>The SQL Wrapper is distributed as a single ZIP-file,
+      <filename>sql-bin-&lt;version&gt;.zip</filename>, and contains all files
+      necessary for normal extension usage. Installation is as simple as the
+      following three steps:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>If NetLogo is running, stop it first</para>
+        </listitem>
+
+        <listitem>
+          <para>If a previous version of SQL Wrapper (folder
+          <filename>sql</filename>) is installed: delete it from the
+          <filename>extensions</filename> folder.</para>
+        </listitem>
+
+        <listitem>
+          <para>Unzip <filename>sql-bin.zip</filename> to the NetLogo
+          <filename>extensions</filename> folder (and make sure that the
+          folder structure is preserved)</para>
+
+          <para>On Windows: Use a program like WinZIP to unzip the file to
+          <filename>C:\Program Files\NetLogo 4.1\extensions</filename></para>
+
+          <para>On Linux : Use the program "unzip" to unzip the file to the
+          <filename>extensions</filename> subdirectory of the directory where
+          NetLogo is installed</para>
+        </listitem>
+
+        <listitem>
+          <para>Start NetLogo</para>
+        </listitem>
+      </orderedlist>
+    </chapter>
+
+    <chapter>
+      <title>Tutorials</title>
+
+      <section>
+        <title>First Query</title>
+
+        <para>To check if the extension is installed and working correctly,
+        you can use the following example of use. To keep this example as
+        simple as possible, we will use an empty NetLogo model and use the
+        Command Center to execute the commands.</para>
+
+        <para>To follow this example you will need access to a MySQL database,
+        and have <methodname>SELECT</methodname> rights to a table containing
+        one or more rows of data. For the rest of this section we will assume
+        your MySQL connection details are: server <code>localhost</code>, port
+        <code>3306</code>, schema <code>default</code>, user
+        <code>root</code>, password <code>testpassword</code>, table
+        <code>testtable</code>.</para>
+
+        <para>This example runs in an empty model, so first we will create a
+        new model through <guimenu>File</guimenu>,
+        <guimenuitem>New</guimenuitem> (save or discard your current model as
+        you see fit).</para>
+
+        <para>Next we will need to instruct NetLogo to use the SQL Wrapper
+        extension, which has the extension-name <classname>sql</classname> in
+        NetLogo. To do this, go to the <guilabel>Procedures</guilabel> tab and
+        instruct NetLogo to import the extension:</para>
+
+        <programlisting>extensions [sql]</programlisting>
+
+        <para>Now switch to the <guilabel>Interface</guilabel> tab. If
+        everything is OK and the extension was found and loaded, NetLogo will
+        now display the Interface tab. If the extension can't be found, the
+        Procedures tab will remain open, displaying an error-message
+        <computeroutput>Can't find extension: sql</computeroutput>, if this
+        occurs, please check <xref linkend="installation"
+        xrefstyle="select: title" />. For syntactic errors, it will display a
+        message like <computeroutput>Expected &lt;syntactic
+        element&gt;</computeroutput>.</para>
+
+        <para>Now that the extension has been loaded, we can use the Command
+        Center to run commands. First we will need to instruct the extension
+        how to connect to the database. To give the connection details to
+        SQLWrapper, enter on the Observer prompt:</para>
+
+        <screen><command>sql:configure "defaultconnection" [["host" "localhost"] ["port" 3306] ["user" "root"] ["password" "testpassword"] ["database" "default"]]</command></screen>
+
+        <para>The command above instructs SQL Wrapper to connect to schema
+        <code>default</code> on <code>localhost</code>, port <code>3306</code>
+        using username <code>root</code> and password
+        <code>testpassword</code>. If the wrong database information was used,
+        NetLogo will show a popup with the title <guilabel>Runtime
+        Error</guilabel> containing the details of the error. The <link
+        linkend="configure"><command>sql:configure</command></link> command
+        with the <xref linkend="aspect-defaultconnection"
+        xrefstyle="select: title" /> enables automatic connection management,
+        which will allocate connections when needed.</para>
+
+        <para>For this tutorial we also assume a table
+        <literal>testtable</literal> exists with columns <literal>ID</literal>
+        (type: <type>INTEGER</type>; primarykey), <literal>NAME</literal>
+        (type: <type>VARCHAR(50)</type>) and <literal>INFO_DATE</literal>
+        (type: <type>DATETIME</type>).</para>
+
+        <para>Now that SQL Wrapper knows how to connect to the database, we
+        can execute a simple query to create the actual connection and execute
+        the query:</para>
+
+        <screen><command>sql:exec-query "SELECT * FROM testtable WHERE ID = ?" [1]</command></screen>
+
+        <para>The command <link
+        linkend="exec-query"><command>sql:exec-query</command></link> can be
+        used to execute SELECT queries with parameters. The first argument is
+        a string and contains the query to execute, in this query a question
+        mark (<literal>?</literal>) is used to indicate a parameter to the
+        query. The second argument is a list. This list contains the values
+        that need to be substituted for the parameters. These values are
+        converted to the right datatype in the database, and are - if
+        necessary - escaped.</para>
+
+        <para>To retrieve the result, there are two options <link
+        linkend="fetch-row"><command>sql:fetch-row</command></link> or <link
+        linkend="fetch-resultset"><command>sql:fetch-resultset</command></link>.
+        The first returns a single NetLogo list containing the values of a
+        single row, it is suitable for row by row processing. The second
+        returns all rows (as a NetLogo list containing a list with the values
+        of a row. For changes to the database (<command>INSERT</command>,
+        <command>UPDATE</command>, <command>DELETE</command>) the command
+        <link linkend="exec-update"><command>sql:exec-update</command></link>
+        can be used.</para>
+
+        <para>To fetch a single row:</para>
+
+        <screen><command>show sql:fetch-row</command></screen>
+
+        <para>This returns a single row, for example looking like this:</para>
+
+        <screen><computeroutput>observer: [1 "Example" "2010-10-31 11:39:10.0"]</computeroutput></screen>
+
+        <para>Now that we have connected to the database and run our first
+        query, we have reached the end of this tutorial.</para>
+      </section>
+    </chapter>
+  </part>
+
+  <part>
+    <title>Reference</title>
+
+    <partintro>
+      <para>The reference section contains information on the syntax and usage
+      of the commands and reporters that SQL Wrapper makes available to
+      NetLogo.</para>
+    </partintro>
+
+    <chapter>
+      <title>Importing the Extension</title>
+
+      <para>NetLogo imports extensions using the
+      <methodname>extensions</methodname> keyword, followed by a list of
+      extension-names. The extension-name of SQL Wrapper is
+      <classname>sql</classname>, importing the extension into a model can be
+      done with the following instruction:</para>
+
+      <programlisting>extensions [sql]</programlisting>
+
+      <para>If the extension can't be found, NetLogo will display the
+      error-message <computeroutput>Can't find extension:
+      sql</computeroutput>.</para>
+
+      <para>More information on extensions can be found in the NetLogo manual,
+      <link
+      xlink:href="http://ccl.northwestern.edu/netlogo/docs/extensions.html">Extensions
+      Guide</link>.</para>
+    </chapter>
+
+    <chapter>
+      <title>Configuring the extension</title>
+
+      <section xml:id="configure">
+        <title>sql:configure</title>
+
+        <para>The <command>sql:configure</command> command is used to
+        configure aspects of the plugin.</para>
+
+        <synopsis><command>sql:configure</command> <parameter>aspect</parameter> [<parameter>parameters...</parameter>]</synopsis>
+
+        <variablelist>
+          <varlistentry>
+            <term>aspect</term>
+
+            <listitem>
+              <para>Name of the aspect to configure (see sub-sections
+              below)</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>parameters...</term>
+
+            <listitem>
+              <para>List containing the configuration for the aspects (see
+              sub-sections below). Every parameter is a list with
+              key-value-pairs (a list per pair). In general this wil look like
+              <literal>[["parametername" parametervalue] ...
+              ]</literal>.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+
+        <para>Configuration should normally only be done in the setup-phase of
+        a model.</para>
+
+        <section xml:id="aspect-defaultconnection">
+          <title>Aspect: "defaultconnection"</title>
+
+          <para>The aspect <parameter>"defaultconnection"</parameter>
+          configures the database connection information for the connection
+          pool and (re)initializes the connection pool.</para>
+
+          <synopsis><command>sql:configure</command> <literal>"defaultconnection"</literal> [[<literal>"brand"</literal> <parameter>brandname</parameter>] [<literal>"host"</literal> <parameter>hostname</parameter>] [<literal>"port"</literal> <parameter>port</parameter>] [<literal>"user"</literal> <parameter>username</parameter>] [<literal>"password"</literal> <parameter>password</parameter>] [<literal>"database"</literal> <parameter>schema</parameter>] [<literal>"autodisconnect"</literal> <parameter>autodisconnect</parameter>]]</synopsis>
+
+          <variablelist>
+            <varlistentry>
+              <term>brandname</term>
+
+              <listitem>
+                <para>name of the database type (type: string). Optional,
+                defaults to <code>MySQL</code> if the "brand" list is not
+                passed. Valid values: <code>MySQL</code></para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>hostname</term>
+
+              <listitem>
+                <para>hostname of the database server (type: string).
+                Optional, defaults to <code>localhost</code> if the "host"
+                list is not passed.</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>port</term>
+
+              <listitem>
+                <para>port number of the database server (type: integer).
+                Optional, defaults to <code>3306</code> if the "port" list is
+                not passed.</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>username</term>
+
+              <listitem>
+                <para>Username to the database (type: string)</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>password</term>
+
+              <listitem>
+                <para>Password to the database (type: string)</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>schema</term>
+
+              <listitem>
+                <para>name of the database schema (type: string)</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>autodisconnect</term>
+
+              <listitem>
+                <para>configure automatic disconnect (type: string). Optional,
+                defaults to <code>on</code> if the "autodisconnect" list is
+                not passed. Valid values: <code>off</code> or
+                <code>false</code> (disable autodisconnect), <code>on</code>
+                or <code>true</code> (enable autodisconnect)</para>
+
+                <para>The automatic disconnect will close connections as soon
+                as possible (this returns them to the connection pool for use
+                by other agents). With this option enabled, a connection will
+                be closed after executing an update
+                (<command>UPDATE</command>, <command>INSERT</command>,
+                <command>DELETE</command>) or after fetching the full
+                resultset (<link
+                linkend="fetch-resultset"><command>fetch-resultset</command></link>)
+                or the last row of a resultset (<link
+                linkend="fetch-row"><command>fetch-row</command></link>) of a
+                <command>SELECT</command>. Use of autodisconnect is strongly
+                recommended for models using a large number of agents, because
+                otherwise the number of required connections will be high as
+                well (and could exceed the maximum number of connections
+                supported by the database). Autodisconnect is only applied to
+                connections obtained from the connection pool, connections
+                created using <link
+                linkend="connect"><command>sql:connect</command></link> will
+                not be automatically disconnected.</para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+
+          <para>When the automatic connection management (or connection
+          pooling) has been configured, all commands and reporters will obtain
+          a connection from the connection pool if no explicit connection has
+          been created using <link
+          linkend="connect"><command>sql:connect</command></link>. A
+          connection is associated with the current agent until the connection
+          is closed using <link
+          linkend="disconnect"><command>sql:disconnect</command></link> or
+          automatically disconnected when autodisconnect is enabled.</para>
+        </section>
+
+        <section xml:id="aspect-connectionpool">
+          <title>Aspect: "connectionpool"</title>
+
+          <para>The aspect <parameter>"connectionpool"</parameter> configures
+          the connection pool itself (eg timeout, number of
+          connections).</para>
+
+          <synopsis xml:space="preserve"><command>sql:configure</command> <literal>"connectionpool"</literal> [[<literal>"timeout"</literal> <parameter>timeout</parameter>] [<literal>"max-connections"</literal> <parameter>max-connections</parameter>] [<literal>"partitions"</literal> <parameter>partitions</parameter>]]</synopsis>
+
+          <variablelist>
+            <varlistentry>
+              <term>timeout</term>
+
+              <listitem>
+                <para>sets the the timeout for obtaining a connection in
+                seconds (type: integer). Defaults to <literal>5</literal>
+                seconds if the "timeout" list is not passed. Setting to
+                <literal>0</literal> disables timeout (this can freeze the
+                model if no connections are released).</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>max-connections</term>
+
+              <listitem>
+                <para>maximum number of database connections that the
+                connection pool should make available (type: integer).
+                Defaults to <literal>20</literal> if the "max-connections"
+                list is not passed.</para>
+
+                <para>It is advisable to make max-connections divisable by the
+                number of partitions (integer division will lead to a lower
+                number of maximum connections). The number of connections per
+                partition should be 2 or higher.</para>
+
+                <para>Be aware that the database server could have additional
+                limits imposed (eg maximum number of connections per user, or
+                per IP): these limits are not taken into account. Please check
+                with your database server administrator if these limits
+                apply.</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>partitions</term>
+
+              <listitem>
+                <para>number of partitions in the connection pool (type:
+                integer). Optional, defaults to <literal>1</literal> if the
+                "partitions" list is not passed.</para>
+
+                <para>This setting is for advanced configuration of the
+                connection pool. It is normally not needed (nor advisable) to
+                set this to anything other than 1.</para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+
+          <para>The defaults specified above will be applied if the
+          <parameter>"connectionpool"</parameter> aspects is not configured
+          explicitly. Be aware that these settings will only be applied at the
+          next configuration of <xref linkend="aspect-defaultconnection"
+          xrefstyle="select: title" />, including validation of pool
+          configuration.</para>
+        </section>
+
+        <section xml:id="aspect-logging">
+          <title>Aspect: "logging"</title>
+
+          <para>The aspect <parameter>"logging"</parameter> configures logging
+          that is done by the plugin, and throught the <link
+          linkend="log"><command>sql:log</command></link> command. The NetLogo
+          sql extension handles its own logging, through the Java logging
+          facility (java.util.logging). By default, all logging is switched
+          off. If logging is needed, it might be helpful to consult the Java
+          documentation for logging in addition to the information given
+          here.</para>
+
+          <synopsis><command>sql:configure</command> <literal>"logging"</literal> [[<literal>"path"</literal> <parameter>path</parameter>] [<literal>"file-logging"</literal> <parameter>file-logging</parameter>] [<literal>"level"</literal> <parameter>log-level</parameter>] [<literal>"copy-to-stderr"</literal> <parameter>copy-to-stderr</parameter>]]</synopsis>
+
+          <variablelist>
+            <varlistentry>
+              <term>path</term>
+
+              <listitem>
+                <para>path of the folder were logfiles will be stored.
+                Defaults to <literal>null</literal> (not configured) if "path"
+                list is not passed in. The user must of write access and the
+                folder must exist.</para>
+
+                <para>The path can start with a prefix: <literal>%c</literal>
+                indicates the current folder, <literal>%m</literal> the folder
+                that stores the current NetLogo model.</para>
+
+                <para>Also, the substitutions that apply for
+                java.util.logging.FileHandler apply, like
+                <literal>%t</literal> for the system temporary directory. See
+                the Java API documentation on logging for more information.
+                (Available at <link
+                xlink:href="http://download.oracle.com/javase/6/docs/api/java/util/logging/FileHandler.html">http://download.oracle.com/javase/6/docs/api/java/util/logging/FileHandler.html</link>)
+                When path is set, file-logging is turned on implicitly (see
+                below)</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>file-logging</term>
+
+              <listitem>
+                <para>enable or disable the logging to file (type:string):
+                <literal>on</literal> or <literal>true</literal> (enable),
+                <literal>off</literal> or <literal>false</literal> (disable).
+                Default <literal>off</literal>.</para>
+
+                <para>The file-logging should be configured by setting the
+                path option (see above).</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>log-level</term>
+
+              <listitem>
+                <para>The minimum level of the messages that will actually be
+                written. The available levels are, from high to low:
+                <literal>"SEVERE"</literal>, <literal>"WARNING"</literal>,
+                <literal>"INFO"</literal>, <literal>"FINE"</literal>,
+                <literal>"FINER"</literal> and <literal>"FINEST"</literal>, or
+                everything: <literal>"ALL"</literal>. The levels are
+                interpreted case-insenitive, so <literal>"SEVERE"</literal>,
+                <literal>"severe"</literal> and <literal>"Severe"</literal>
+                are all valid. Default is <literal>"ALL"</literal>.</para>
+
+                <para>When an invalid level is specified, the currently set
+                level remains set, no error is given.</para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term>copy-to-stderr</term>
+
+              <listitem>
+                <para>enable or disable copying of logging to the standard
+                error output (type: string): <literal>on</literal> or
+                <literal>true</literal> (enable), <literal>off</literal> or
+                <literal>false</literal> (disable). Default
+                <literal>off</literal>.</para>
+
+                <para>When switched on, all logging is copied and written to
+                the system error stream (stderr on Unix/Linux). Other logging
+                settings are not affected by enabling or disabling this
+                options.</para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+
+          <para>The specified defaults will be applied when no explicit
+          configuration of logging is performed.</para>
+        </section>
+      </section>
+
+      <section xml:id="get-configuration">
+        <title>sql:get-configuration</title>
+
+        <para>The <command>sql:get-configuration</command> retrieves the
+        current configured values of an aspect of the plugin.</para>
+
+        <synopsis><command>sql:get-configuration</command> <parameter>aspect</parameter></synopsis>
+
+        <variablelist>
+          <varlistentry>
+            <term>aspect</term>
+
+            <listitem>
+              <para>Name of the aspect</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+
+        <para>The return value is a list with the first entry being the name
+        of the aspect and the rest of the entries are the key-value-pairs of
+        the configuration (a list per pair).</para>
+      </section>
+
+      <section>
+        <title>sql:get-full-configuration</title>
+
+        <para>The <command>sql:get-full-configuration</command> retrieves the
+        current configured values of all aspects of the plugin.</para>
+
+        <synopsis><command>sql:get-full-configuration</command></synopsis>
+
+        <para>The return value is a list with a list per aspect in the format
+        described in <link
+        linkend="get-configuration"><command>sql:get-configuration</command></link>.</para>
+      </section>
+    </chapter>
+
+    <chapter>
+      <title>Connecting to a Database</title>
+
+      <section>
+        <title>Connection pool (or automatic connection management)</title>
+
+        <para>It is advisable to use the connection pool provided by <xref
+        linkend="aspect-defaultconnection" xrefstyle="select: title" />. The
+        connection pool simplifies working with connections, especially when
+        combined with the <emphasis>autodisconnect</emphasis> option.</para>
+      </section>
+
+      <section xml:id="connect">
+        <title>sql:connect</title>
+
+        <para>Create a connection to a database for the current agent.</para>
+
+        <synopsis><command>sql:connect</command> [[<literal>"brand"</literal> <parameter>brandname</parameter>] [<literal>"host"</literal> <parameter>hostname</parameter>] [<literal>"port"</literal> <parameter>port</parameter>] [<literal>"user"</literal> <parameter>username</parameter>] [<literal>"password"</literal> <parameter>password</parameter>] [<literal>"database"</literal> <parameter>schema</parameter>]]</synopsis>
+
+        <variablelist>
+          <varlistentry>
+            <term>brandname</term>
+
+            <listitem>
+              <para>name of the database type (type: string). Optional,
+              defaults to <code>MySQL</code> if the "brand" list is not
+              passed. Valid values: <code>MySQL</code></para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>hostname</term>
+
+            <listitem>
+              <para>hostname of the database server (type: string). Optional,
+              defaults to <code>localhost</code> if "host" list is not
+              passed.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>port</term>
+
+            <listitem>
+              <para>port number of the database server (type: integer or
+              string). Optional, defaults to <code>3306</code> if "port" list
+              is not passed.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>username</term>
+
+            <listitem>
+              <para>Username to the database (type: string)</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>password</term>
+
+            <listitem>
+              <para>Password to the database (type: string)</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>schema</term>
+
+            <listitem>
+              <para>name of the database schema (type: string)</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+
+        <para>The <command>sql:connect</command> command can be used to create
+        a connection for a specific agent (the agent in the current context).
+        When connection pooling is used, this command is not necessary.
+        Connections created using <command>sql:connect</command> are not
+        subject to <emphasis>autodisconnect</emphasis> and need to be closed
+        manually using <link
+        linkend="disconnect"><command>sql:disconnect</command></link>.</para>
+
+        <para>The parameters of <command>sql:connect</command> are a subset of
+        the parameters of <xref linkend="aspect-defaultconnection"
+        xrefstyle="select: title" />.</para>
+      </section>
+
+      <section xml:id="disconnect">
+        <title>sql:disconnect</title>
+
+        <para>Disconnect the current agent from the database.</para>
+
+        <synopsis><command>sql:disconnect</command></synopsis>
+
+        <para>For connection pooling, the connection is returned to the
+        connection-pool for re-use. When using connection pooling, it is
+        advisable to to use <emphasis>autodisconnect</emphasis> (default), or
+        make sure connections are closed as soon as possible, so it can be
+        re-used by another agent.</para>
+
+        <important>
+          <para>Close a connection as soon as possible to limit the number of
+          connections required.</para>
+        </important>
+      </section>
+
+      <section xml:id="is-connected">
+        <title>sql:is-connected?</title>
+
+        <para>Checks if a connection is established.</para>
+
+        <synopsis><command>sql:is-connected?</command></synopsis>
+
+        <para>This reporter returns true if a connection is established, false
+        otherwise. When using connection pooling it will always return true.
+        The command <link
+        linkend="debug-is-connected"><command>sql:debug-is-connected?</command></link>
+        can be used to check the actual connection status.</para>
+
+        <para>This reporter does not autodisconnect.</para>
+      </section>
+
+      <section>
+        <title>sql:use-database</title>
+
+        <para>Switches the connection to another database schema on the same
+        server.</para>
+
+        <synopsis><command>sql:use-database</command> <parameter>schema</parameter></synopsis>
+
+        <variablelist>
+          <varlistentry>
+            <term>schema</term>
+
+            <listitem>
+              <para>name of the database schema (type: string)</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+
+        <para>This command can only be used on connections created using <link
+        linkend="connect"><command>sql:connect</command></link>; it will
+        result in an error when executed a connection from the connection
+        pool.</para>
+      </section>
+
+      <section>
+        <title>sql:current-database</title>
+
+        <para>Returns the name of the current database schema.</para>
+
+        <synopsis><command>sql:current-database</command></synopsis>
+
+        <para>This reporter does not autodisconnect.</para>
+      </section>
+
+      <section>
+        <title>sql:find-database</title>
+
+        <para>Checks if the specified database schema exists on the database
+        server.</para>
+
+        <synopsis><command>sql:find-database</command> <parameter>schema</parameter></synopsis>
+
+        <variablelist>
+          <varlistentry>
+            <term>schema</term>
+
+            <listitem>
+              <para>name of the database schema (type:string)</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+
+        <para>This reporter does not autodisconnect.</para>
+      </section>
+
+      <section>
+        <title>sql:show-version</title>
+
+        <para>Prints the version of the SQL Wrapper plugin.</para>
+
+        <synopsis><command>sql:show-version</command></synopsis>
+
+        <para>This reporter will return a list with version information of the
+        plugin.</para>
+      </section>
+    </chapter>
+
+    <chapter>
+      <title>Executing SQL</title>
+
+      <section xml:id="exec-query">
+        <title>sql:exec-query</title>
+
+        <para>The <command>sql:exec-query</command> command enables execution
+        of parameterized SQL data-retrieval queries (like
+        <command>SELECT</command>) which produce a resultset.</para>
+
+        <synopsis><command>sql:exec-query</command> <parameter>parameterized-sql-statement</parameter> [<parameter>parameters...</parameter>]</synopsis>
+
+        <variablelist>
+          <varlistentry>
+            <term>parameterized-sql-statement</term>
+
+            <listitem>
+              <para>SQL statement that uses the <literal>?</literal> as a
+              placed holder for parameters.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>parameters...</term>
+
+            <listitem>
+              <para>List of parameters that should be substituted for the
+              <literal>?</literal> in the query. Every questionmark in the
+              parameterized query should have a corresponding parameter in the
+              list.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+
+        <para>A parameterized statement is a SQL statement with placeholders -
+        the questionmark (?) - to indicate parameters. These parameters will
+        be substituted with the values from the list of values in the second
+        argument. SQL Wrapper accepts parameters of type string, number and
+        boolean. Other NetLogo datatypes are not supported and will result in
+        an error. The substitution is positional, which means that the first
+        questionmark in the query is replaced with the first value in the
+        list. This also means that the number of parameters (question marks)
+        in the query, and the number of values in the parameter-list must be
+        the same.</para>
+
+        <para>The supported datatypes will be automatically converted to the
+        equivalent type in the database and are escaped if necessary. Be aware
+        that NetLogo uses a floating point datatype (double) for all numbers,
+        so loss of precision can occur for fractional values and (large)
+        integer values.</para>
+
+        <table border="1">
+          <caption>Conversions from NetLogo to SQL</caption>
+
+          <tr>
+            <th>TO \ FROM</th>
+
+            <th>number</th>
+
+            <th>string</th>
+
+            <th>boolean</th>
+          </tr>
+
+          <tr>
+            <th>CHAR, VARCHAR, LONGVARCHAR</th>
+
+            <td>yes</td>
+
+            <td>yes</td>
+
+            <td>yes (0 / 1 for MySQL)</td>
+          </tr>
+
+          <tr>
+            <th>NUMERIC, DECIMAL</th>
+
+            <td>yes</td>
+
+            <td>yes, only for valid numbers</td>
+
+            <td>yes (0 / 1 for MySQL)</td>
+          </tr>
+
+          <tr>
+            <th>TINYINT, SMALLINT, INTEGER, BIGINT</th>
+
+            <td>yes</td>
+
+            <td>yes, only for valid numbers</td>
+
+            <td>yes (0 / 1 for MySQL)</td>
+          </tr>
+
+          <tr>
+            <th>REAL, FLOAT, DOUBLE</th>
+
+            <td>yes</td>
+
+            <td>yes, only for valid numbers</td>
+
+            <td>yes (0 / 1 for MySQL)</td>
+          </tr>
+
+          <tr>
+            <th>BOOLEAN</th>
+
+            <td>not supported</td>
+
+            <td>not supported</td>
+
+            <td>yes (0 / 1 for MySQL)</td>
+          </tr>
+
+          <tr>
+            <th>BIT</th>
+
+            <td>not supported</td>
+
+            <td>not supported</td>
+
+            <td>yes (0 / 1 for MySQL)</td>
+          </tr>
+
+          <tr>
+            <th>TIME</th>
+
+            <td>database dependent</td>
+
+            <td>database dependent</td>
+
+            <td>not supported</td>
+          </tr>
+
+          <tr>
+            <th>DATE</th>
+
+            <td>database dependent</td>
+
+            <td>database dependent</td>
+
+            <td>not supported</td>
+          </tr>
+
+          <tr>
+            <th>TIMESTAMP</th>
+
+            <td>database dependent</td>
+
+            <td>database dependent</td>
+
+            <td>not supported</td>
+          </tr>
+
+          <tr>
+            <th>BINARY, VARBINARY, LONGVARBINARY</th>
+
+            <td>not supported</td>
+
+            <td>not supported</td>
+
+            <td>not supported</td>
+          </tr>
+
+          <tr>
+            <th>CLOB</th>
+
+            <td>yes</td>
+
+            <td>yes</td>
+
+            <td>not supported</td>
+          </tr>
+
+          <tr>
+            <th>BLOB</th>
+
+            <td>not supported</td>
+
+            <td>not supported</td>
+
+            <td>not supported</td>
+          </tr>
+        </table>
+
+        <para>For conversions marked as <emphasis>database
+        dependent</emphasis>, it is best to consult the manual of your
+        database. For example MySQL will allow the number
+        <literal>105400</literal> for <type>TIME</type> and convert it to
+        <literal>10:54:00</literal>, but <literal>106300</literal> is not
+        allowed as the minutes should be lower than 60. Similar rules are
+        available for <type>DATE</type> and <type>TIMESTAMP</type>, and for
+        the conversion from string. Conversions marked as <emphasis>not
+        supported </emphasis>are formally not supported by the plugin, but
+        they might work depending on the value and/or database specific
+        conversion rules.</para>
+
+        <para>Before statements can be executed, the connection-pool needs to
+        be setup or a connection needs to be created using <link
+        linkend="connect"><command>sql:connect</command></link>. The command
+        <command>sql:exec-query</command> always creates a resultset, <xref
+        linkend="retrieving-results" xrefstyle="select: title" /> discusses
+        processing of resultsets.</para>
+
+        <para>This command performs autodisconnect if the query has an empty
+        result for pooled connections with autodisconnect enabled. Otherwise,
+        autodisconnect will be applied when the resultset has been fetched
+        completely. Autodisconnect will not be applied if autocommit is
+        off.</para>
+      </section>
+
+      <section xml:id="exec-update">
+        <title>sql:exec-update</title>
+
+        <para>The <command>sql:exec-update</command> command enables execution
+        of parameterized SQL DML statements (like <command>UPDATE</command>,
+        <command>INSERT</command> and <command>DELETE</command>) which do not
+        produce a resultset.</para>
+
+        <synopsis><command>sql:exec-update</command> <parameter>parameterized-sql-statements</parameter> [<parameter>parameters...</parameter>]</synopsis>
+
+        <variablelist>
+          <varlistentry>
+            <term>parameterized-sql-statement</term>
+
+            <listitem>
+              <para>SQL statement that uses the <literal>?</literal> as a
+              placed holder for parameters.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>parameters...</term>
+
+            <listitem>
+              <para>List of parameters that should be substituted for the
+              <literal>?</literal> in the query. Every questionmark in the
+              parameterized query should have a corresponding parameter in the
+              list.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+
+        <para>For more information on parameterized statements, see <link
+        linkend="exec-query"><command>sql:exec-query</command></link>.</para>
+
+        <para>Before statements can be executed, the connection-pool needs to
+        be setup or a connection needs to be created using <link
+        linkend="connect"><command>sql:connect</command></link>. The command
+        <command>sql:exec-update</command> never creates a resultset, the
+        reporter <link
+        linkend="get-rowcount"><command>sql:get-rowcount</command></link> can
+        be used to see how many rows were modified.</para>
+
+        <para>This command performs autodisconnect for pooled connections with
+        autodisconnect enabled. Autodisconnect will not be applied if
+        autocommit is off.</para>
+      </section>
+
+      <section xml:id="exec-direct">
+        <title>sql:exec-direct</title>
+
+        <para>The <command>sql:exec-direct</command> command allows execution
+        of all types of SQL. Usually, the <link
+        linkend="exec-query"><command>sql:exec-query</command></link> and
+        <link linkend="exec-update"><command>sql:exec-update</command></link>
+        commands are preferred.</para>
+
+        <synopsis><command>sql:exec-direct</command> <parameter>sql-statement</parameter></synopsis>
+
+        <variablelist>
+          <varlistentry>
+            <term>sql-statement</term>
+
+            <listitem>
+              <para>SQL statement to execute (type: string)</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+
+        <para>Before any queries can be executed, the connection-pool needs to
+        be setup or a connection needs to be created using <link
+        linkend="connect"><command>sql:connect</command></link>. The reporter
+        <link
+        linkend="resultset-available"><command>sql:resultset-available?</command></link>
+        can be used to check if the query produced a resultset. <xref
+        linkend="retrieving-results" xrefstyle="select: title" /> discusses
+        discusses processing of resultsets. If no resultset is available, the
+        reporter <link
+        linkend="get-rowcount"><command>sql:get-rowcount</command></link> can
+        be used to see how many rows were modified.</para>
+
+        <para>This command performs autodisconnect for pooled connections with
+        autodisconnect enabled. If the executed query did produce a resultset,
+        autodisconnect will only be applied if the resultset is empty,
+        otherwise, autodisconnect will be applied when the resultset has been
+        fetched completely. For other statements autodisconnect is applied
+        immediately. Autodisconnect will not be applied if autocommit is
+        off.</para>
+      </section>
+
+      <section xml:id="resultset-available">
+        <title>sql:resultset-available?</title>
+
+        <para>Checks if a resultset is available for processing.</para>
+
+        <synopsis><command>sql:resultset-available?</command></synopsis>
+
+        <para>This reporter can be used to check if the SQL statements
+        produced a resultset (for example after <command>SELECT</command>).
+        Returns <code>true</code> if the previously executed statement
+        produced a resultset, <code>false</code> otherwise.</para>
+
+        <para>Use of this reporter is only necessary if you do not know in
+        advance if the executed statement is a query or update
+        statement.</para>
+      </section>
+
+      <section xml:id="get-rowcount">
+        <title>sql:get-rowcount</title>
+
+        <para>Returns the number of rows modified (or added) by the last
+        query.</para>
+
+        <synopsis><command>sql:get-rowcount</command></synopsis>
+
+        <para>Some SQL statements modify rows (for example
+        <command>INSERT</command>, <command>DELETE</command> and
+        <command>UPDATE</command>). This reporter will return the number of
+        affected rows. If no rows were affected, 0 is returned. If there is no
+        connection, no statement was executed, or if the executed statement
+        could not modify the database (eg <command>SELECT</command>
+        statements), -1 is returned.</para>
+      </section>
+    </chapter>
+
+    <chapter xml:id="retrieving-results">
+      <title>Retrieving results</title>
+
+      <section xml:id="fetch-row">
+        <title>sql:fetch-row</title>
+
+        <para>Fetches a single row of the result of a query.</para>
+
+        <synopsis><command>sql:fetch-row</command></synopsis>
+
+        <para>The row is returned as a NetLogo list with the values of the
+        row. The SQL datatypes are converted to their NetLogo
+        equivalent:</para>
+
+        <table border="1">
+          <caption>Conversions from SQL to NetLogo</caption>
+
+          <tr>
+            <th>FROM (SQL)</th>
+
+            <th>TO (NetLogo)</th>
+          </tr>
+
+          <tr>
+            <td>CHAR, VARCHAR, LONGVARCHAR</td>
+
+            <td>string</td>
+          </tr>
+
+          <tr>
+            <td>NUMERIC, DECIMAL</td>
+
+            <td>number</td>
+          </tr>
+
+          <tr>
+            <td>TINYINT, SMALLINT, INTEGER, BIGINT</td>
+
+            <td>number</td>
+          </tr>
+
+          <tr>
+            <td>REAL, FLOAT, DOUBLE</td>
+
+            <td>number</td>
+          </tr>
+
+          <tr>
+            <td>BIT, BOOLEAN</td>
+
+            <td>boolean</td>
+          </tr>
+
+          <tr>
+            <td>TIME</td>
+
+            <td>string (hh:mm:ss)</td>
+          </tr>
+
+          <tr>
+            <td>DATE</td>
+
+            <td>string (yyyy-mm-dd)</td>
+          </tr>
+
+          <tr>
+            <td>TIMESTAMP</td>
+
+            <td>string (yyyy-mm-dd hh:mm:ss.fffffffff where ffffffffff
+            indicates nanoseconds)</td>
+          </tr>
+
+          <tr>
+            <td>BINARY, VARBINARY, LONGVARBINARY</td>
+
+            <td>not supported (will return a string)</td>
+          </tr>
+
+          <tr>
+            <td>CLOB</td>
+
+            <td>string</td>
+          </tr>
+
+          <tr>
+            <td>BLOB</td>
+
+            <td>not supported (will return a string)</td>
+          </tr>
+        </table>
+
+        <para>Some SQL datatypes are not formally supported, but the extension
+        will attempt to return a string. As the NetLogo number datatype is
+        based on a 64 bit floating point type, loss of precision can occur for
+        decimal values or very large integer values. When conversion fails, an
+        error will be thrown. This can for example occur if the database is
+        able to store values that are not valid in Java (eg a MySQL
+        <type>DATE</type> with value 0000-00-00 cannot be converted to a valid
+        date in Java).</para>
+
+        <para>Calling <command>sql:fetch-row</command> again will return the
+        next row, when there are no more rows available an empty list will be
+        returned. If no connection is open, or if
+        <command>sql:fetch-row</command> is executed when no resultset is
+        available, an empty list will be returned as well.</para>
+
+        <para>This command will autodisconnect if autodisconnect is enabled,
+        the connection was obtained from the connection pool, and the fetched
+        row is the last row of the resultset.</para>
+      </section>
+
+      <section xml:id="fetch-resultset">
+        <title>sql:fetch-resultset</title>
+
+        <para>Fetches all rows of the result of a query.</para>
+
+        <synopsis><command>sql:fetch-resultset</command></synopsis>
+
+        <para>This reporter will fetch all rows from the result of a query.
+        The rows are returned as a NetLogo list with a NetLogo list per row,
+        as described in <link
+        linkend="fetch-row"><command>sql:fetch-row</command></link>.</para>
+
+        <para>Calling <command>sql:fetch-resultset</command> again will return
+        an empty list. Calling this command if no connection is open, or no
+        resultset is available will return an empty list as well.</para>
+
+        <para>This command will autodisconnect if autodisconnect is enabled,
+        and the connection was obtained from the connection pool.</para>
+      </section>
+
+      <section xml:id="row-available">
+        <title>sql:row-available?</title>
+
+        <para>Indicates if a next row is available in the resultset.</para>
+
+        <synopsis><command>sql:row-available?</command></synopsis>
+
+        <para>This reporter wil return <code>true</code> if the next call to
+        <link linkend="fetch-row"><command>sql:fetch-row</command></link> will
+        return a row, or <link
+        linkend="fetch-resultset"><command>sql:fetch-resultset</command></link>
+        wil return at least one row. This reporter will return
+        <code>false</code> if no connection is open, there is no resultset, or
+        the last row of the resultset has been read. This reporter can be used
+        as a loop-condition when reading a resultset, see <xref
+        linkend="looping-resultset-example" xrefstyle="select: title" /> for
+        an example.</para>
+      </section>
+    </chapter>
+
+    <chapter>
+      <title>Transaction control</title>
+
+      <para>By default individual queries or updates are treated independent
+      of each other (the so called auto-commit mode). For some applications,
+      it is important that a group of queries and/or updates are executed
+      atomically (that is: they should succeed or fail as one). This is were
+      transactions come in: transactions allow a group of queries and updates
+      to be committed or rolled back as one.</para>
+
+      <para>For MySQL it is important to realise that transaction control only
+      works for tables maintained by the InnoDB engine. Tables in MyISAM
+      format are not subject to transaction control. If you want to use
+      transactions in MySQL, please make sure that all your tables are in
+      InnoDB format.</para>
+
+      <section>
+        <title>sql:autocommit-on</title>
+
+        <para>Enables auto-commit mode on the current connection.</para>
+
+        <synopsis><command>sql:autocommit-on</command></synopsis>
+
+        <para>Enabling autocommit on a connection will commit any active
+        transaction.</para>
+      </section>
+
+      <section xml:id="autocommit-off">
+        <title>sql:autocommit-off</title>
+
+        <para>Disables auto-commit mode on the current connection.</para>
+
+        <synopsis><command>sql:autocommit-off</command></synopsis>
+
+        <para>This command essentially does the same as <link
+        linkend="start-transaction"><command>sql:start-transaction</command></link>.</para>
+      </section>
+
+      <section>
+        <title>sql:autocommit-enabled?</title>
+
+        <para>Reports on the autocommit status of the current
+        connection.</para>
+
+        <synopsis><command>sql:autocommit-enabled?</command></synopsis>
+
+        <para>Returns <code>true</code> if autocommit is enabled,
+        <code>false</code> if autocommit is disabled.</para>
+      </section>
+
+      <section xml:id="start-transaction">
+        <title>sql:start-transaction</title>
+
+        <para>Disables auto-commit mode on the current connection.</para>
+
+        <synopsis><command>sql:start-transaction</command></synopsis>
+
+        <para>Indicates start of transaction, the actual transaction is
+        started when the first query or update is executed on this connection.
+        During a transaction on a pooled connection with autodisconnect, the
+        autodisconnect will not be performed for commands and reporters other
+        than <link
+        linkend="commit-transaction"><command>sql:commit-transaction</command></link>
+        and <link
+        linkend="rollback-transaction"><command>sql:rollback-transaction</command></link>.</para>
+      </section>
+
+      <section xml:id="commit-transaction">
+        <title>sql:commit-transaction</title>
+
+        <para>Commits the current transaction.</para>
+
+        <synopsis><command>sql:commit-transaction</command></synopsis>
+
+        <para>The commands commits the current active transaction. This will
+        return an error if autocommit mode is on. After transaction commit, on
+        connections without autodisconnect, a new transaction is started
+        implicitly (so autocommit stays off). On connections with
+        autodisconnect, the connection will be closed.</para>
+      </section>
+
+      <section>
+        <title xml:id="rollback-transaction">sql:rollback-transaction</title>
+
+        <para>Performs a rollback of the current transaction.</para>
+
+        <synopsis><command>sql:rollback-transaction</command></synopsis>
+
+        <para>The command performs a rollback of the current active
+        transaction, undoing changes performed in the transaction. This will
+        return an error if autocommit mode is on. After transaction rollback,
+        on connections without autodisconnect, a new transaction is started
+        implicitly (so autocommit stays off). On connections with
+        autodisconnect, the connection will be closed.</para>
+      </section>
+    </chapter>
+
+    <chapter>
+      <title>Logging and debugging</title>
+
+      <para>This chapter contains commands and reporters that can be used for
+      logging or debugging purposes. Logging itself can be configured using
+      the configure aspect described in <xref linkend="aspect-logging"
+      xrefstyle="select: title" />.</para>
+
+      <section xml:id="debug-is-connected">
+        <title>sql:debug-is-connected?</title>
+
+        <para>Checks if a connection is established, without obtaining a
+        connection from the connection pool.</para>
+
+        <synopsis><command>sql:debug-is-connected?</command></synopsis>
+
+        <para>The normal <link
+        linkend="is-connected"><command>sql:is-connected?</command></link>
+        reporter will always report <literal>true</literal> if the connection
+        pool is available. This reporter reports the actual connection status.
+        This reporter is intended for use by the SQL Wrapper developers for
+        testing and troubleshooting.</para>
+
+        <para>This reporter does not autodisconnect.</para>
+      </section>
+
+      <section xml:id="log">
+        <title>sql:log</title>
+
+        <para>Log information to the SQL Wrapper logfile.</para>
+
+        <synopsis><command>sql:log</command> <parameter>level</parameter> <parameter>message</parameter></synopsis>
+
+        <variablelist>
+          <varlistentry>
+            <term>level</term>
+
+            <listitem>
+              <para>log level to use (type: string). Valid values
+              (case-insensitive): <literal>SEVERE</literal> (highest),
+              <literal>WARNING</literal>, <literal>INFO</literal>,
+              <literal>CONFIG</literal>, <literal>FINE</literal>,
+              <literal>FINER</literal>, <literal>FINEST</literal> (lowest).
+              Invalid values will be logged as <literal>INFO</literal>.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>message</term>
+
+            <listitem>
+              <para>message to write to the logfile</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </chapter>
+  </part>
+
+  <part>
+    <title>Advanced topics</title>
+
+    <partintro>
+      <para>The advanced topics part contains more detailed examples of usage
+      inside NetLogo, and information on subjects that could impact developing
+      a model that makes intensive use of database connections.</para>
+    </partintro>
+
+    <chapter>
+      <title>Using SQL Wrapper in a NetLogo model</title>
+
+      <section xml:id="looping-resultset-example">
+        <title>Looping over a resultset</title>
+
+        <para>The following shows a simple example for looping over a
+        resultset and printing the rows.</para>
+
+        <programlisting>; loops over TABLE testtable
+to loop_t1
+  sql:connect [["host" "localhost"] ["port" 3306] ["user" "root"] ["password" "testpassword"] ["database" "default"]]
+  sql:exec-direct "SELECT * FROM testtable"
+  while [sql:row-available?] [
+    let row sql:fetch-row
+    print row
+  ]
+  sql:disconnect
+end</programlisting>
+
+        <para>This example uses the <link
+        linkend="row-available"><command>sql:row-available?</command></link>
+        reporter to loop over the resultset and then fetch individual rows
+        with <link
+        linkend="fetch-row"><command>sql:fetch-row</command></link>. Finally
+        the connection is closed using <link
+        linkend="disconnect"><command>sql:disconnect</command></link>.</para>
+      </section>
+
+      <section>
+        <title>Connection per agent</title>
+
+        <para>The example below demonstrates a case were the observer creates
+        agents based on information in the database, and agents are asked to
+        save themselves into the database.</para>
+
+        <para>When the agents are loaded only one connections is created: for
+        the observer, when the agents are saved every agent will get its own
+        connection to save itself.</para>
+
+        <programlisting>extensions [sql]
+
+breed [example_agents example_agent]
+
+example_agents-own [
+  db_id         ; Value of id in database
+  sample_value  ; Value of sample_value in database
+  in_db         ; true: saved in database (otherwise 0)
+]
+
+; Setup the example_agents by loading them from the database
+to setup
+  clear-all
+  ; Define connection pool (autodisconnect disabled)
+  sql:configure "defaultconnection" [["user" "root"] ["password" "testpassword"] ["database" "default"] ["autodisconnect" "off"]]
+  
+  ; Load agent data from database
+  sql:exec-query "SELECT id, sample_value FROM example_agent" []
+  while [sql:row-available?] [
+    let agent-data sql:fetch-row
+    create-example_agents 1 [
+      set db_id (item 0 agent-data)
+      set sample_value (item 1 agent-data)
+      set in_db true
+    ]
+  ]
+  ; autodisconnect is disabled, so manually disconnect as soon as possible
+  sql:disconnect
+end
+
+; Save agents to the database
+to save
+  ask example_agents [
+    ifelse in_db = 0 [
+      ; First save: INSERT
+      sql:exec-update "INSERT INTO example_agent (sample_value) VALUES (?)" (list sample_value)
+      ; Retrieve value of id in database
+      sql:exec-query "SELECT LAST_INSERT_ID()" []
+      ; Update id with value from db
+      set db_id (item 0 sql:fetch-row)
+      ; Agent now stored in database
+      set in_db true
+    ][
+      ; Already exists: UPDATE
+      sql:exec-update "UPDATE example_agent SET sample_value = ? WHERE id = ?" (list sample_value db_id)
+    ]
+    ; autodisconnect is disabled, so manually disconnect as soon as possible
+    sql:disconnect
+  ]
+end
+
+; Create a new agent with random sample value
+to create_agent
+  create-example_agents 1 [
+    set sample_value (random 200)
+  ]
+end
+
+; Change sample_value of all example_agents with a random (positive or negative) delta
+to random_change
+  ask example_agents [
+    let delta ((random 101) - 50)
+    set sample_value sample_value + delta
+  ]
+end
+  </programlisting>
+
+        <para>The <command>setup</command> command first configures the
+        connectionpool (and for this example we disable the autodisconnect
+        option; see comments on the <command>save</command> command). The
+        observer then queries a table called <literal>example_agent</literal>
+        (with columns <literal>id</literal> and
+        <literal>sample_value</literal>). For every row in the table, it
+        creates a turtle of the breed example_agents and assigns the values of
+        id and sample_value to agent-variables. Finally the connection is
+        closed because we need to do this manually when autodisconnect is
+        turned off.</para>
+
+        <para>The <command>save</command> command asks every agent to save
+        itself. If the example_agent has not been saved yet it will
+        <command>INSERT</command> itself into example_agent and then retrieve
+        the new value for its id (db_id) and mark itself as saved. If the
+        agent was already saved, it will use an <command>UPDATE</command>
+        statement to update its sample_value in the database. Finally we close
+        the connection manually as autodisconnect is disabled.</para>
+
+        <para>In the <command>setup</command> command we disabled
+        autodisconnect, as the new id value needs to be retrieved after an
+        <command>INSERT</command> (in this example) and we need to be sure we
+        retrieve the right value. Normally when autodisconnect is enabled, the
+        connection would have been returned to the connection pool after <link
+        linkend="exec-update"><command>sql:exec-update</command></link>. The
+        following <link
+        linkend="exec-query"><command>sql:exec-query</command></link> would
+        have retrieved a new connection from the connectionpool, and this may
+        be a different connection. We could also have kept autodisconnect
+        enabled, and used transactions instead as transactions disable
+        autodisconnect for the duration of the transaction.</para>
+
+        <para>The other two commands, <command>create_agent</command> and
+        <command>random_change</command> are intended to try out this model
+        from the observer prompt of the model. The
+        <command>create_agent</command> command creates a new - unsaved -
+        example_agent with a random sample_value. The
+        <command>random_change</command> command will update the sample_value
+        of all example_agents with a random value between -50 and 50.</para>
+      </section>
+    </chapter>
+
+    <chapter>
+      <title>Connections per agent, minimizing resource use</title>
+
+      <para>A NetLogo model can contain a large number of agents, while at the
+      same time a database server may allow only a limited number of
+      connections. This chapter discusses some strategies to reduce the number
+      of connections needed. First we discuss how agents in NetLogo execute
+      commands, and the impact that has on the number of connections required.
+      Second we discuss the connectionpooling and autodisconnect. Then we show
+      how transaction impact the number of connections. Finally we discuss
+      methods of minimizing connections required, and configuring the
+      extension to allow for more connections.</para>
+
+      <section>
+        <title>Ask and ask-concurrent</title>
+
+        <para>One of the important features of NetLogo, is the option to have
+        agents execute commands for themselves. It is important to realise
+        that NetLogo has only one thread of execution, this means that
+        instructions (commands, reporters) are executed one at a time. The
+        NetLogo has two commands to instruct agents to execute commands:
+        <command>ask</command> and <command>ask-concurrent</command>. The
+        command <command>ask</command> will instruct every agent in turn to
+        execute all commands in the command block. This also means that the
+        next agent will only start executing if the previous agent has
+        completed all commands in the block. On the other hand, the
+        <command>ask-conncurrent</command> command produces simulated
+        concurrency by interleaving the commands: as soon as an agent
+        completed a command that changed state (moved the turtle, changed a
+        global, turtle, link or patch variable), another agent gets a turn to
+        execute commands and so on. For more details on <command>ask</command>
+        and <command>ask-concurrent</command>, see the NetLogo
+        documentation.</para>
+
+        <para>For the next discussion we use an example without connection
+        pooling or autodisconnect:</para>
+
+        <programlisting>ask/ask-concurrent &lt;agents&gt; [
+  sql:connect &lt;connection-list&gt;
+  ...
+  set &lt;agent-variable&gt; &lt;new value&gt;
+  ...
+  sql:disconnect
+]</programlisting>
+
+        <para>This example is fairly straightforward for
+        <command>ask</command>: the first agent performs <literal>sql:connect
+        - ... - set &lt;agent-variable&gt; &lt;new value&gt; - ... -
+        sql:disconnect</literal> and then the second agent does the same, and
+        so on. This means that when we open and close a connection in an
+        <command>ask</command>-block we only use <emphasis>one</emphasis>
+        connection at a time, independent of the number of agents in the
+        agentset.</para>
+
+        <para>The example is more complex for
+        <command>ask-concurrent</command>: the first agent performs
+        <literal>sql:connect - ... - set &lt;agent-variable&gt; &lt;new
+        value&gt;</literal>. As the state of an agent variable changed, the
+        next agent is given a turn and performs the same commands and so on,
+        finally the first agent continues with <literal>... -
+        sql:disconnect</literal>. This means that connections are only closed
+        after all agents have allocated connections, so here we use
+        <emphasis>as many</emphasis> connections as there are agents.</para>
+
+        <para>For <command>ask-concurrent</command> this can mean that we
+        exhaust the number of connections available on the database server
+        (either because a limit is configured, or because the server simply
+        can't handle more connections), especially when the number of agents
+        is not known in advance.</para>
+      </section>
+
+      <section>
+        <title>Connectionpooling and autodisconnect</title>
+
+        <para>Connectionpooling simplifies database usage, because we only
+        need to configure the <literal>defaultconnection</literal> once, and a
+        connection is obtained when it is needed without the need for an
+        explicit <command>sql:connect</command>. This simplicity however also
+        introduces risk, because it is easy to forget that the connection
+        needs to be closed as well. For that reason the connectionpool by
+        default uses <literal>autodisconnect</literal>, this means that SQL
+        Wrapper itself will close the connection as soon as possible:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>After changing the database (outside transactions)</para>
+          </listitem>
+
+          <listitem>
+            <para>After reading the last result from a query (outside
+            transactions)</para>
+          </listitem>
+
+          <listitem>
+            <para>After committing or rolling back a transaction (see next
+            section)</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>As an example where only the database is changed:</para>
+
+        <programlisting>sql-configure "defaultconnection" &lt;connection-list&gt;
+
+ask/ask-concurrent &lt;agents&gt; [
+  sql:exec-update "INSERT INTO table (column) VALUES (?)" (list &lt;agent variable&gt;)
+]</programlisting>
+
+        <para>Here SQL Wrapper will only obtain a connection when
+        sql:exec-update is executed, and with autodisconnect enabled it will
+        close that connection before the next command is executed. For this
+        example it does not matter if we use <command>ask</command> or
+        <command>ask-concurrent</command>, as we will use only
+        <emphasis>one</emphasis> connection at a time. However if
+        autodisconnect is disabled this example will open connections for
+        every agent and those connections will not be closed! With
+        autodisconnect off, we would need to add an explicit
+        <command>sql:disconnect</command> to close the connection:</para>
+
+        <programlisting>sql-configure  "defaultconnection [&lt;connection-config&gt; ["autodisconnect" "off"]]
+
+ask/ask-concurrent &lt;agents&gt; [
+  sql:exec-update "INSERT INTO table (column) VALUES (?)" (list &lt;agent variable&gt;)
+  ...
+  sql:disconnect
+]</programlisting>
+
+        <para>This looks simple enough, but now the difference in behaviour of
+        <command>ask</command> and <command>ask-concurrent</command> can have
+        an effect on the number of connections needed: if the
+        <literal>...</literal> in the example does not change the state of the
+        model (moving a turtle, changing global, turtle, link or patch
+        variables) then <command>ask</command> and
+        <command>ask-concurrent</command> will behave the same (and only
+        <emphasis>one</emphasis> connection is needed). However if the state
+        of the model is changed, in <command>ask-concurrent</command> this
+        will switch the turn to the next agent (and so on) and we will need a
+        connection for every agent. The connections are then only closed when
+        all agents have had their turn for the first part of the command
+        block.</para>
+
+        <para>When a query like <command>SELECT</command> is executed, the
+        connection is only autodisconnected when the last result has been
+        retrieved. This means that there are two potential causes for using
+        too many connections: not reading all results (and not using an
+        explict <command>sql:disconnect</command>), or in
+        <command>ask-concurrent</command> using commands or reporters that
+        change the state of the model (and thus switch turn to the next
+        agent).</para>
+
+        <para>For example:</para>
+
+        <programlisting>sql-configure "defaultconnection" &lt;connection-list&gt;
+
+ask/ask-concurrent &lt;agents&gt; [
+  sql:exec-query "SELECT column1, column2 FROM table" []
+  ...
+  let row sql:fetch-row
+  ...
+]</programlisting>
+
+        <para>In this example a connection is obtained in
+        <command>sql:exec-query</command>. If the result of the query is only
+        one row, then the connection will be released when sql:fetch-row is
+        executed. If the result has more than one row (and we don't read them
+        all), the connection will remain open. To prevent this, we either need
+        to add an explicit sql:disconnect, or only query what we need, for
+        example by adding <literal>LIMIT 1</literal> to the query to retrieve
+        only one row. If we assume that autodisconnect will occur (because the
+        query result is only one row), then the difference between
+        <command>ask</command> and <command>ask-concurrent</command> once
+        again depends on what happens at the first <literal>...</literal> as
+        discussed earlier.</para>
+      </section>
+
+      <section>
+        <title>Transactions</title>
+
+        <para>The use of transactions adds yet another layer of complexity
+        when autodisconnect is on, as the autodisconnect is suspended until
+        transaction commit or rollback. For the purpose of this discussion we
+        can ignore the case when autodisconnect is off, as the consumption of
+        connections is similar to the cases already discussed. This section
+        focusses on the impact of transactions on connection usage, the next
+        chapter, <xref linkend="using-transactions"
+        xrefstyle="select: title" />, discusses the use of transactions
+        itself.</para>
+
+        <para>The basic flow of a transaction looks like this:</para>
+
+        <programlisting>sql-configure "defaultconnection" &lt;connection-list&gt;
+
+ask/ask-concurrent &lt;agents&gt; [
+  sql:start-transaction
+  ...
+  sql:exec-update "INSERT INTO table (column) VALUES (?)" (list &lt;agent variable&gt;)
+  ...
+  sql:commit-transaction
+]</programlisting>
+
+        <para>Contrary to previous examples, the connection is now obtained
+        from the connectionpool at <command>start-transaction</command>, and
+        the connection is not closed by <command>sql:exec-update</command>,
+        but only when <command>commit-transaction</command> is executed
+        (assuming autodisconnect is on). Once again for <command>ask</command>
+        this still means only one connection is needed, but for
+        <command>ask-concurrent</command> it depends if the first and/or
+        second <literal>...</literal> changes the state of the model.</para>
+      </section>
+
+      <section>
+        <title>Minimizing connection use</title>
+
+        <para>In the previous sections we discussed how the number of
+        connections is impacted by aspects of the NetLogo language and SQL
+        Wrapper itself. Here we list the options to limit the number of
+        connections used:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Use connectionpooling with autodisconnect</para>
+          </listitem>
+
+          <listitem>
+            <para>Use <command>sql:disconnect</command> as soon as possible
+            (when creating connections using <command>sql:connect</command> or
+            connectionpooling with autodisconnect off)</para>
+          </listitem>
+
+          <listitem>
+            <para>Use <command>ask</command> instead of
+            <command>ask-concurrent</command> when possible</para>
+          </listitem>
+
+          <listitem>
+            <para>With <command>ask-concurrent</command>: Do not change the
+            state of the model until after the connection is closed (eg save
+            information to local variables and assign to global, turtle, link
+            or patch variables after closing the connection)</para>
+          </listitem>
+
+          <listitem>
+            <para>Query only the number of rows that is needed (eg use
+            <literal>LIMIT</literal> in the query), or use an explicit
+            <command>sql:disconnect</command></para>
+          </listitem>
+
+          <listitem>
+            <para>Only use transactions when needed and make them as short as
+            possible</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>The NetLogo language also has a command
+        <command>without-interruption</command> that can be used to execute a
+        block of commands in a <command>ask-concurrent</command> block without
+        switching the turn to another agent. Use of this command is advisable
+        when you do need or want to use <command>ask-concurrent</command>, but
+        don't need to interleave the commands using the database
+        connection.</para>
+      </section>
+
+      <section>
+        <title>Configuring connections</title>
+
+        <para>By default the connectionpool will create upto 20 connections.
+        If SQL Wrapper tries to obtain a 21st connection, this will - by
+        default - throw an error. If the timeout on the <xref
+        linkend="aspect-connectionpool" /> is disabled it will block until a
+        connection is available. Unfortunately due to NetLogo's singlethreaded
+        approach a connection will never come available during this blocking
+        call so it is advisable to keep the timeout set!</para>
+
+        <para>If you follow the strategies described in the previous sections,
+        you will usually only need 1 or 2 connections at a time, but for more
+        complex NetLogo models it may be necessary to keep multiple
+        connections open at once. If this exceeds the limit of 20 connections,
+        you will need to increase the <varname>maxconnections</varname> option
+        of <xref linkend="aspect-connectionpool" />. Configuring this option
+        needs to happen before configuring the connection itself:</para>
+
+        <programlisting>sql:configure "connectionpool" [["maxconnections" 30]]
+sql:configure "defaultconnection" &lt;connection-list&gt;</programlisting>
+
+        <important>
+          <para>The number of connections can also be limited by one or more
+          database settings, please consult with your database administrator
+          to find out if limits apply and to increase limits if
+          necessary.</para>
+        </important>
+      </section>
+    </chapter>
+
+    <chapter xml:id="using-transactions">
+      <title>Using transactions</title>
+
+      <para>In the default use of SQL Wrapper (without transactions), every
+      statement is executed independently and technically: in its own
+      transaction. You use transaction when you need a group of statements to
+      be completed as one (or to be undone as one), or when you need to have a
+      consistent view of the database (you don't want to see the changes that
+      occurred after you started querying the database). Transactions also
+      ensure that two different agents cannot change the same item of data at
+      once.</para>
+
+      <important>
+        <para>Transactions in MySQL only work for InnoDB tables, please ensure
+        that all your tables use the InnoDB-engine if you want to use
+        transactions!</para>
+      </important>
+
+      <para>Use of transactions usually implies that other users of the
+      database cannot see your changes until you commit them. This visibility
+      depends on the transaction isolation level used by the other user. SQL
+      wrapper uses the REPEATABLE-READ isolation level: you can only see
+      information from transactions committed before you started querying the
+      database (but changes created by the own transaction are visible). The
+      current version of SQL Wrapper has no option to change this isolation
+      level.</para>
+
+      <para>In general use of transactions look like this:</para>
+
+      <programlisting>sql-configure "defaultconnection" &lt;connection-list&gt;
+
+ask &lt;agents&gt; [
+  sql:start-transaction
+  ...
+  sql:commit-transaction
+]</programlisting>
+
+      <para>or:</para>
+
+      <programlisting>sql-configure "defaultconnection" &lt;connection-list&gt;
+
+ask &lt;agents&gt; [
+  sql:start-transaction
+  ...
+  ifelse &lt;condition&gt;
+    [sql:commit-transaction]
+    [sql:rollback-transaction]
+]</programlisting>
+
+      <warning>
+        <para>The transaction behavior of the current version of SQL Wrapper
+        is unspecified if an error occurs when executing a query.</para>
+      </warning>
+    </chapter>
+  </part>
+
+  <appendix xml:id="lgpl">
+    <title><acronym>GNU</acronym> Lesser General Public License version
+    3</title>
+
+    <para>Version 3, 29 June 2007</para>
+
+    <para>Copyright © 2007 Free Software Foundation, Inc. <link
+    xlink:href="http://fsf.org/">http://fsf.org/</link></para>
+
+    <para>Everyone is permitted to copy and distribute verbatim copies of this
+    license document, but changing it is not allowed.</para>
+
+    <para>This version of the <acronym>GNU</acronym> Lesser General Public
+    License incorporates the terms and conditions of version 3 of the
+    <acronym>GNU</acronym> General Public License, supplemented by the
+    additional permissions listed below.</para>
+
+    <bridgehead renderas="sect1" xml:id="AdditionalDefinitions">0. Additional
+    Definitions.</bridgehead>
+
+    <para>As used herein, “this License” refers to version 3 of the
+    <acronym>GNU</acronym> Lesser General Public License, and the
+    “<acronym>GNU</acronym> <acronym>GPL</acronym>” refers to version 3 of the
+    <acronym>GNU</acronym> General Public License.</para>
+
+    <para>“The Library” refers to a covered work governed by this License,
+    other than an Application or a Combined Work as defined below.</para>
+
+    <para>An “Application” is any work that makes use of an interface provided
+    by the Library, but which is not otherwise based on the Library. Defining
+    a subclass of a class defined by the Library is deemed a mode of using an
+    interface provided by the Library.</para>
+
+    <para>A “Combined Work” is a work produced by combining or linking an
+    Application with the Library. The particular version of the Library with
+    which the Combined Work was made is also called the “Linked
+    Version”.</para>
+
+    <para>The “Minimal Corresponding Source” for a Combined Work means the
+    Corresponding Source for the Combined Work, excluding any source code for
+    portions of the Combined Work that, considered in isolation, are based on
+    the Application, and not on the Linked Version.</para>
+
+    <para>The “Corresponding Application Code” for a Combined Work means the
+    object code and/or source code for the Application, including any data and
+    utility programs needed for reproducing the Combined Work from the
+    Application, but excluding the System Libraries of the Combined
+    Work.</para>
+
+    <bridgehead renderas="sect1" xml:id="ExceptionSec3">1. Exception to
+    Section 3 of the <acronym>GNU</acronym>
+    <acronym>GPL</acronym>.</bridgehead>
+
+    <para>You may convey a covered work under sections 3 and 4 of this License
+    without being bound by section 3 of the <acronym>GNU</acronym>
+    <acronym>GPL</acronym>.</para>
+
+    <bridgehead renderas="sect1" xml:id="ConveyingModified">2. Conveying
+    Modified Versions.</bridgehead>
+
+    <para>If you modify a copy of the Library, and, in your modifications, a
+    facility refers to a function or data to be supplied by an Application
+    that uses the facility (other than as an argument passed when the facility
+    is invoked), then you may convey a copy of the modified version:</para>
+
+    <orderedlist numeration="loweralpha">
+      <listitem>
+        <para>under this License, provided that you make a good faith effort
+        to ensure that, in the event an Application does not supply the
+        function or data, the facility still operates, and performs whatever
+        part of its purpose remains meaningful, or</para>
+      </listitem>
+
+      <listitem>
+        <para>under the <acronym>GNU</acronym> <acronym>GPL</acronym>, with
+        none of the additional permissions of this License applicable to that
+        copy.</para>
+      </listitem>
+    </orderedlist>
+
+    <bridgehead renderas="sect1" xml:id="ObjectCodeIncorporating">3. Object
+    Code Incorporating Material from Library Header Files.</bridgehead>
+
+    <para>The object code form of an Application may incorporate material from
+    a header file that is part of the Library. You may convey such object code
+    under terms of your choice, provided that, if the incorporated material is
+    not limited to numerical parameters, data structure layouts and accessors,
+    or small macros, inline functions and templates (ten or fewer lines in
+    length), you do both of the following:</para>
+
+    <orderedlist numeration="loweralpha">
+      <listitem>
+        <para>Give prominent notice with each copy of the object code that the
+        Library is used in it and that the Library and its use are covered by
+        this License.</para>
+      </listitem>
+
+      <listitem>
+        <para>Accompany the object code with a copy of the
+        <acronym>GNU</acronym> <acronym>GPL</acronym> and this license
+        document.</para>
+      </listitem>
+    </orderedlist>
+
+    <bridgehead renderas="sect1" xml:id="CombinedWorks">4. Combined
+    Works.</bridgehead>
+
+    <para>You may convey a Combined Work under terms of your choice that,
+    taken together, effectively do not restrict modification of the portions
+    of the Library contained in the Combined Work and reverse engineering for
+    debugging such modifications, if you also do each of the following:</para>
+
+    <orderedlist numeration="loweralpha">
+      <listitem>
+        <para>Give prominent notice with each copy of the Combined Work that
+        the Library is used in it and that the Library and its use are covered
+        by this License.</para>
+      </listitem>
+
+      <listitem>
+        <para>Accompany the Combined Work with a copy of the
+        <acronym>GNU</acronym> <acronym>GPL</acronym> and this license
+        document.</para>
+      </listitem>
+
+      <listitem>
+        <para>For a Combined Work that displays copyright notices during
+        execution, include the copyright notice for the Library among these
+        notices, as well as a reference directing the user to the copies of
+        the <acronym>GNU</acronym> <acronym>GPL</acronym> and this license
+        document.</para>
+      </listitem>
+
+      <listitem>
+        <para>Do one of the following:</para>
+
+        <orderedlist numeration="arabic" role="0">
+          <listitem>
+            <para>Convey the Minimal Corresponding Source under the terms of
+            this License, and the Corresponding Application Code in a form
+            suitable for, and under terms that permit, the user to recombine
+            or relink the Application with a modified version of the Linked
+            Version to produce a modified Combined Work, in the manner
+            specified by section 6 of the <acronym>GNU</acronym>
+            <acronym>GPL</acronym> for conveying Corresponding Source.</para>
+          </listitem>
+
+          <listitem>
+            <para>Use a suitable shared library mechanism for linking with the
+            Library. A suitable mechanism is one that (a) uses at run time a
+            copy of the Library already present on the user’s computer system,
+            and (b) will operate properly with a modified version of the
+            Library that is interface-compatible with the Linked
+            Version.</para>
+          </listitem>
+        </orderedlist>
+      </listitem>
+
+      <listitem>
+        <para>Provide Installation Information, but only if you would
+        otherwise be required to provide such information under section 6 of
+        the <acronym>GNU</acronym> <acronym>GPL</acronym>, and only to the
+        extent that such information is necessary to install and execute a
+        modified version of the Combined Work produced by recombining or
+        relinking the Application with a modified version of the Linked
+        Version. (If you use option 4d0, the Installation Information must
+        accompany the Minimal Corresponding Source and Corresponding
+        Application Code. If you use option 4d1, you must provide the
+        Installation Information in the manner specified by section 6 of the
+        <acronym>GNU</acronym> <acronym>GPL</acronym> for conveying
+        Corresponding Source.)</para>
+      </listitem>
+    </orderedlist>
+
+    <bridgehead renderas="sect1" xml:id="CombinedLibraries">5. Combined
+    Libraries.</bridgehead>
+
+    <para>You may place library facilities that are a work based on the
+    Library side by side in a single library together with other library
+    facilities that are not Applications and are not covered by this License,
+    and convey such a combined library under terms of your choice, if you do
+    both of the following:</para>
+
+    <orderedlist numeration="loweralpha">
+      <listitem>
+        <para>Accompany the combined library with a copy of the same work
+        based on the Library, uncombined with any other library facilities,
+        conveyed under the terms of this License.</para>
+      </listitem>
+
+      <listitem>
+        <para>Give prominent notice with the combined library that part of it
+        is a work based on the Library, and explaining where to find the
+        accompanying uncombined form of the same work.</para>
+      </listitem>
+    </orderedlist>
+
+    <bridgehead renderas="sect1" xml:id="RevisedVersions">6. Revised Versions
+    of the <acronym>GNU</acronym> Lesser General Public License.</bridgehead>
+
+    <para>The Free Software Foundation may publish revised and/or new versions
+    of the <acronym>GNU</acronym> Lesser General Public License from time to
+    time. Such new versions will be similar in spirit to the present version,
+    but may differ in detail to address new problems or concerns.</para>
+
+    <para>Each version is given a distinguishing version number. If the
+    Library as you received it specifies that a certain numbered version of
+    the <acronym>GNU</acronym> Lesser General Public License “or any later
+    version” applies to it, you have the option of following the terms and
+    conditions either of that published version or of any later version
+    published by the Free Software Foundation. If the Library as you received
+    it does not specify a version number of the <acronym>GNU</acronym> Lesser
+    General Public License, you may choose any version of the
+    <acronym>GNU</acronym> Lesser General Public License ever published by the
+    Free Software Foundation.</para>
+
+    <para>If the Library as you received it specifies that a proxy can decide
+    whether future versions of the <acronym>GNU</acronym> Lesser General
+    Public License shall apply, that proxy’s public statement of acceptance of
+    any version is permanent authorization for you to choose that version for
+    the Library.</para>
+  </appendix>
+
+  <appendix xml:id="gpl">
+    <title><acronym>GNU</acronym> General Public License version 3</title>
+
+    <para>Version 3, 29 June 2007</para>
+
+    <para>Copyright © 2007 Free Software Foundation, Inc. <link
+    xlink:href="http://fsf.org/">http://fsf.org/</link></para>
+
+    <para>Everyone is permitted to copy and distribute verbatim copies of this
+    license document, but changing it is not allowed.</para>
+
+    <bridgehead renderas="sect1" xml:id="Preamble">Preamble</bridgehead>
+
+    <para>The <acronym>GNU</acronym> General Public License is a free,
+    copyleft license for software and other kinds of works.</para>
+
+    <para>The licenses for most software and other practical works are
+    designed to take away your freedom to share and change the works. By
+    contrast, the <acronym>GNU</acronym> General Public License is intended to
+    guarantee your freedom to share and change all versions of a program—to
+    make sure it remains free software for all its users. We, the Free
+    Software Foundation, use the <acronym>GNU</acronym> General Public License
+    for most of our software; it applies also to any other work released this
+    way by its authors. You can apply it to your programs, too.</para>
+
+    <para>When we speak of free software, we are referring to freedom, not
+    price. Our General Public Licenses are designed to make sure that you have
+    the freedom to distribute copies of free software (and charge for them if
+    you wish), that you receive source code or can get it if you want it, that
+    you can change the software or use pieces of it in new free programs, and
+    that you know you can do these things.</para>
+
+    <para>To protect your rights, we need to prevent others from denying you
+    these rights or asking you to surrender the rights. Therefore, you have
+    certain responsibilities if you distribute copies of the software, or if
+    you modify it: responsibilities to respect the freedom of others.</para>
+
+    <para>For example, if you distribute copies of such a program, whether
+    gratis or for a fee, you must pass on to the recipients the same freedoms
+    that you received. You must make sure that they, too, receive or can get
+    the source code. And you must show them these terms so they know their
+    rights.</para>
+
+    <para>Developers that use the <acronym>GNU</acronym>
+    <acronym>GPL</acronym> protect your rights with two steps: (1) assert
+    copyright on the software, and (2) offer you this License giving you legal
+    permission to copy, distribute and/or modify it.</para>
+
+    <para>For the developers’ and authors’ protection, the
+    <acronym>GPL</acronym> clearly explains that there is no warranty for this
+    free software. For both users’ and authors’ sake, the
+    <acronym>GPL</acronym> requires that modified versions be marked as
+    changed, so that their problems will not be attributed erroneously to
+    authors of previous versions.</para>
+
+    <para>Some devices are designed to deny users access to install or run
+    modified versions of the software inside them, although the manufacturer
+    can do so. This is fundamentally incompatible with the aim of protecting
+    users’ freedom to change the software. The systematic pattern of such
+    abuse occurs in the area of products for individuals to use, which is
+    precisely where it is most unacceptable. Therefore, we have designed this
+    version of the <acronym>GPL</acronym> to prohibit the practice for those
+    products. If such problems arise substantially in other domains, we stand
+    ready to extend this provision to those domains in future versions of the
+    <acronym>GPL</acronym>, as needed to protect the freedom of users.</para>
+
+    <para>Finally, every program is threatened constantly by software patents.
+    States should not allow patents to restrict development and use of
+    software on general-purpose computers, but in those that do, we wish to
+    avoid the special danger that patents applied to a free program could make
+    it effectively proprietary. To prevent this, the <acronym>GPL</acronym>
+    assures that patents cannot be used to render the program non-free.</para>
+
+    <para>The precise terms and conditions for copying, distribution and
+    modification follow.</para>
+
+    <bridgehead>TERMS AND CONDITIONS</bridgehead>
+
+    <bridgehead renderas="sect1" xml:id="Definitions">0.
+    Definitions.</bridgehead>
+
+    <para>“This License” refers to version 3 of the <acronym>GNU</acronym>
+    General Public License.</para>
+
+    <para>“Copyright” also means copyright-like laws that apply to other kinds
+    of works, such as semiconductor masks.</para>
+
+    <para>“The Program” refers to any copyrightable work licensed under this
+    License. Each licensee is addressed as “you”. “Licensees” and “recipients”
+    may be individuals or organizations.</para>
+
+    <para>To “modify” a work means to copy from or adapt all or part of the
+    work in a fashion requiring copyright permission, other than the making of
+    an exact copy. The resulting work is called a “modified version” of the
+    earlier work or a work “based on” the earlier work.</para>
+
+    <para>A “covered work” means either the unmodified Program or a work based
+    on the Program.</para>
+
+    <para>To “propagate” a work means to do anything with it that, without
+    permission, would make you directly or secondarily liable for infringement
+    under applicable copyright law, except executing it on a computer or
+    modifying a private copy. Propagation includes copying, distribution (with
+    or without modification), making available to the public, and in some
+    countries other activities as well.</para>
+
+    <para>To “convey” a work means any kind of propagation that enables other
+    parties to make or receive copies. Mere interaction with a user through a
+    computer network, with no transfer of a copy, is not conveying.</para>
+
+    <para>An interactive user interface displays “Appropriate Legal Notices”
+    to the extent that it includes a convenient and prominently visible
+    feature that (1) displays an appropriate copyright notice, and (2) tells
+    the user that there is no warranty for the work (except to the extent that
+    warranties are provided), that licensees may convey the work under this
+    License, and how to view a copy of this License. If the interface presents
+    a list of user commands or options, such as a menu, a prominent item in
+    the list meets this criterion.</para>
+
+    <bridgehead renderas="sect1" xml:id="SourceCode">1. Source
+    Code.</bridgehead>
+
+    <para>The “source code” for a work means the preferred form of the work
+    for making modifications to it. “Object code” means any non-source form of
+    a work.</para>
+
+    <para>A “Standard Interface” means an interface that either is an official
+    standard defined by a recognized standards body, or, in the case of
+    interfaces specified for a particular programming language, one that is
+    widely used among developers working in that language.</para>
+
+    <para>The “System Libraries” of an executable work include anything, other
+    than the work as a whole, that (a) is included in the normal form of
+    packaging a Major Component, but which is not part of that Major
+    Component, and (b) serves only to enable use of the work with that Major
+    Component, or to implement a Standard Interface for which an
+    implementation is available to the public in source code form. A “Major
+    Component”, in this context, means a major essential component (kernel,
+    window system, and so on) of the specific operating system (if any) on
+    which the executable work runs, or a compiler used to produce the work, or
+    an object code interpreter used to run it.</para>
+
+    <para>The “Corresponding Source” for a work in object code form means all
+    the source code needed to generate, install, and (for an executable work)
+    run the object code and to modify the work, including scripts to control
+    those activities. However, it does not include the work’s System
+    Libraries, or general-purpose tools or generally available free programs
+    which are used unmodified in performing those activities but which are not
+    part of the work. For example, Corresponding Source includes interface
+    definition files associated with source files for the work, and the source
+    code for shared libraries and dynamically linked subprograms that the work
+    is specifically designed to require, such as by intimate data
+    communication or control flow between those subprograms and other parts of
+    the work.</para>
+
+    <para>The Corresponding Source need not include anything that users can
+    regenerate automatically from other parts of the Corresponding
+    Source.</para>
+
+    <para>The Corresponding Source for a work in source code form is that same
+    work.</para>
+
+    <bridgehead renderas="sect1" xml:id="BasicPermissions">2. Basic
+    Permissions.</bridgehead>
+
+    <para>All rights granted under this License are granted for the term of
+    copyright on the Program, and are irrevocable provided the stated
+    conditions are met. This License explicitly affirms your unlimited
+    permission to run the unmodified Program. The output from running a
+    covered work is covered by this License only if the output, given its
+    content, constitutes a covered work. This License acknowledges your rights
+    of fair use or other equivalent, as provided by copyright law.</para>
+
+    <para>You may make, run and propagate covered works that you do not
+    convey, without conditions so long as your license otherwise remains in
+    force. You may convey covered works to others for the sole purpose of
+    having them make modifications exclusively for you, or provide you with
+    facilities for running those works, provided that you comply with the
+    terms of this License in conveying all material for which you do not
+    control copyright. Those thus making or running the covered works for you
+    must do so exclusively on your behalf, under your direction and control,
+    on terms that prohibit them from making any copies of your copyrighted
+    material outside their relationship with you.</para>
+
+    <para>Conveying under any other circumstances is permitted solely under
+    the conditions stated below. Sublicensing is not allowed; section 10 makes
+    it unnecessary.</para>
+
+    <bridgehead renderas="sect1" xml:id="Protecting">3. Protecting Users’
+    Legal Rights From Anti-Circumvention Law.</bridgehead>
+
+    <para>No covered work shall be deemed part of an effective technological
+    measure under any applicable law fulfilling obligations under article 11
+    of the WIPO copyright treaty adopted on 20 December 1996, or similar laws
+    prohibiting or restricting circumvention of such measures.</para>
+
+    <para>When you convey a covered work, you waive any legal power to forbid
+    circumvention of technological measures to the extent such circumvention
+    is effected by exercising rights under this License with respect to the
+    covered work, and you disclaim any intention to limit operation or
+    modification of the work as a means of enforcing, against the work’s
+    users, your or third parties’ legal rights to forbid circumvention of
+    technological measures.</para>
+
+    <bridgehead renderas="sect1" xml:id="ConveyingVerbatim">4. Conveying
+    Verbatim Copies.</bridgehead>
+
+    <para>You may convey verbatim copies of the Program’s source code as you
+    receive it, in any medium, provided that you conspicuously and
+    appropriately publish on each copy an appropriate copyright notice; keep
+    intact all notices stating that this License and any non-permissive terms
+    added in accord with section 7 apply to the code; keep intact all notices
+    of the absence of any warranty; and give all recipients a copy of this
+    License along with the Program.</para>
+
+    <para>You may charge any price or no price for each copy that you convey,
+    and you may offer support or warranty protection for a fee.</para>
+
+    <bridgehead renderas="sect1">5. Conveying Modified Source
+    Versions.</bridgehead>
+
+    <para>You may convey a work based on the Program, or the modifications to
+    produce it from the Program, in the form of source code under the terms of
+    section 4, provided that you also meet all of these conditions:</para>
+
+    <orderedlist numeration="loweralpha">
+      <listitem>
+        <para>The work must carry prominent notices stating that you modified
+        it, and giving a relevant date.</para>
+      </listitem>
+
+      <listitem>
+        <para>The work must carry prominent notices stating that it is
+        released under this License and any conditions added under section 7.
+        This requirement modifies the requirement in section 4 to “keep intact
+        all notices”.</para>
+      </listitem>
+
+      <listitem>
+        <para>You must license the entire work, as a whole, under this License
+        to anyone who comes into possession of a copy. This License will
+        therefore apply, along with any applicable section 7 additional terms,
+        to the whole of the work, and all its parts, regardless of how they
+        are packaged. This License gives no permission to license the work in
+        any other way, but it does not invalidate such permission if you have
+        separately received it.</para>
+      </listitem>
+
+      <listitem>
+        <para>If the work has interactive user interfaces, each must display
+        Appropriate Legal Notices; however, if the Program has interactive
+        interfaces that do not display Appropriate Legal Notices, your work
+        need not make them do so.</para>
+      </listitem>
+    </orderedlist>
+
+    <para>A compilation of a covered work with other separate and independent
+    works, which are not by their nature extensions of the covered work, and
+    which are not combined with it such as to form a larger program, in or on
+    a volume of a storage or distribution medium, is called an “aggregate” if
+    the compilation and its resulting copyright are not used to limit the
+    access or legal rights of the compilation’s users beyond what the
+    individual works permit. Inclusion of a covered work in an aggregate does
+    not cause this License to apply to the other parts of the
+    aggregate.</para>
+
+    <bridgehead renderas="sect1">6. Conveying Non-Source Forms.</bridgehead>
+
+    <para>You may convey a covered work in object code form under the terms of
+    sections 4 and 5, provided that you also convey the machine-readable
+    Corresponding Source under the terms of this License, in one of these
+    ways:</para>
+
+    <orderedlist numeration="loweralpha">
+      <listitem>
+        <para>Convey the object code in, or embodied in, a physical product
+        (including a physical distribution medium), accompanied by the
+        Corresponding Source fixed on a durable physical medium customarily
+        used for software interchange.</para>
+      </listitem>
+
+      <listitem>
+        <para>Convey the object code in, or embodied in, a physical product
+        (including a physical distribution medium), accompanied by a written
+        offer, valid for at least three years and valid for as long as you
+        offer spare parts or customer support for that product model, to give
+        anyone who possesses the object code either (1) a copy of the
+        Corresponding Source for all the software in the product that is
+        covered by this License, on a durable physical medium customarily used
+        for software interchange, for a price no more than your reasonable
+        cost of physically performing this conveying of source, or (2) access
+        to copy the Corresponding Source from a network server at no
+        charge.</para>
+      </listitem>
+
+      <listitem>
+        <para>Convey individual copies of the object code with a copy of the
+        written offer to provide the Corresponding Source. This alternative is
+        allowed only occasionally and noncommercially, and only if you
+        received the object code with such an offer, in accord with subsection
+        6b.</para>
+      </listitem>
+
+      <listitem>
+        <para>Convey the object code by offering access from a designated
+        place (gratis or for a charge), and offer equivalent access to the
+        Corresponding Source in the same way through the same place at no
+        further charge. You need not require recipients to copy the
+        Corresponding Source along with the object code. If the place to copy
+        the object code is a network server, the Corresponding Source may be
+        on a different server (operated by you or a third party) that supports
+        equivalent copying facilities, provided you maintain clear directions
+        next to the object code saying where to find the Corresponding Source.
+        Regardless of what server hosts the Corresponding Source, you remain
+        obligated to ensure that it is available for as long as needed to
+        satisfy these requirements.</para>
+      </listitem>
+
+      <listitem>
+        <para>Convey the object code using peer-to-peer transmission, provided
+        you inform other peers where the object code and Corresponding Source
+        of the work are being offered to the general public at no charge under
+        subsection 6d.</para>
+      </listitem>
+    </orderedlist>
+
+    <para>A separable portion of the object code, whose source code is
+    excluded from the Corresponding Source as a System Library, need not be
+    included in conveying the object code work.</para>
+
+    <para>A “User Product” is either (1) a “consumer product”, which means any
+    tangible personal property which is normally used for personal, family, or
+    household purposes, or (2) anything designed or sold for incorporation
+    into a dwelling. In determining whether a product is a consumer product,
+    doubtful cases shall be resolved in favor of coverage. For a particular
+    product received by a particular user, “normally used” refers to a typical
+    or common use of that class of product, regardless of the status of the
+    particular user or of the way in which the particular user actually uses,
+    or expects or is expected to use, the product. A product is a consumer
+    product regardless of whether the product has substantial commercial,
+    industrial or non-consumer uses, unless such uses represent the only
+    significant mode of use of the product.</para>
+
+    <para>“Installation Information” for a User Product means any methods,
+    procedures, authorization keys, or other information required to install
+    and execute modified versions of a covered work in that User Product from
+    a modified version of its Corresponding Source. The information must
+    suffice to ensure that the continued functioning of the modified object
+    code is in no case prevented or interfered with solely because
+    modification has been made.</para>
+
+    <para>If you convey an object code work under this section in, or with, or
+    specifically for use in, a User Product, and the conveying occurs as part
+    of a transaction in which the right of possession and use of the User
+    Product is transferred to the recipient in perpetuity or for a fixed term
+    (regardless of how the transaction is characterized), the Corresponding
+    Source conveyed under this section must be accompanied by the Installation
+    Information. But this requirement does not apply if neither you nor any
+    third party retains the ability to install modified object code on the
+    User Product (for example, the work has been installed in
+    <acronym>ROM</acronym>).</para>
+
+    <para>The requirement to provide Installation Information does not include
+    a requirement to continue to provide support service, warranty, or updates
+    for a work that has been modified or installed by the recipient, or for
+    the User Product in which it has been modified or installed. Access to a
+    network may be denied when the modification itself materially and
+    adversely affects the operation of the network or violates the rules and
+    protocols for communication across the network.</para>
+
+    <para>Corresponding Source conveyed, and Installation Information
+    provided, in accord with this section must be in a format that is publicly
+    documented (and with an implementation available to the public in source
+    code form), and must require no special password or key for unpacking,
+    reading or copying.</para>
+
+    <bridgehead renderas="sect1">7. Additional Terms.</bridgehead>
+
+    <para>“Additional permissions” are terms that supplement the terms of this
+    License by making exceptions from one or more of its conditions.
+    Additional permissions that are applicable to the entire Program shall be
+    treated as though they were included in this License, to the extent that
+    they are valid under applicable law. If additional permissions apply only
+    to part of the Program, that part may be used separately under those
+    permissions, but the entire Program remains governed by this License
+    without regard to the additional permissions.</para>
+
+    <para>When you convey a copy of a covered work, you may at your option
+    remove any additional permissions from that copy, or from any part of it.
+    (Additional permissions may be written to require their own removal in
+    certain cases when you modify the work.) You may place additional
+    permissions on material, added by you to a covered work, for which you
+    have or can give appropriate copyright permission.</para>
+
+    <para>Notwithstanding any other provision of this License, for material
+    you add to a covered work, you may (if authorized by the copyright holders
+    of that material) supplement the terms of this License with terms:</para>
+
+    <orderedlist numeration="loweralpha">
+      <listitem>
+        <para>Disclaiming warranty or limiting liability differently from the
+        terms of sections 15 and 16 of this License; or</para>
+      </listitem>
+
+      <listitem>
+        <para>Requiring preservation of specified reasonable legal notices or
+        author attributions in that material or in the Appropriate Legal
+        Notices displayed by works containing it; or</para>
+      </listitem>
+
+      <listitem>
+        <para>Prohibiting misrepresentation of the origin of that material, or
+        requiring that modified versions of such material be marked in
+        reasonable ways as different from the original version; or</para>
+      </listitem>
+
+      <listitem>
+        <para>Limiting the use for publicity purposes of names of licensors or
+        authors of the material; or</para>
+      </listitem>
+
+      <listitem>
+        <para>Declining to grant rights under trademark law for use of some
+        trade names, trademarks, or service marks; or</para>
+      </listitem>
+
+      <listitem>
+        <para>Requiring indemnification of licensors and authors of that
+        material by anyone who conveys the material (or modified versions of
+        it) with contractual assumptions of liability to the recipient, for
+        any liability that these contractual assumptions directly impose on
+        those licensors and authors.</para>
+      </listitem>
+    </orderedlist>
+
+    <para>All other non-permissive additional terms are considered “further
+    restrictions” within the meaning of section 10. If the Program as you
+    received it, or any part of it, contains a notice stating that it is
+    governed by this License along with a term that is a further restriction,
+    you may remove that term. If a license document contains a further
+    restriction but permits relicensing or conveying under this License, you
+    may add to a covered work material governed by the terms of that license
+    document, provided that the further restriction does not survive such
+    relicensing or conveying.</para>
+
+    <para>If you add terms to a covered work in accord with this section, you
+    must place, in the relevant source files, a statement of the additional
+    terms that apply to those files, or a notice indicating where to find the
+    applicable terms.</para>
+
+    <para>Additional terms, permissive or non-permissive, may be stated in the
+    form of a separately written license, or stated as exceptions; the above
+    requirements apply either way.</para>
+
+    <bridgehead renderas="sect1">8. Termination.</bridgehead>
+
+    <para>You may not propagate or modify a covered work except as expressly
+    provided under this License. Any attempt otherwise to propagate or modify
+    it is void, and will automatically terminate your rights under this
+    License (including any patent licenses granted under the third paragraph
+    of section 11).</para>
+
+    <para>However, if you cease all violation of this License, then your
+    license from a particular copyright holder is reinstated (a)
+    provisionally, unless and until the copyright holder explicitly and
+    finally terminates your license, and (b) permanently, if the copyright
+    holder fails to notify you of the violation by some reasonable means prior
+    to 60 days after the cessation.</para>
+
+    <para>Moreover, your license from a particular copyright holder is
+    reinstated permanently if the copyright holder notifies you of the
+    violation by some reasonable means, this is the first time you have
+    received notice of violation of this License (for any work) from that
+    copyright holder, and you cure the violation prior to 30 days after your
+    receipt of the notice.</para>
+
+    <para>Termination of your rights under this section does not terminate the
+    licenses of parties who have received copies or rights from you under this
+    License. If your rights have been terminated and not permanently
+    reinstated, you do not qualify to receive new licenses for the same
+    material under section 10.</para>
+
+    <bridgehead renderas="sect1">9. Acceptance Not Required for Having
+    Copies.</bridgehead>
+
+    <para>You are not required to accept this License in order to receive or
+    run a copy of the Program. Ancillary propagation of a covered work
+    occurring solely as a consequence of using peer-to-peer transmission to
+    receive a copy likewise does not require acceptance. However, nothing
+    other than this License grants you permission to propagate or modify any
+    covered work. These actions infringe copyright if you do not accept this
+    License. Therefore, by modifying or propagating a covered work, you
+    indicate your acceptance of this License to do so.</para>
+
+    <bridgehead renderas="sect1">10. Automatic Licensing of Downstream
+    Recipients.</bridgehead>
+
+    <para>Each time you convey a covered work, the recipient automatically
+    receives a license from the original licensors, to run, modify and
+    propagate that work, subject to this License. You are not responsible for
+    enforcing compliance by third parties with this License.</para>
+
+    <para>An “entity transaction” is a transaction transferring control of an
+    organization, or substantially all assets of one, or subdividing an
+    organization, or merging organizations. If propagation of a covered work
+    results from an entity transaction, each party to that transaction who
+    receives a copy of the work also receives whatever licenses to the work
+    the party’s predecessor in interest had or could give under the previous
+    paragraph, plus a right to possession of the Corresponding Source of the
+    work from the predecessor in interest, if the predecessor has it or can
+    get it with reasonable efforts.</para>
+
+    <para>You may not impose any further restrictions on the exercise of the
+    rights granted or affirmed under this License. For example, you may not
+    impose a license fee, royalty, or other charge for exercise of rights
+    granted under this License, and you may not initiate litigation (including
+    a cross-claim or counterclaim in a lawsuit) alleging that any patent claim
+    is infringed by making, using, selling, offering for sale, or importing
+    the Program or any portion of it.</para>
+
+    <bridgehead renderas="sect1">11. Patents.</bridgehead>
+
+    <para>A “contributor” is a copyright holder who authorizes use under this
+    License of the Program or a work on which the Program is based. The work
+    thus licensed is called the contributor’s “contributor version”.</para>
+
+    <para>A contributor’s “essential patent claims” are all patent claims
+    owned or controlled by the contributor, whether already acquired or
+    hereafter acquired, that would be infringed by some manner, permitted by
+    this License, of making, using, or selling its contributor version, but do
+    not include claims that would be infringed only as a consequence of
+    further modification of the contributor version. For purposes of this
+    definition, “control” includes the right to grant patent sublicenses in a
+    manner consistent with the requirements of this License.</para>
+
+    <para>Each contributor grants you a non-exclusive, worldwide, royalty-free
+    patent license under the contributor’s essential patent claims, to make,
+    use, sell, offer for sale, import and otherwise run, modify and propagate
+    the contents of its contributor version.</para>
+
+    <para>In the following three paragraphs, a “patent license” is any express
+    agreement or commitment, however denominated, not to enforce a patent
+    (such as an express permission to practice a patent or covenant not to sue
+    for patent infringement). To “grant” such a patent license to a party
+    means to make such an agreement or commitment not to enforce a patent
+    against the party.</para>
+
+    <para>If you convey a covered work, knowingly relying on a patent license,
+    and the Corresponding Source of the work is not available for anyone to
+    copy, free of charge and under the terms of this License, through a
+    publicly available network server or other readily accessible means, then
+    you must either (1) cause the Corresponding Source to be so available, or
+    (2) arrange to deprive yourself of the benefit of the patent license for
+    this particular work, or (3) arrange, in a manner consistent with the
+    requirements of this License, to extend the patent license to downstream
+    recipients. “Knowingly relying” means you have actual knowledge that, but
+    for the patent license, your conveying the covered work in a country, or
+    your recipient’s use of the covered work in a country, would infringe one
+    or more identifiable patents in that country that you have reason to
+    believe are valid.</para>
+
+    <para>If, pursuant to or in connection with a single transaction or
+    arrangement, you convey, or propagate by procuring conveyance of, a
+    covered work, and grant a patent license to some of the parties receiving
+    the covered work authorizing them to use, propagate, modify or convey a
+    specific copy of the covered work, then the patent license you grant is
+    automatically extended to all recipients of the covered work and works
+    based on it.</para>
+
+    <para>A patent license is “discriminatory” if it does not include within
+    the scope of its coverage, prohibits the exercise of, or is conditioned on
+    the non-exercise of one or more of the rights that are specifically
+    granted under this License. You may not convey a covered work if you are a
+    party to an arrangement with a third party that is in the business of
+    distributing software, under which you make payment to the third party
+    based on the extent of your activity of conveying the work, and under
+    which the third party grants, to any of the parties who would receive the
+    covered work from you, a discriminatory patent license (a) in connection
+    with copies of the covered work conveyed by you (or copies made from those
+    copies), or (b) primarily for and in connection with specific products or
+    compilations that contain the covered work, unless you entered into that
+    arrangement, or that patent license was granted, prior to 28 March
+    2007.</para>
+
+    <para>Nothing in this License shall be construed as excluding or limiting
+    any implied license or other defenses to infringement that may otherwise
+    be available to you under applicable patent law.</para>
+
+    <bridgehead renderas="sect1">12. No Surrender of Others’
+    Freedom.</bridgehead>
+
+    <para>If conditions are imposed on you (whether by court order, agreement
+    or otherwise) that contradict the conditions of this License, they do not
+    excuse you from the conditions of this License. If you cannot convey a
+    covered work so as to satisfy simultaneously your obligations under this
+    License and any other pertinent obligations, then as a consequence you may
+    not convey it at all. For example, if you agree to terms that obligate you
+    to collect a royalty for further conveying from those to whom you convey
+    the Program, the only way you could satisfy both those terms and this
+    License would be to refrain entirely from conveying the Program.</para>
+
+    <bridgehead renderas="sect1">13. Use with the <acronym>GNU</acronym>
+    Affero General Public License.</bridgehead>
+
+    <para>Notwithstanding any other provision of this License, you have
+    permission to link or combine any covered work with a work licensed under
+    version 3 of the <acronym>GNU</acronym> Affero General Public License into
+    a single combined work, and to convey the resulting work. The terms of
+    this License will continue to apply to the part which is the covered work,
+    but the special requirements of the <acronym>GNU</acronym> Affero General
+    Public License, section 13, concerning interaction through a network will
+    apply to the combination as such.</para>
+
+    <bridgehead renderas="sect1">14. Revised Versions of this
+    License.</bridgehead>
+
+    <para>The Free Software Foundation may publish revised and/or new versions
+    of the <acronym>GNU</acronym> General Public License from time to time.
+    Such new versions will be similar in spirit to the present version, but
+    may differ in detail to address new problems or concerns.</para>
+
+    <para>Each version is given a distinguishing version number. If the
+    Program specifies that a certain numbered version of the
+    <acronym>GNU</acronym> General Public License “or any later version”
+    applies to it, you have the option of following the terms and conditions
+    either of that numbered version or of any later version published by the
+    Free Software Foundation. If the Program does not specify a version number
+    of the <acronym>GNU</acronym> General Public License, you may choose any
+    version ever published by the Free Software Foundation.</para>
+
+    <para>If the Program specifies that a proxy can decide which future
+    versions of the <acronym>GNU</acronym> General Public License can be used,
+    that proxy’s public statement of acceptance of a version permanently
+    authorizes you to choose that version for the Program.</para>
+
+    <para>Later license versions may give you additional or different
+    permissions. However, no additional obligations are imposed on any author
+    or copyright holder as a result of your choosing to follow a later
+    version.</para>
+
+    <bridgehead renderas="sect1">15. Disclaimer of Warranty.</bridgehead>
+
+    <para>THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+    APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+    HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT WARRANTY
+    OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+    THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+    PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+    IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+    ALL NECESSARY SERVICING, REPAIR OR CORRECTION.</para>
+
+    <bridgehead renderas="sect1">16. Limitation of Liability.</bridgehead>
+
+    <para>IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN
+    WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR
+    CONVEYS THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES,
+    INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES
+    ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT
+    LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES
+    SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE
+    WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN
+    ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.</para>
+
+    <bridgehead renderas="sect1">17. Interpretation of Sections 15 and
+    16.</bridgehead>
+
+    <para>If the disclaimer of warranty and limitation of liability provided
+    above cannot be given local legal effect according to their terms,
+    reviewing courts shall apply local law that most closely approximates an
+    absolute waiver of all civil liability in connection with the Program,
+    unless a warranty or assumption of liability accompanies a copy of the
+    Program in return for a fee.</para>
+
+    <bridgehead>END OF TERMS AND CONDITIONS</bridgehead>
+
+    <bridgehead renderas="sect1">How to Apply These Terms to Your New
+    Programs</bridgehead>
+
+    <para>If you develop a new program, and you want it to be of the greatest
+    possible use to the public, the best way to achieve this is to make it
+    free software which everyone can redistribute and change under these
+    terms.</para>
+
+    <para>To do so, attach the following notices to the program. It is safest
+    to attach them to the start of each source file to most effectively state
+    the exclusion of warranty; and each file should have at least the
+    “copyright” line and a pointer to where the full notice is found.</para>
+
+    <screen>
+<replaceable>one line to give the program’s name and a brief idea of what it does.</replaceable>
+Copyright (C) <replaceable>year</replaceable> <replaceable>name of author</replaceable>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the <acronym>GNU</acronym> General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<acronym>GNU</acronym> General Public License for more details.
+
+You should have received a copy of the <acronym>GNU</acronym> General Public License
+along with this program.  If not, see <link
+        xlink:href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</link>.
+  </screen>
+
+    <para>Also add information on how to contact you by electronic and paper
+    mail.</para>
+
+    <para>If the program does terminal interaction, make it output a short
+    notice like this when it starts in an interactive mode:</para>
+
+    <screen>
+<replaceable>program</replaceable> Copyright (C) <replaceable>year</replaceable> <replaceable>name of author</replaceable>
+This program comes with ABSOLUTELY NO WARRANTY; for details type ‘<literal>show w</literal>’.
+This is free software, and you are welcome to redistribute it
+under certain conditions; type ‘<literal>show c</literal>’ for details.
+  </screen>
+
+    <para>The hypothetical commands ‘<literal>show w</literal>’ and
+    ‘<literal>show c</literal>’ should show the appropriate parts of the
+    General Public License. Of course, your program’s commands might be
+    different; for a GUI interface, you would use an “about box”.</para>
+
+    <para>You should also get your employer (if you work as a programmer) or
+    school, if any, to sign a “copyright disclaimer” for the program, if
+    necessary. For more information on this, and how to apply and follow the
+    <acronym>GNU</acronym> <acronym>GPL</acronym>, see <link
+    xlink:href="???">http://www.gnu.org/licenses/</link>.</para>
+
+    <para>The <acronym>GNU</acronym> General Public License does not permit
+    incorporating your program into proprietary programs. If your program is a
+    subroutine library, you may consider it more useful to permit linking
+    proprietary applications with the library. If this is what you want to do,
+    use the <acronym>GNU</acronym> Lesser General Public License instead of
+    this License. But first, please read <link
+    xlink:href="???">http://www.gnu.org/philosophy/why-not-lgpl.html</link>.</para>
+  </appendix>
+</book>

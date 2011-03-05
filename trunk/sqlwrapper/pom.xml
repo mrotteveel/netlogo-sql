@@ -1,0 +1,170 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>nl.ou.netlogo</groupId>
+  <artifactId>sql</artifactId>
+  <version>1.1-SNAPSHOT</version>
+  <name>sql</name>
+  <description>sql</description>
+  
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+ 
+  <repositories>
+	<repository>
+		<releases>
+			<enabled>true</enabled>
+		</releases>
+		<id>bonecp-repo</id>
+		<name>BoneCP Repository</name>
+		<url>http://jolbox.com/bonecp/downloads/maven</url>
+	</repository>
+ </repositories>
+  
+  <dependencies>
+  
+    <!-- MySQL database driver -->
+	<dependency>
+		<groupId>mysql</groupId>
+		<artifactId>mysql-connector-java</artifactId>
+		<version>5.1.14</version>
+	</dependency>
+	
+	<dependency>
+    	<groupId>org.netlogo</groupId>
+    	<artifactId>netlogo</artifactId>
+    	<version>4.1</version>
+    	<scope>system</scope>
+    	<systemPath>${netlogo.home}/NetLogo.jar</systemPath>
+    </dependency>
+	
+	<dependency>
+		<groupId>com.jolbox</groupId>
+		<artifactId>bonecp</artifactId>
+		<version>0.7.0</version>
+	</dependency>
+	
+	<dependency>
+		<groupId>org.slf4j</groupId>
+		<artifactId>slf4j-api</artifactId>
+		<version>1.5.10</version>
+	</dependency>
+
+    <dependency>
+		<groupId>org.slf4j</groupId>
+		<artifactId>slf4j-simple</artifactId>
+		<version>1.5.10</version>
+	</dependency>
+
+
+    <dependency>
+    	<groupId>junit</groupId>
+    	<artifactId>junit</artifactId>
+    	<version>4.8.2</version>
+    	<type>jar</type>
+    	<scope>test</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.jmock</groupId>
+    	<artifactId>jmock-junit4</artifactId>
+    	<version>2.5.1</version>
+    	<type>jar</type>
+    	<scope>test</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.jmock</groupId>
+    	<artifactId>jmock-legacy</artifactId>
+    	<version>2.5.1</version>
+    	<type>jar</type>
+    	<scope>test</scope>
+    </dependency>
+  </dependencies>
+ 
+ <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <version>2.0</version>
+                <configuration>
+                    <downloadSources>true</downloadSources>
+                    <downloadJavadocs>true</downloadJavadocs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Extension-Name>sql</Extension-Name>
+                            <Class-Manager>nl.ou.netlogo.sql.wrapper.SqlExtension</Class-Manager>
+                            <NetLogo-Extension-API-Version>4.1</NetLogo-Extension-API-Version>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>attached</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <finalName>sql</finalName>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <descriptors>
+                        <descriptor>assembly.xml</descriptor>
+                    </descriptors>
+                </configuration>
+            </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.7</version>
+			</plugin>
+        </plugins>
+  </build>
+ 
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+	<version>2.7</version>
+        <configuration>
+          <source>1.6</source>
+          <aggregate>true</aggregate>
+          <doclet>org.umlgraph.doclet.UmlGraphDoc</doclet>
+          <docletArtifact>
+            <groupId>gr.spinellis</groupId>
+            <artifactId>UmlGraph</artifactId>
+            <version>5.3</version>
+          </docletArtifact>
+          <additionalparam>
+            -inferrel -inferdep -quiet -hide java.*
+            -collpackages java.util.* -qualify
+            -postfixpackage -nodefontsize 9
+            -nodefontpackagesize 7 -outputencoding utf8
+          </additionalparam>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+ 
+</project>
