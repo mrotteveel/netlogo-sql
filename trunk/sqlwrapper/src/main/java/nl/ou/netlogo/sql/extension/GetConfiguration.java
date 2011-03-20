@@ -20,15 +20,18 @@
  */
 package nl.ou.netlogo.sql.extension;
 
+import java.util.Iterator;
+
 import nl.ou.netlogo.sql.wrapper.SqlEnvironment;
 import nl.ou.netlogo.sql.wrapper.SqlExtension;
 import nl.ou.netlogo.sql.wrapper.SqlSetting;
-import nl.ou.netlogo.sql.wrapper.SqlLogger;
 
-import java.util.*;
-import java.util.logging.*;
-
-import org.nlogo.api.*;
+import org.nlogo.api.Argument;
+import org.nlogo.api.Context;
+import org.nlogo.api.DefaultReporter;
+import org.nlogo.api.ExtensionException;
+import org.nlogo.api.LogoList;
+import org.nlogo.api.Syntax;
 
 /**
  * GetConfiguration implements the sql:get-configuration command
@@ -39,7 +42,6 @@ import org.nlogo.api.*;
 public class GetConfiguration extends DefaultReporter {
 
     private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
-    private static final Logger LOG = SqlLogger.getLogger();
 
     /**
      * Checks syntax of the sql:get-configuration reporter.
@@ -61,7 +63,6 @@ public class GetConfiguration extends DefaultReporter {
      * @throws org.nlogo.api.LogoException
      */
     public Object report(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
-        LOG.log(Level.FINE, "GetConfiguration.report()");
         String name = args[0].getString();
         LogoList confList = new LogoList();
         try {

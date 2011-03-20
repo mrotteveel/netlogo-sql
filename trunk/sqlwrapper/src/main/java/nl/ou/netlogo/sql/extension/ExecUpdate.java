@@ -21,14 +21,11 @@
 package nl.ou.netlogo.sql.extension;
 
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import nl.ou.netlogo.sql.wrapper.SqlConnection;
 import nl.ou.netlogo.sql.wrapper.SqlEnvironment;
 import nl.ou.netlogo.sql.wrapper.SqlExtension;
 import nl.ou.netlogo.sql.wrapper.SqlStatement;
-import nl.ou.netlogo.sql.wrapper.SqlLogger;
 
 import org.nlogo.api.Argument;
 import org.nlogo.api.Context;
@@ -48,7 +45,6 @@ import org.nlogo.api.Syntax;
 public class ExecUpdate extends DefaultCommand {
 
     private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
-    private static final Logger LOG = SqlLogger.getLogger();
 
     /**
      * Description of the NetLogo syntax of the command.
