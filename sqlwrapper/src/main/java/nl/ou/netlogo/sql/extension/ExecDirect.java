@@ -20,17 +20,18 @@
  */
 package nl.ou.netlogo.sql.extension;
 
+import java.sql.SQLException;
+
 import nl.ou.netlogo.sql.wrapper.SqlConnection;
 import nl.ou.netlogo.sql.wrapper.SqlEnvironment;
 import nl.ou.netlogo.sql.wrapper.SqlExtension;
 import nl.ou.netlogo.sql.wrapper.SqlStatement;
-import nl.ou.netlogo.sql.wrapper.SqlLogger;
 
-import java.util.logging.*;
-
-import org.nlogo.api.*;
-
-import java.sql.*;
+import org.nlogo.api.Argument;
+import org.nlogo.api.Context;
+import org.nlogo.api.DefaultCommand;
+import org.nlogo.api.ExtensionException;
+import org.nlogo.api.Syntax;
 
 /**
  * ExecDirect implements the sql:exec-direct command
@@ -41,7 +42,6 @@ import java.sql.*;
 public class ExecDirect extends DefaultCommand {
 
     private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
-    private static final Logger LOG = SqlLogger.getLogger();
 
     /**
      * Checks syntax of the sql:exec-direct command.
@@ -63,8 +63,6 @@ public class ExecDirect extends DefaultCommand {
      * @throws org.nlogo.api.LogoException
      */
     public void perform(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
-        LOG.log(Level.FINE, "ExecDirect.perform()");
-        LOG.finest("    statement: " + args[0].getString());
 
         // Get the sql connection for this agent. Exception if none available.
         SqlConnection sqlc = sqlenv.getActiveSqlConnection(context, true);

@@ -20,15 +20,18 @@
  */
 package nl.ou.netlogo.sql.extension;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import nl.ou.netlogo.sql.wrapper.SqlConfiguration;
 import nl.ou.netlogo.sql.wrapper.SqlEnvironment;
 import nl.ou.netlogo.sql.wrapper.SqlExtension;
-import nl.ou.netlogo.sql.wrapper.SqlLogger;
 
-import java.util.*;
-import java.util.logging.*;
-
-import org.nlogo.api.*;
+import org.nlogo.api.Argument;
+import org.nlogo.api.Context;
+import org.nlogo.api.DefaultCommand;
+import org.nlogo.api.ExtensionException;
+import org.nlogo.api.Syntax;
 
 /**
  * Configure implements the sql:configure command
@@ -39,7 +42,6 @@ import org.nlogo.api.*;
 public class Configure extends DefaultCommand {
 
     private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
-    private static final Logger LOG = SqlLogger.getLogger();
 
     /**
      * Checks syntax of the sql:configure command.

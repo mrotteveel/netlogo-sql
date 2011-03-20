@@ -24,7 +24,6 @@ import nl.ou.netlogo.sql.wrapper.SqlConnection;
 import nl.ou.netlogo.sql.wrapper.SqlEnvironment;
 import nl.ou.netlogo.sql.wrapper.SqlExtension;
 import nl.ou.netlogo.sql.wrapper.SqlStatement;
-import nl.ou.netlogo.sql.wrapper.SqlLogger;
 
 import org.nlogo.api.Argument;
 import org.nlogo.api.Context;
@@ -33,8 +32,6 @@ import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoList;
 import org.nlogo.api.Syntax;
 import java.sql.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Class representing the exec-query command in a NetLogo model from the SQL
@@ -46,7 +43,6 @@ import java.util.logging.Logger;
 public class ExecQuery extends DefaultCommand {
 
     private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
-    private static final Logger LOG = SqlLogger.getLogger();
 
     /**
      * Description of the NetLogo syntax of the command.
