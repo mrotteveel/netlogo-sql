@@ -34,54 +34,53 @@ import org.nlogo.api.*;
  * GetConfiguration implements the sql:get-configuration command
  * 
  * @author NetLogo project-team
- *
+ * 
  */
- public class GetConfiguration extends DefaultReporter {
- 	
- 	private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
+public class GetConfiguration extends DefaultReporter {
+
+    private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
     private static final Logger LOG = SqlLogger.getLogger();
 
- 	/**
- 	 * Checks syntax of the sql:get-configuration reporter.
- 	 * @return syntax object handle
- 	 */
+    /**
+     * Checks syntax of the sql:get-configuration reporter.
+     * 
+     * @return syntax object handle
+     */
     public Syntax getSyntax() {
- 		return Syntax.reporterSyntax( new int[] {Syntax.TYPE_STRING}, Syntax.TYPE_LIST);
- 	}
-    
- 	/**
- 	 * Executes sql:get-configuration command.
- 	 * 
- 	 * @param args
- 	 * 			args[0]: name of configuration to get
- 	 * @param context
- 	 * @return list of settings for configured entity
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
- 	public Object report(Argument args[], Context context)
-	throws ExtensionException, org.nlogo.api.LogoException {
-		LOG.log(Level.FINE, "GetConfiguration.report()");
-		String name = args[0].getString();
-		LogoList confList = new LogoList();
-		try {
-			confList.add(name);
-			SqlSetting setting = sqlenv.getConfiguration().get(name);
-			Iterator<String> keys = setting.keySet().iterator();
-			// loop over the key-value pairs for the configured entity
-			while (keys.hasNext()) {
-				LogoList kvpair = new LogoList();
-				String key = keys.next();
-				kvpair.add(key);
-				kvpair.add(setting.getString(key));
-				confList.add(kvpair);
-			}
-			
-  		}
- 		catch (Exception e) {
- 			throw new ExtensionException(e);
- 		}
- 		
- 		return confList;
- 	}
+        return Syntax.reporterSyntax(new int[] { Syntax.TYPE_STRING }, Syntax.TYPE_LIST);
+    }
+
+    /**
+     * Executes sql:get-configuration command.
+     * 
+     * @param args
+     *            args[0]: name of configuration to get
+     * @param context
+     * @return list of settings for configured entity
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public Object report(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
+        LOG.log(Level.FINE, "GetConfiguration.report()");
+        String name = args[0].getString();
+        LogoList confList = new LogoList();
+        try {
+            confList.add(name);
+            SqlSetting setting = sqlenv.getConfiguration().get(name);
+            Iterator<String> keys = setting.keySet().iterator();
+            // loop over the key-value pairs for the configured entity
+            while (keys.hasNext()) {
+                LogoList kvpair = new LogoList();
+                String key = keys.next();
+                kvpair.add(key);
+                kvpair.add(setting.getString(key));
+                confList.add(kvpair);
+            }
+
+        } catch (Exception e) {
+            throw new ExtensionException(e);
+        }
+
+        return confList;
+    }
 }

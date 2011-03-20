@@ -26,26 +26,27 @@ import com.jolbox.bonecp.ConnectionHandle;
 import com.jolbox.bonecp.hooks.AbstractConnectionHook;
 
 /**
- * ConnectionHook implementation to reset autocommit status of connections returned to pool.
+ * ConnectionHook implementation to reset autocommit status of connections
+ * returned to pool.
  * 
  * @author NetLogo project-team
  */
 public class ConnectionHook extends AbstractConnectionHook {
-	
-	@Override
-	public void onCheckIn(ConnectionHandle connection) {
-		try {
-			boolean autoCommit = connection.getInternalConnection().getAutoCommit();
-			if (!autoCommit) {
-				try {
-					connection.getInternalConnection().setAutoCommit(true);
-				} catch (Exception ex) {
-					SqlLogger.getLogger().log(Level.FINEST, "Unable to reset autocommit status", ex);
-				}
-			}
-			//connection.setAutoCommit(true);
-		} catch (Exception ex) {
-			SqlLogger.getLogger().log(Level.FINEST, "Unable to get autocommit status", ex);
-		}
-	}
+
+    @Override
+    public void onCheckIn(ConnectionHandle connection) {
+        try {
+            boolean autoCommit = connection.getInternalConnection().getAutoCommit();
+            if (!autoCommit) {
+                try {
+                    connection.getInternalConnection().setAutoCommit(true);
+                } catch (Exception ex) {
+                    SqlLogger.getLogger().log(Level.FINEST, "Unable to reset autocommit status", ex);
+                }
+            }
+            // connection.setAutoCommit(true);
+        } catch (Exception ex) {
+            SqlLogger.getLogger().log(Level.FINEST, "Unable to get autocommit status", ex);
+        }
+    }
 }

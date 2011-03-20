@@ -22,17 +22,20 @@ package nl.ou.netlogo.sql.wrapper;
 
 /**
  * Interface for events associated with a SqlConnection object
- *
+ * 
  * @author NetLogo project-team
- * @param <E> Enum-type for the event
+ * @param <E>
+ *            Enum-type for the event
  */
 public interface EventObserver<E extends Enum<?>> {
-	
-	/**
-	 * Notifies event on observed object
-	 * 
-	 * @param event Enum object of type E
-	 * @param observable EventObservable the event applies to
-	 */
-	void notify(E event, EventObservable<E> observable);
+
+    /**
+     * Notifies event on observed object
+     * 
+     * @param event
+     *            Enum object of type E
+     * @param observable
+     *            EventObservable the event applies to
+     */
+    void notify(E event, EventObservable<E> observable);
 }

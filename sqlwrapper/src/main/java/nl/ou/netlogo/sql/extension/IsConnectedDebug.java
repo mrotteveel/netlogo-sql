@@ -28,33 +28,32 @@ import org.nlogo.api.Context;
 import org.nlogo.api.ExtensionException;
 
 /**
- * Debug implementation of is-connected? which will return false if a pooled connection is not established.
+ * Debug implementation of is-connected? which will return false if a pooled
+ * connection is not established.
  * 
  * @author NetLogo project-team
- *
+ * 
  */
 public class IsConnectedDebug extends IsConnected {
-	public Object report(Argument args[], Context context) throws ExtensionException , org.nlogo.api.LogoException {
+    public Object report(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
 
-	Agent agent = context.getAgent();
-	
-	if ( agent == null ) {
-		return (false);
-	}
-	
-	//
-	// We use getSqlConnection() and not getActiveSqlConnection()
-	// as the latter will throw an exception when there is no
-	// connection found. From this command context we just
-	// want to return false for that scenario.
-	//
-	SqlConnection sqlc = sqlenv.getSqlConnection(context, false);
+        Agent agent = context.getAgent();
+        if (agent == null) {
+            return false;
+        }
 
-	if ( sqlc == null ) {
-		return false;
-	}
-	else {
-		return sqlc.isConnected();
-	}
-}
+        /*
+         * We use getSqlConnection() and not getActiveSqlConnection() as the
+         * latter will throw an exception when there is no connection found.
+         * From this command context we just want to return false for that
+         * scenario.
+         */
+        SqlConnection sqlc = sqlenv.getSqlConnection(context, false);
+
+        if (sqlc == null) {
+            return false;
+        } else {
+            return sqlc.isConnected();
+        }
+    }
 }

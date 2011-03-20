@@ -31,37 +31,38 @@ import org.nlogo.api.ExtensionException;
 import org.nlogo.api.Syntax;
 
 /**
-* Class associated with the start transaction command in a NetLogo model from the SQL extension.
-* 
-* @author NetLogo project-team
-*
-*/
+ * Class associated with the start transaction command in a NetLogo model from
+ * the SQL extension.
+ * 
+ * @author NetLogo project-team
+ * 
+ */
 public class StartTransaction extends DefaultCommand {
 
-	private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
+    private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
 
-	/**
- 	 * Checks syntax of the sql:start-transaction command.
- 	 * @return syntax object handle
- 	 */
-	public Syntax getSyntax() {
-		int[] right = { } ;
-		return Syntax.commandSyntax(right);
-	}
+    /**
+     * Checks syntax of the sql:start-transaction command.
+     * 
+     * @return syntax object handle
+     */
+    public Syntax getSyntax() {
+        int[] right = {};
+        return Syntax.commandSyntax(right);
+    }
 
-	/**
- 	 * Executes sql:start-transaction command from model context.
- 	 * 
- 	 * @param args
- 	 * @param context
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
-	public void perform(Argument args[], Context context)
-		throws ExtensionException , org.nlogo.api.LogoException {
+    /**
+     * Executes sql:start-transaction command from model context.
+     * 
+     * @param args
+     * @param context
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public void perform(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
 
-		SqlConnection sqlc = sqlenv.getActiveSqlConnection(context, true);
+        SqlConnection sqlc = sqlenv.getActiveSqlConnection(context, true);
 
-		sqlc.startTransaction();
-	}
+        sqlc.startTransaction();
+    }
 }

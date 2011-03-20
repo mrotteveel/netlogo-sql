@@ -27,48 +27,51 @@ import nl.ou.netlogo.sql.wrapper.SqlResultSet;
 
 import org.nlogo.api.*;
 
-
 /**
- * Class representing the row-available? command in a NetLogo model from the SQL extension.
+ * Class representing the row-available? command in a NetLogo model from the SQL
+ * extension.
  * 
  * @author NetLogo project-team
- *
+ * 
  */
 public class RowAvailable extends DefaultReporter {
- 	
- 	private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
- 	/**
- 	 * Checks syntax of the row-available? command.
- 	 * @return syntax object handle
- 	 */
- 	public Syntax getSyntax() {
- 		return Syntax.reporterSyntax( new int[] {}, Syntax.TYPE_BOOLEAN);
- 	}
 
- 	/**
- 	 * Executes "row-available?" statement.
- 	 * <p>
- 	 * Returns <code>true</code> if the next invocation of sql:fetch-row or sql:fetch-resultset will have a non-empty result.
- 	 * Returns <code>false</code> if there is no next row in the resultset (or resultset is empty), the connection has no resultset,
- 	 * or no connections is available.
- 	 * </p>
- 	 * 
- 	 * @param args
- 	 * @param context
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
- 	public Object report(Argument args[], Context context)
-			throws ExtensionException, org.nlogo.api.LogoException {
+    private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
 
- 		SqlConnection sqlc = sqlenv.getSqlConnection(context, false);
+    /**
+     * Checks syntax of the row-available? command.
+     * 
+     * @return syntax object handle
+     */
+    public Syntax getSyntax() {
+        return Syntax.reporterSyntax(new int[] {}, Syntax.TYPE_BOOLEAN);
+    }
 
- 		if (sqlc != null) {
-			SqlResultSet resultSet = sqlc.getResultSet();
-			if (resultSet != null) {
-				return resultSet.isRowAvailable();
-			}
- 		}
- 		return false;
- 	}
+    /**
+     * Executes "row-available?" statement.
+     * <p>
+     * Returns <code>true</code> if the next invocation of sql:fetch-row or
+     * sql:fetch-resultset will have a non-empty result. Returns
+     * <code>false</code> if there is no next row in the resultset (or resultset
+     * is empty), the connection has no resultset, or no connections is
+     * available.
+     * </p>
+     * 
+     * @param args
+     * @param context
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public Object report(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
+
+        SqlConnection sqlc = sqlenv.getSqlConnection(context, false);
+
+        if (sqlc != null) {
+            SqlResultSet resultSet = sqlc.getResultSet();
+            if (resultSet != null) {
+                return resultSet.isRowAvailable();
+            }
+        }
+        return false;
+    }
 }

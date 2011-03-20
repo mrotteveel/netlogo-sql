@@ -32,40 +32,41 @@ import org.nlogo.api.ExtensionException;
 import org.nlogo.api.Syntax;
 
 /**
-* Class associated with the use-database command in a NetLogo model from the SQL extension.
-* 
-* @author NetLogo project-team
-*
-*/
+ * Class associated with the use-database command in a NetLogo model from the
+ * SQL extension.
+ * 
+ * @author NetLogo project-team
+ * 
+ */
 public class CurrentDatabase extends DefaultReporter {
 
-	private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
+    private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
 
-	/**
- 	 * Checks syntax of the sql:current-database command.
- 	 * @return syntax object handle
- 	 */
-	public Syntax getSyntax() {
-		return Syntax.reporterSyntax(Syntax.TYPE_STRING);
-	}
+    /**
+     * Checks syntax of the sql:current-database command.
+     * 
+     * @return syntax object handle
+     */
+    public Syntax getSyntax() {
+        return Syntax.reporterSyntax(Syntax.TYPE_STRING);
+    }
 
-	/**
- 	 * Executes sql:current-database command from model context.
- 	 * 
- 	 * @param args
- 	 * @param context
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
-	public Object report(Argument args[], Context context)
-		throws ExtensionException , org.nlogo.api.LogoException {
+    /**
+     * Executes sql:current-database command from model context.
+     * 
+     * @param args
+     * @param context
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public Object report(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
 
-		SqlConnection sqlc = sqlenv.getActiveSqlConnection(context, true);
+        SqlConnection sqlc = sqlenv.getActiveSqlConnection(context, true);
 
-		try {
-			return sqlc.currentDatabase();
-		} catch ( DatabaseFeatureNotImplementedException dbex ) {
-	 		throw new ExtensionException("Cannot get current database: " + dbex);
-		}
-	}	
+        try {
+            return sqlc.currentDatabase();
+        } catch (DatabaseFeatureNotImplementedException dbex) {
+            throw new ExtensionException("Cannot get current database: " + dbex);
+        }
+    }
 }

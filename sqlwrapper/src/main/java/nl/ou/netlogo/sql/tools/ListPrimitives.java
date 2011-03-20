@@ -38,60 +38,61 @@ import org.nlogo.api.Syntax;
  * </p>
  * 
  * @author NetLogo project-team
- *
+ * 
  */
 public class ListPrimitives implements PrimitiveManager {
 
-	public static void main(String[] args) throws ExtensionException {
-		ListPrimitives lp = new ListPrimitives();
-		SqlExtension ext = new SqlExtension();
-		ext.load(lp);
-	}
+    public static void main(String[] args) throws ExtensionException {
+        ListPrimitives lp = new ListPrimitives();
+        SqlExtension ext = new SqlExtension();
+        ext.load(lp);
+    }
 
-	@Override
-	public void addPrimitive(String name, Primitive primitive) {
-		Syntax syntax = primitive.getSyntax();
-		int[] parameterIds = syntax.getRight();
-		String[] parameterTypeNames = new String[parameterIds.length];
-		for (int idx = 0; idx < parameterIds.length; idx++) {
-			parameterTypeNames[idx] = getTypeName(parameterIds[idx]);
-		}
-		boolean isCommand = primitive instanceof Command;
-		String returnType = getTypeName(syntax.getRet());
-		System.out.printf("%-8s : %-7s %-20s %s%n", isCommand ? "command" : "reporter",
-				returnType, name, Arrays.toString(parameterTypeNames));
-	}
-	
-	/**
-	 * Converts the syntax id to a type name.
-	 * 
-	 * @param id Syntax id
-	 * @return Type name
-	 */
-	private String getTypeName(int id) {
-		switch(id) {
-		case Syntax.TYPE_BOOLEAN:
-			return "boolean";
-		case Syntax.TYPE_NUMBER:
-			return "number";
-		case Syntax.TYPE_LIST:
-			return "list";
-		case Syntax.TYPE_STRING:
-			return "string";
-		case Syntax.TYPE_VOID:
-			return "void";
-		default:
-			return "unknown/unsupported id: " + id;
-		}
-	}
+    @Override
+    public void addPrimitive(String name, Primitive primitive) {
+        Syntax syntax = primitive.getSyntax();
+        int[] parameterIds = syntax.getRight();
+        String[] parameterTypeNames = new String[parameterIds.length];
+        for (int idx = 0; idx < parameterIds.length; idx++) {
+            parameterTypeNames[idx] = getTypeName(parameterIds[idx]);
+        }
+        boolean isCommand = primitive instanceof Command;
+        String returnType = getTypeName(syntax.getRet());
+        System.out.printf("%-8s : %-7s %-20s %s%n", isCommand ? "command" : "reporter", returnType, name,
+                Arrays.toString(parameterTypeNames));
+    }
 
-	@Override
-	public boolean autoImportPrimitives() {
-		return false;
-	}
+    /**
+     * Converts the syntax id to a type name.
+     * 
+     * @param id
+     *            Syntax id
+     * @return Type name
+     */
+    private String getTypeName(int id) {
+        switch (id) {
+        case Syntax.TYPE_BOOLEAN:
+            return "boolean";
+        case Syntax.TYPE_NUMBER:
+            return "number";
+        case Syntax.TYPE_LIST:
+            return "list";
+        case Syntax.TYPE_STRING:
+            return "string";
+        case Syntax.TYPE_VOID:
+            return "void";
+        default:
+            return "unknown/unsupported id: " + id;
+        }
+    }
 
-	@Override
-	public void autoImportPrimitives(boolean arg0) {
-		// Stub: Not implemented
-	}
+    @Override
+    public boolean autoImportPrimitives() {
+        return false;
+    }
+
+    @Override
+    public void autoImportPrimitives(boolean arg0) {
+        // Stub: Not implemented
+    }
 }

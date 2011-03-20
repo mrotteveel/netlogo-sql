@@ -23,5 +23,5 @@ package nl.ou.netlogo.sql.wrapper;
 import org.nlogo.api.*;
 
 public interface SqlConfigurable {
-	public void configure(SqlSetting settings, Context context) throws Exception;
+    public void configure(SqlSetting settings, Context context) throws Exception;
 }

@@ -26,30 +26,28 @@ import nl.ou.netlogo.sql.wrapper.SqlExtension;
 import org.nlogo.api.*;
 
 public class ShowVersion extends DefaultReporter {
-    
-	private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
 
- 	/**
- 	 * Checks syntax of the sql:show-version command.
- 	 * @return syntax object handle
- 	 */
-	public Syntax getSyntax() {
-            return Syntax.reporterSyntax( new int[] {}, Syntax.TYPE_LIST);
+    private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
+
+    /**
+     * Checks syntax of the sql:show-version command.
+     * 
+     * @return syntax object handle
+     */
+    public Syntax getSyntax() {
+        return Syntax.reporterSyntax(new int[] {}, Syntax.TYPE_LIST);
     }
 
-	/**
- 	 * Executes sql:show-version command from model context.
- 	 * 
- 	 * @param args
- 	 * @param context
- 	 * @throws ExtensionException
- 	 */
-    public Object report(Argument args[], Context context)
-            throws ExtensionException
-    {
+    /**
+     * Executes sql:show-version command from model context.
+     * 
+     * @param args
+     * @param context
+     * @throws ExtensionException
+     */
+    public Object report(Argument args[], Context context) throws ExtensionException {
         LogoList list = new LogoList();
-        list.add(sqlenv.getVersion() );
+        list.add(sqlenv.getVersion());
         return list;
-        
     }
 }
