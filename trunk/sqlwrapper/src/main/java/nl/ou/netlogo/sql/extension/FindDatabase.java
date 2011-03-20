@@ -30,37 +30,35 @@ import org.nlogo.api.DefaultReporter;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.Syntax;
 
-public class FindDatabase extends DefaultReporter
-{	
-	private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
+public class FindDatabase extends DefaultReporter {
+    private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
 
-	/**
- 	 * Checks syntax of the sql:find-database command.
- 	 * @return syntax object handle
- 	 */
-	public Syntax getSyntax() {
-		return Syntax.reporterSyntax( new int[] {Syntax.TYPE_STRING}, Syntax.TYPE_BOOLEAN);
-	}
+    /**
+     * Checks syntax of the sql:find-database command.
+     * 
+     * @return syntax object handle
+     */
+    public Syntax getSyntax() {
+        return Syntax.reporterSyntax(new int[] { Syntax.TYPE_STRING }, Syntax.TYPE_BOOLEAN);
+    }
 
-	/**
- 	 * Executes sql:find-database command from model context.
- 	 * 
- 	 * @param args
- 	 * @param context
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
-	public Object report(Argument args[], Context context)
-	throws ExtensionException , org.nlogo.api.LogoException {
+    /**
+     * Executes sql:find-database command from model context.
+     * 
+     * @param args
+     * @param context
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public Object report(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
 
-		SqlConnection sqlc = sqlenv.getActiveSqlConnection(context, true);
+        SqlConnection sqlc = sqlenv.getActiveSqlConnection(context, true);
 
-		String schemaName = args[0].getString();
-		try {
-			return sqlc.findDatabase(schemaName);
-		}
-		catch ( Exception ex ) {
-	 		throw new ExtensionException("Cannot find database '" + schemaName + "': " + ex);
-		}
-	}
+        String schemaName = args[0].getString();
+        try {
+            return sqlc.findDatabase(schemaName);
+        } catch (Exception ex) {
+            throw new ExtensionException("Cannot find database '" + schemaName + "': " + ex);
+        }
+    }
 }

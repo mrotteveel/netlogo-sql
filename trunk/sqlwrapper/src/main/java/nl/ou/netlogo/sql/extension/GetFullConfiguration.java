@@ -34,61 +34,60 @@ import org.nlogo.api.*;
  * GetFullConfiguration implements the sql:get-full-configuration command
  * 
  * @author NetLogo project-team
- *
+ * 
  */
- public class GetFullConfiguration extends DefaultReporter {
- 	
- 	private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
+public class GetFullConfiguration extends DefaultReporter {
+
+    private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
     private static final Logger LOG = SqlLogger.getLogger();
 
- 	/**
- 	 * Checks syntax of the sql:get-full-configuration reporter.
- 	 * @return syntax object handle
- 	 */
+    /**
+     * Checks syntax of the sql:get-full-configuration reporter.
+     * 
+     * @return syntax object handle
+     */
     public Syntax getSyntax() {
- 		return Syntax.reporterSyntax( new int[] {}, Syntax.TYPE_LIST);
- 	}
-    
- 	/**
- 	 * Executes sql:get-full-configuration command.
- 	 * 
- 	 * @param args 
- 	 * @param context
- 	 * @return full list of configured entities
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
- 	public Object report(Argument args[], Context context)
-	throws ExtensionException, org.nlogo.api.LogoException {
-		LOG.log(Level.FINE, "GetConfiguration.report()");
-		LogoList confList = new LogoList();
-		try {
-			Iterator<String> it = sqlenv.getConfiguration().keySet().iterator(); 
-			// loop over the configured entities by name
-			while( it.hasNext()) {
-				LogoList conf = new LogoList();
-				String name = it.next();
-				conf.add(name);
-				SqlSetting setting = sqlenv.getConfiguration().get(name);
-				if (setting.isVisible()) {
-					Iterator<String> keys = setting.keySet().iterator();
-					// loop over the key-value pairs for a configured entity
-					while (keys.hasNext()) {
-						LogoList kvpair = new LogoList();
-						String key = keys.next();
-						kvpair.add(key);
-						kvpair.add(setting.getString(key));
-						conf.add(kvpair);
-					}
-					confList.add(conf);
-				}
-			}
-			
-  		}
- 		catch (Exception e) {
- 			throw new ExtensionException(e);
- 		}
- 		
- 		return confList;
- 	}
+        return Syntax.reporterSyntax(new int[] {}, Syntax.TYPE_LIST);
+    }
+
+    /**
+     * Executes sql:get-full-configuration command.
+     * 
+     * @param args
+     * @param context
+     * @return full list of configured entities
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public Object report(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
+        LOG.log(Level.FINE, "GetConfiguration.report()");
+        LogoList confList = new LogoList();
+        try {
+            Iterator<String> it = sqlenv.getConfiguration().keySet().iterator();
+            // loop over the configured entities by name
+            while (it.hasNext()) {
+                LogoList conf = new LogoList();
+                String name = it.next();
+                conf.add(name);
+                SqlSetting setting = sqlenv.getConfiguration().get(name);
+                if (setting.isVisible()) {
+                    Iterator<String> keys = setting.keySet().iterator();
+                    // loop over the key-value pairs for a configured entity
+                    while (keys.hasNext()) {
+                        LogoList kvpair = new LogoList();
+                        String key = keys.next();
+                        kvpair.add(key);
+                        kvpair.add(setting.getString(key));
+                        conf.add(kvpair);
+                    }
+                    confList.add(conf);
+                }
+            }
+
+        } catch (Exception e) {
+            throw new ExtensionException(e);
+        }
+
+        return confList;
+    }
 }

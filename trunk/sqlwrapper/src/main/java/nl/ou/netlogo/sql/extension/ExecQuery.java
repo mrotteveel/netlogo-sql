@@ -37,50 +37,47 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Class representing the exec-query command in a NetLogo model from the SQL extension.
+ * Class representing the exec-query command in a NetLogo model from the SQL
+ * extension.
  * 
  * @author NetLogo project-team
- *
+ * 
  */
- public class ExecQuery extends DefaultCommand {
- 	
- 	private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
- 	private static final Logger LOG = SqlLogger.getLogger();
- 	
- 	/**
- 	 * Description of the NetLogo syntax of the command.
- 	 * 
- 	 * @return syntax object handle
- 	 */
- 	public Syntax getSyntax() {
- 		int[] right = {Syntax.TYPE_STRING, Syntax.TYPE_LIST} ;
- 		return Syntax.commandSyntax(right);
- 	}
+public class ExecQuery extends DefaultCommand {
 
- 	/**
- 	 * Executes parameterized query command from model context.
- 	 * 
- 	 * @param args
- 	 * @param context
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
- 	public void perform(Argument args[], Context context)
-			throws ExtensionException, org.nlogo.api.LogoException {
- 		LOG.log(Level.FINE, "ExecQuery.perform()");
- 		//
- 		// Get the sql connection, if any, for this agent.
- 		//
- 		SqlConnection sqlc = sqlenv.getActiveSqlConnection(context, true);
- 		
- 		try {
- 			String query = args[0].getString();
- 			LogoList parameters = args[1].getList();
- 			SqlStatement statement = sqlc.createStatement(query, parameters);
- 			statement.executeQuery();
- 		}
- 		catch (SQLException e) {
- 			throw new ExtensionException(e);
- 		}
- 	}
+    private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
+    private static final Logger LOG = SqlLogger.getLogger();
+
+    /**
+     * Description of the NetLogo syntax of the command.
+     * 
+     * @return syntax object handle
+     */
+    public Syntax getSyntax() {
+        int[] right = { Syntax.TYPE_STRING, Syntax.TYPE_LIST };
+        return Syntax.commandSyntax(right);
+    }
+
+    /**
+     * Executes parameterized query command from model context.
+     * 
+     * @param args
+     * @param context
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public void perform(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
+
+        // Get the sql connection for this agent. Exception if none available.
+        SqlConnection sqlc = sqlenv.getActiveSqlConnection(context, true);
+
+        try {
+            String query = args[0].getString();
+            LogoList parameters = args[1].getList();
+            SqlStatement statement = sqlc.createStatement(query, parameters);
+            statement.executeQuery();
+        } catch (SQLException e) {
+            throw new ExtensionException(e);
+        }
+    }
 }

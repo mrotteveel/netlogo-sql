@@ -32,44 +32,43 @@ import org.nlogo.api.ExtensionException;
 import org.nlogo.api.Syntax;
 
 /**
-* Class associated with the use-database command in a NetLogo model from the SQL extension.
-* 
-* @author NetLogo project-team
-*
-*/
+ * Class associated with the use-database command in a NetLogo model from the
+ * SQL extension.
+ * 
+ * @author NetLogo project-team
+ * 
+ */
 public class UseDatabase extends DefaultCommand {
 
-	private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
-	
-	/**
- 	 * Checks syntax of the sql:use-database command.
- 	 * @return syntax object handle
- 	 */
-	public Syntax getSyntax() {
-		int[] right = { Syntax.TYPE_STRING } ;
-		return Syntax.commandSyntax(right);
-	}
+    private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
 
-	/**
- 	 * Executes sql:use-database command from model context.
- 	 * 
- 	 * @param args
- 	 * @param context
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
-	public void perform(Argument args[], Context context)
-		throws ExtensionException , org.nlogo.api.LogoException {
+    /**
+     * Checks syntax of the sql:use-database command.
+     * 
+     * @return syntax object handle
+     */
+    public Syntax getSyntax() {
+        int[] right = { Syntax.TYPE_STRING };
+        return Syntax.commandSyntax(right);
+    }
 
-		SqlConnection sqlc = sqlenv.getActiveSqlConnection(context, true);
+    /**
+     * Executes sql:use-database command from model context.
+     * 
+     * @param args
+     * @param context
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public void perform(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
 
-		String schemaName = args[0].getString();
-		try {
-			sqlc.useDatabase(schemaName);
-		}
-		catch ( DatabaseFeatureNotImplementedException dbex ) {
-	 		throw new ExtensionException("Cannot use database '" + schemaName + "': " + dbex);
-		}		
-	}
+        SqlConnection sqlc = sqlenv.getActiveSqlConnection(context, true);
+
+        String schemaName = args[0].getString();
+        try {
+            sqlc.useDatabase(schemaName);
+        } catch (DatabaseFeatureNotImplementedException dbex) {
+            throw new ExtensionException("Cannot use database '" + schemaName + "': " + dbex);
+        }
+    }
 }
-

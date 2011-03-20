@@ -40,143 +40,139 @@ import org.nlogo.api.ExtensionException;
  */
 public class SqlEnvironment {
 
-	private SqlConnectionManager connectionManager = new SqlConnectionManager();
-	private SqlConfiguration configuration = new SqlConfiguration();
-	private Logger LOG = SqlLogger.getLogger();
+    private SqlConnectionManager connectionManager = new SqlConnectionManager();
+    private SqlConfiguration configuration = new SqlConfiguration();
+    private Logger LOG = SqlLogger.getLogger();
 
-	private static String mavenVersion;
+    private static String mavenVersion;
 
-	private static final String VERSION_TEMPLATE = "Sql Extension Version %s";
+    private static final String VERSION_TEMPLATE = "Sql Extension Version %s";
 
-	/**
-	 * List of getter and setter functions for this class
-	 */
-	public SqlConnectionManager getConnectionManager() {
-		LOG.log(Level.FINE, "SqlEnvironment.getConnectionManager()");
-		return connectionManager;
-	}
+    /**
+     * List of getter and setter functions for this class
+     */
+    public SqlConnectionManager getConnectionManager() {
+        LOG.log(Level.FINE, "SqlEnvironment.getConnectionManager()");
+        return connectionManager;
+    }
 
-	/**
-	 * Method used to retrieve the connection for a context.
-	 * 
-	 * @param context
-	 * @param createConnection
-	 *            <code>true</code> create a new connection if the agent has no
-	 *            open connection and a connection pool exists
-	 * @return connection handle, null when no connection was found or no
-	 *         connection pool was available to create a new connection
-	 * @throws ExtensionException
-	 */
-	public SqlConnection getSqlConnection(Context context,
-			boolean createConnection) throws ExtensionException {
-		LOG.log(Level.FINE, "SqlEnvironment.getSqlConnection(context=" + context + ")");
-		Agent agent = context.getAgent();
+    /**
+     * Method used to retrieve the connection for a context.
+     * 
+     * @param context
+     * @param createConnection
+     *            <code>true</code> create a new connection if the agent has no
+     *            open connection and a connection pool exists
+     * @return connection handle, null when no connection was found or no
+     *         connection pool was available to create a new connection
+     * @throws ExtensionException
+     */
+    public SqlConnection getSqlConnection(Context context, boolean createConnection) throws ExtensionException {
+        LOG.log(Level.FINE, "SqlEnvironment.getSqlConnection(context=" + context + ")");
+        Agent agent = context.getAgent();
 
-		if (agent == null) {
-			String problem = "Cannot determine agent.";
-			LOG.log(Level.SEVERE, "SqlEnvironment.getSqlConnection(context=" + context + "): " + problem);
-			throw new ExtensionException(problem);
-		}
+        if (agent == null) {
+            String problem = "Cannot determine agent.";
+            LOG.log(Level.SEVERE, "SqlEnvironment.getSqlConnection(context=" + context + "): " + problem);
+            throw new ExtensionException(problem);
+        }
 
-		return connectionManager.getConnection(agent, createConnection);
-	}
+        return connectionManager.getConnection(agent, createConnection);
+    }
 
-	/**
-	 * Method used to retrieve the connection for a context, will return an
-	 * exception if no active connection was available.
-	 * 
-	 * @param context
-	 * @param createConnection
-	 *            <code>true</code> create a new connection if the agent has no
-	 *            open connection and a connection pool exists
-	 * @return active connection
-	 * @throws ExtensionException
-	 */
-	public SqlConnection getActiveSqlConnection(Context context,
-			boolean createConnection) throws ExtensionException {
-		LOG.log(Level.FINE, "SqlEnvironment.getSqlActiveConnection(context=" + context + ")");
-		SqlConnection sqlc = getSqlConnection(context, createConnection);
-		if (sqlc == null) {
-			String problem = "No active database connection available";
-			LOG.log(Level.SEVERE, "SqlEnvironment.getSqlActiveConnection(context=" + context + 
-					"): " + problem + "(sqlc == null)");
-			throw new ExtensionException(problem);
-		}
-		LOG.log(Level.FINE, "SqlEnvironment.getSqlActiveConnection(context=" + context + ")" +
-				"returns SqlConnection(" + sqlc + ")");
-		return sqlc;
-	}
+    /**
+     * Method used to retrieve the connection for a context, will return an
+     * exception if no active connection was available.
+     * 
+     * @param context
+     * @param createConnection
+     *            <code>true</code> create a new connection if the agent has no
+     *            open connection and a connection pool exists
+     * @return active connection
+     * @throws ExtensionException
+     */
+    public SqlConnection getActiveSqlConnection(Context context, boolean createConnection) throws ExtensionException {
+        LOG.log(Level.FINE, "SqlEnvironment.getSqlActiveConnection(context=" + context + ")");
+        SqlConnection sqlc = getSqlConnection(context, createConnection);
+        if (sqlc == null) {
+            String problem = "No active database connection available";
+            LOG.log(Level.SEVERE, "SqlEnvironment.getSqlActiveConnection(context=" + context + "): " + problem
+                    + "(sqlc == null)");
+            throw new ExtensionException(problem);
+        }
+        LOG.log(Level.FINE, "SqlEnvironment.getSqlActiveConnection(context=" + context + ")" + "returns SqlConnection("
+                + sqlc + ")");
+        return sqlc;
+    }
 
-	/**
-	 * Creates a new unmanaged connection for a context.
-	 * 
-	 * @param context
-	 *            Context for the connection
-	 * @param host
-	 *            Hostname
-	 * @param port
-	 *            Port
-	 * @param user
-	 *            User
-	 * @param passwd
-	 *            Password
-	 * @param database
-	 *            Database schema
-	 * @return SqlConnection
-	 * @throws ExtensionException
-	 */
-	public SqlConnection createConnection(Context context, String host,
-			int port, String user, String passwd, String database)
-			throws ExtensionException {
-		Agent agent = context.getAgent();
+    /**
+     * Creates a new unmanaged connection for a context.
+     * 
+     * @param context
+     *            Context for the connection
+     * @param host
+     *            Hostname
+     * @param port
+     *            Port
+     * @param user
+     *            User
+     * @param passwd
+     *            Password
+     * @param database
+     *            Database schema
+     * @return SqlConnection
+     * @throws ExtensionException
+     */
+    public SqlConnection createConnection(Context context, String host, int port, String user, String passwd,
+            String database) throws ExtensionException {
+        Agent agent = context.getAgent();
 
-		if (agent == null) {
-			throw new ExtensionException("Cannot determine agent.");
-		}
+        if (agent == null) {
+            throw new ExtensionException("Cannot determine agent.");
+        }
 
-		return connectionManager.createConnection(agent, host, port, user,
-				passwd, database);
-	}
+        return connectionManager.createConnection(agent, host, port, user, passwd, database);
+    }
 
-	/**
-	 * Method used to return the version string of the SQL Extension.
-	 * 
-	 * @return version string
-	 */
-	public String getVersion() {
-		if (mavenVersion == null) {
-			InputStream is = null;
-			try {
-				is = getClass().getResourceAsStream("/META-INF/maven/nl.ou.netlogo/sql/pom.properties");
-				Properties pomProperties = new Properties();
-				if (is == null) {
-					LOG.warning("Resource /META-INF/maven/nl.ou.netlogo/sql/pom.properties not found; not running as maven packaged artifact?");
-				} else {
-					pomProperties.load(is);
-				}
-				mavenVersion = pomProperties.getProperty("version", "Unknown");
-			} catch (IOException ex) {
-				LOG.warning("Unable to load /META-INF/maven/nl.ou.netlogo/sql/pom.properties; not running as maven packaged artifact?");
-				mavenVersion = "Unknown";
-			} finally {
-				if (is != null) {
-					try {
-						is.close();
-					} catch (IOException ex) {
-						// ignore
-					}
-				}
-			}
-		}
+    /**
+     * Method used to return the version string of the SQL Extension.
+     * 
+     * @return version string
+     */
+    public String getVersion() {
+        if (mavenVersion == null) {
+            InputStream is = null;
+            try {
+                is = getClass().getResourceAsStream("/META-INF/maven/nl.ou.netlogo/sql/pom.properties");
+                Properties pomProperties = new Properties();
+                if (is == null) {
+                    LOG.warning("Resource /META-INF/maven/nl.ou.netlogo/sql/pom.properties not found; not running as maven packaged artifact?");
+                } else {
+                    pomProperties.load(is);
+                }
+                mavenVersion = pomProperties.getProperty("version", "Unknown");
+            } catch (IOException ex) {
+                LOG.warning("Unable to load /META-INF/maven/nl.ou.netlogo/sql/pom.properties; not running as maven packaged artifact?");
+                mavenVersion = "Unknown";
+            } finally {
+                if (is != null) {
+                    try {
+                        is.close();
+                    } catch (IOException ex) {
+                        // ignore
+                    }
+                }
+            }
+        }
 
-		return String.format(VERSION_TEMPLATE, mavenVersion);
-	}
+        return String.format(VERSION_TEMPLATE, mavenVersion);
+    }
 
-	/**
-	 * 
-	 * @return the SQL configuration
-	 */
-	public SqlConfiguration getConfiguration() {
-		return configuration;
-	}
+    /**
+     * 
+     * @return the SQL configuration
+     */
+    public SqlConfiguration getConfiguration() {
+        return configuration;
+    }
 }

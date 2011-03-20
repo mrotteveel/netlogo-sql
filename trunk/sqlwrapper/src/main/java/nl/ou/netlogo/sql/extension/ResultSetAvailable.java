@@ -27,47 +27,49 @@ import nl.ou.netlogo.sql.wrapper.SqlResultSet;
 
 import org.nlogo.api.*;
 
-
 /**
  * ResultSetAvailable implements the sql:resultset-available? reporter.
  * 
  * @author NetLogo project-team
- *
+ * 
  */
- public class ResultSetAvailable extends DefaultReporter {
- 	
- 	private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
- 	/**
- 	 * Checks syntax of the sql:resultset-available? reporter.
- 	 * @return syntax object handle
- 	 */
- 	public Syntax getSyntax() {
- 		return Syntax.reporterSyntax( new int[] {}, Syntax.TYPE_BOOLEAN);
- 	}
+public class ResultSetAvailable extends DefaultReporter {
 
- 	/**
- 	 * Executes "resultset-available?" statement.
- 	 * <p>
- 	 * Return <code>true</code> if there is a resultset. Return <code>false</code> if there is no connection, 
- 	 * or the connection has no resultset.
- 	 * </p>
- 	 * 
- 	 * @param args (none)
- 	 * @param context
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
- 	public Object report(Argument args[], Context context)
-			throws ExtensionException, org.nlogo.api.LogoException {
+    private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
 
- 		SqlConnection sqlc = sqlenv.getSqlConnection(context, false);
+    /**
+     * Checks syntax of the sql:resultset-available? reporter.
+     * 
+     * @return syntax object handle
+     */
+    public Syntax getSyntax() {
+        return Syntax.reporterSyntax(new int[] {}, Syntax.TYPE_BOOLEAN);
+    }
 
- 		if (sqlc != null) {
- 			SqlResultSet resultSet = sqlc.getResultSet();
- 			if (resultSet != null) {
- 				return resultSet.isResultSetAvailable();
- 			}
- 		} 
- 		return false;
- 	}
+    /**
+     * Executes "resultset-available?" statement.
+     * <p>
+     * Return <code>true</code> if there is a resultset. Return
+     * <code>false</code> if there is no connection, or the connection has no
+     * resultset.
+     * </p>
+     * 
+     * @param args
+     *            (none)
+     * @param context
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public Object report(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
+
+        SqlConnection sqlc = sqlenv.getSqlConnection(context, false);
+
+        if (sqlc != null) {
+            SqlResultSet resultSet = sqlc.getResultSet();
+            if (resultSet != null) {
+                return resultSet.isResultSetAvailable();
+            }
+        }
+        return false;
+    }
 }

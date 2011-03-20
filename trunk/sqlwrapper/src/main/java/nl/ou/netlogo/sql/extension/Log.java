@@ -29,38 +29,38 @@ import org.nlogo.api.ExtensionException;
 import org.nlogo.api.Syntax;
 
 /**
- * Class representing the sql:log command in a NetLogo model from the SQL extension.
+ * Class representing the sql:log command in a NetLogo model from the SQL
+ * extension.
  * 
  * @author NetLogo project-team
- *
+ * 
  */
-public class Log extends DefaultCommand { 
- 	
- 	/**
- 	 * Checks syntax of the sql:log command.
- 	 * @return syntax object handle
- 	 */
- 	public Syntax getSyntax() {
- 		int[] right = { Syntax.TYPE_STRING, Syntax.TYPE_STRING };
- 		return Syntax.commandSyntax(right);
- 	}
+public class Log extends DefaultCommand {
 
- 	/**
- 	 * Executes sql:log command from model context.
- 	 * 
- 	 * @param args
- 	 * @param context
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
- 	public void perform(Argument args[], Context context)
-			throws ExtensionException, org.nlogo.api.LogoException {
- 		try {
- 			SqlLogger.sqlLog(args[0].getString(), args[1].getString(), context);
- 		}
- 		catch ( RuntimeException e ) {
- 			throw new ExtensionException( "Could not write log message '" + args[1].getString() +
- 					"' (level: " + args[0].getString() + ")");
- 		}
- 	}
+    /**
+     * Checks syntax of the sql:log command.
+     * 
+     * @return syntax object handle
+     */
+    public Syntax getSyntax() {
+        int[] right = { Syntax.TYPE_STRING, Syntax.TYPE_STRING };
+        return Syntax.commandSyntax(right);
+    }
+
+    /**
+     * Executes sql:log command from model context.
+     * 
+     * @param args
+     * @param context
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public void perform(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
+        try {
+            SqlLogger.sqlLog(args[0].getString(), args[1].getString(), context);
+        } catch (RuntimeException e) {
+            throw new ExtensionException("Could not write log message '" + args[1].getString() + "' (level: "
+                    + args[0].getString() + ")");
+        }
+    }
 }

@@ -27,47 +27,48 @@ import nl.ou.netlogo.sql.wrapper.SqlResultSet;
 
 import org.nlogo.api.*;
 
-
 /**
  * FetchResultSet implements the sql:fetch-resultset reporter.
  * 
  * @author NetLogo project-team
- *
+ * 
  */
 public class FetchResultSet extends DefaultReporter {
- 	
- 	private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
- 	/**
- 	 * Checks syntax of the sql:fetch-resultset reporter.
- 	 * @return syntax object handle
- 	 */
- 	public Syntax getSyntax() {
- 		return Syntax.reporterSyntax( new int[] {}, Syntax.TYPE_LIST);
- 	}
 
- 	/**
- 	 * Executes the sql:fetch-resultset reporter.
- 	 * <p>
- 	 * Returns the resultset as a LogoList containing rows (as LogoList). Returns
- 	 * an empty list if the resultset is empty, or if there is no resultset or connection.
- 	 * </p>
- 	 * 
- 	 * @param args
- 	 * @param context
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
- 	public Object report(Argument args[], Context context)
-			throws ExtensionException, org.nlogo.api.LogoException {
+    private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
 
- 		SqlConnection sqlc = sqlenv.getSqlConnection(context, false);
- 		
- 		if (sqlc != null) {
- 			SqlResultSet resultSet = sqlc.getResultSet();
- 			if (resultSet != null) {
- 				return resultSet.fetchResultSet();
- 			}
- 		}
- 		return new LogoList();
- 	}
+    /**
+     * Checks syntax of the sql:fetch-resultset reporter.
+     * 
+     * @return syntax object handle
+     */
+    public Syntax getSyntax() {
+        return Syntax.reporterSyntax(new int[] {}, Syntax.TYPE_LIST);
+    }
+
+    /**
+     * Executes the sql:fetch-resultset reporter.
+     * <p>
+     * Returns the resultset as a LogoList containing rows (as LogoList).
+     * Returns an empty list if the resultset is empty, or if there is no
+     * resultset or connection.
+     * </p>
+     * 
+     * @param args
+     * @param context
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public Object report(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
+
+        SqlConnection sqlc = sqlenv.getSqlConnection(context, false);
+
+        if (sqlc != null) {
+            SqlResultSet resultSet = sqlc.getResultSet();
+            if (resultSet != null) {
+                return resultSet.fetchResultSet();
+            }
+        }
+        return new LogoList();
+    }
 }

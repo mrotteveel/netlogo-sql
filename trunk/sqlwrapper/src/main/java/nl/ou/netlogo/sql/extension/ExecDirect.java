@@ -36,45 +36,44 @@ import java.sql.*;
  * ExecDirect implements the sql:exec-direct command
  * 
  * @author NetLogo project-team
- *
+ * 
  */
- public class ExecDirect extends DefaultCommand {
- 	
- 	private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
+public class ExecDirect extends DefaultCommand {
+
+    private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
     private static final Logger LOG = SqlLogger.getLogger();
 
- 	/**
- 	 * Checks syntax of the sql:exec-direct command.
- 	 * @return syntax object handle
- 	 */
- 	public Syntax getSyntax() {
- 		return Syntax.commandSyntax( new int[] {Syntax.TYPE_STRING});
- 	}
+    /**
+     * Checks syntax of the sql:exec-direct command.
+     * 
+     * @return syntax object handle
+     */
+    public Syntax getSyntax() {
+        return Syntax.commandSyntax(new int[] { Syntax.TYPE_STRING });
+    }
 
- 	/**
- 	 * Executes sql:exec-direct command. If there is already an active statement/result set it is silently closed
- 	 * 
- 	 * @param args 
- 	 * 			args[0] is the SQL statement
- 	 * @param context
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
- 	public void perform(Argument args[], Context context)
-			throws ExtensionException, org.nlogo.api.LogoException {
-		LOG.log(Level.FINE, "ExecDirect.perform()");
-		LOG.finest("    statement: " + args[0].getString());
- 		//
- 		// Get the sql connection for this agent. throws up if none available.
- 		//
- 		SqlConnection sqlc = sqlenv.getActiveSqlConnection(context, true);
+    /**
+     * Executes sql:exec-direct command. If there is already an active
+     * statement/result set it is silently closed
+     * 
+     * @param args
+     *            args[0] is the SQL statement
+     * @param context
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public void perform(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
+        LOG.log(Level.FINE, "ExecDirect.perform()");
+        LOG.finest("    statement: " + args[0].getString());
 
- 		try {
- 			SqlStatement statement = sqlc.createStatement(args[0].getString());
- 			statement.executeDirect();
- 		}
- 		catch (SQLException sqle) {
- 			throw new ExtensionException(sqle);
- 		}
- 	}
+        // Get the sql connection for this agent. Exception if none available.
+        SqlConnection sqlc = sqlenv.getActiveSqlConnection(context, true);
+
+        try {
+            SqlStatement statement = sqlc.createStatement(args[0].getString());
+            statement.executeDirect();
+        } catch (SQLException sqle) {
+            throw new ExtensionException(sqle);
+        }
+    }
 }

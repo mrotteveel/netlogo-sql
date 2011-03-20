@@ -21,15 +21,16 @@
 package nl.ou.netlogo.sql.wrapper;
 
 /**
- * Thrown by classes that implement AbstractDatabase when a feature is invoked that is not implemented
+ * Thrown by classes that implement AbstractDatabase when a feature is invoked
+ * that is not implemented
  * 
  * @author NetLogo project-team
- *
+ * 
  */
 public class DatabaseFeatureNotImplementedException extends Exception {
-	static final long serialVersionUID = 0;
-	
-	public DatabaseFeatureNotImplementedException(String message) {
-		super(message);
-	}
+    static final long serialVersionUID = 0;
+
+    public DatabaseFeatureNotImplementedException(String message) {
+        super(message);
+    }
 }

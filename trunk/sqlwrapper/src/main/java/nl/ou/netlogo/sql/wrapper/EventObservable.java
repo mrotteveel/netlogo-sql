@@ -21,17 +21,19 @@
 package nl.ou.netlogo.sql.wrapper;
 
 public interface EventObservable<E extends Enum<?>> {
-	/**
-	 * Register the EventObserver to this EventObservable.
-	 * 
-	 * @param observer EventObserver object
-	 */
-	void register(EventObserver<E> observer);
-	
-	/**
-	 * Unregister the EventObserver from this EventObservable.
-	 * 
-	 * @param observer EventObserver object
-	 */
-	void unRegister(EventObserver<E> observer);
+    /**
+     * Register the EventObserver to this EventObservable.
+     * 
+     * @param observer
+     *            EventObserver object
+     */
+    void register(EventObserver<E> observer);
+
+    /**
+     * Unregister the EventObserver from this EventObservable.
+     * 
+     * @param observer
+     *            EventObserver object
+     */
+    void unRegister(EventObserver<E> observer);
 }

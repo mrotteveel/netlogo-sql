@@ -26,44 +26,47 @@ import nl.ou.netlogo.sql.wrapper.SqlExtension;
 
 import org.nlogo.api.*;
 
-
 /**
  * GetRowCount implements the sql:get-rowcount reporter.
  * 
  * @author NetLogo project-team
- *
+ * 
  */
 public class GetRowCount extends DefaultReporter {
- 	
- 	private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
- 	/**
- 	 * Checks syntax of the sql:get-rowcount reporter
- 	 * @return syntax object handle
- 	 */
- 	public Syntax getSyntax() {
- 		return Syntax.reporterSyntax( new int[] {}, Syntax.TYPE_NUMBER);
- 	}
 
- 	/**
- 	 * Executes the sql:fetch-rowcount reporter.
- 	 * <p>
- 	 * Returns the number of rows affected by an update. Returns <code>0</code> if no rows were changed (or if a SELECT was
- 	 * executed). Returns <code>-1</code> if no statement has been executed, or if there is no connection.
- 	 * </p> 
- 	 * 
- 	 * @param args (none)
- 	 * @param context
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
- 	public Object report(Argument args[], Context context)
-			throws ExtensionException, org.nlogo.api.LogoException {
+    private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
 
- 		SqlConnection sqlc = sqlenv.getSqlConnection(context, false);
+    /**
+     * Checks syntax of the sql:get-rowcount reporter
+     * 
+     * @return syntax object handle
+     */
+    public Syntax getSyntax() {
+        return Syntax.reporterSyntax(new int[] {}, Syntax.TYPE_NUMBER);
+    }
 
- 		if (sqlc != null) {
- 			return sqlc.getRowCount();
- 		}
-		return Double.valueOf(-1);
- 	}
+    /**
+     * Executes the sql:fetch-rowcount reporter.
+     * <p>
+     * Returns the number of rows affected by an update. Returns <code>0</code>
+     * if no rows were changed (or if a SELECT was executed). Returns
+     * <code>-1</code> if no statement has been executed, or if there is no
+     * connection.
+     * </p>
+     * 
+     * @param args
+     *            (none)
+     * @param context
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public Object report(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
+
+        SqlConnection sqlc = sqlenv.getSqlConnection(context, false);
+
+        if (sqlc != null) {
+            return sqlc.getRowCount();
+        }
+        return Double.valueOf(-1);
+    }
 }

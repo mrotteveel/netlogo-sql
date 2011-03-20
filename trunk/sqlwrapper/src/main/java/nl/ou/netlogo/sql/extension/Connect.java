@@ -35,91 +35,93 @@ import nl.ou.netlogo.sql.wrapper.SqlConfigurable;
 import nl.ou.netlogo.sql.wrapper.SqlSetting;
 
 /**
- * Class representing the connect command in a NetLogo model from the SQL extension.
+ * Class representing the connect command in a NetLogo model from the SQL
+ * extension.
  * 
  * @author NetLogo project-team
- *
+ * 
  */
- public class Connect extends DefaultCommand { 
- 	
- 	private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
- 	/**
- 	 * Checks syntax of the connect command.
- 	 * @return syntax object handle
- 	 */
- 	public Syntax getSyntax() {
- 		return Syntax.commandSyntax( new int[] {Syntax.TYPE_LIST});
- 	}
+public class Connect extends DefaultCommand {
 
- 	/**
- 	 * Executes connect command from model context. If there is an active
- 	 * connection it is silently closed.
- 	 * 
- 	 * @param args
- 	 * @param context
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
- 	public void perform(Argument args[], Context context)
-			throws ExtensionException, org.nlogo.api.LogoException {
- 		//
- 		// Get the sql connection, if any, for this agent.
- 		// We use getSqlConnection() instead of getActiveSqlConnection()
- 		// as that will throw an exception when there is no connection
- 		// found. In this case that is likely to happen as the connect
- 		// command is typically executed once.
- 		//
- 		// If an active is found we remove it first and release
- 		// the associated resources [i.e. it is closed].
- 		//
- 		SqlConnection sqlc = sqlenv.getSqlConnection(context, false);
- 		
- 		class LocalConfiguration implements SqlConfigurable {
- 			public String host;
- 			public int port;
- 			public String user;
- 			public String password;
- 			public String schema;
- 			public String brand;
- 			
- 			public void configure(SqlSetting settings, Context context) throws Exception {
- 				host = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_HOST);
- 				port = settings.getInt(SqlConfiguration.DEFAULTCONNECTION_OPT_PORT);
- 				user = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_USER);
- 				password = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_PASSWORD);
- 				schema = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DATABASE);
- 				brand = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_BRAND);
- 			}
- 		}
- 		
- 		if ( sqlc != null ) {
- 			try {
- 				sqlc.close();
- 			}
- 			catch (Exception e ) {
- 				throw new ExtensionException("Could not close database connection.");
- 			}
- 		}
- 		try {
- 			/*
- 			 * the mechanism of SqlConfiguration is used to parse the arguments of the connect command
- 			 * by creating a local configurable object, registering it as SqlConfigurable with SqlConfiguration,
- 			 * parsing the arguments, and removing it from SqlConfiguration
- 			 */
- 			final String name = SqlConfiguration.EXPLICITCONNECTION;
- 			LocalConfiguration config = new LocalConfiguration();
-			sqlenv.getConfiguration().addConfigurable(name, config);
- 			sqlenv.getConfiguration().setConfiguration(
- 										name,
-	 									SqlConfiguration.parseSettingList(name, args[0].getList()),
-	 									context);
-			sqlenv.getConfiguration().removeConfigurable(name, config);
+    private final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
 
- 			sqlc = sqlenv.createConnection(context, config.host, config.port, config.user,
- 												config.password, config.schema);
- 		}
- 		catch ( RuntimeException e ) {
- 			throw new ExtensionException( "Could not connect to database, make sure database is up. " + e ) ;
- 		}
- 	}
+    /**
+     * Checks syntax of the connect command.
+     * 
+     * @return syntax object handle
+     */
+    public Syntax getSyntax() {
+        return Syntax.commandSyntax(new int[] { Syntax.TYPE_LIST });
+    }
+
+    /**
+     * Executes connect command from model context. If there is an active
+     * connection it is silently closed.
+     * 
+     * @param args
+     * @param context
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public void perform(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
+        /*
+         * Get the sql connection, if any, for this agent. We use
+         * getSqlConnection() instead of getActiveSqlConnection() as that will
+         * throw an exception when there is no connection found. In this case
+         * that is likely to happen as the connect command is typically executed
+         * once.
+         * 
+         * If an active is found we remove it first and release the associated
+         * resources [i.e. it is closed].
+         */
+        SqlConnection sqlc = sqlenv.getSqlConnection(context, false);
+
+        class LocalConfiguration implements SqlConfigurable {
+            public String host;
+            public int port;
+            public String user;
+            public String password;
+            public String schema;
+            public String brand;
+
+            public void configure(SqlSetting settings, Context context) throws Exception {
+                host = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_HOST);
+                port = settings.getInt(SqlConfiguration.DEFAULTCONNECTION_OPT_PORT);
+                user = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_USER);
+                password = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_PASSWORD);
+                schema = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DATABASE);
+                brand = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_BRAND);
+            }
+        }
+
+        if (sqlc != null) {
+            try {
+                sqlc.close();
+            } catch (Exception e) {
+                throw new ExtensionException("Could not close database connection.");
+            }
+        }
+        try {
+            /*
+             * the mechanism of SqlConfiguration is used to parse the arguments
+             * of the connect command by creating a local configurable object,
+             * registering it as SqlConfigurable with SqlConfiguration, parsing
+             * the arguments, and removing it from SqlConfiguration
+             * 
+             * WARNING: This only works because NetLogo executes
+             * single-threaded!
+             */
+            final String name = SqlConfiguration.EXPLICITCONNECTION;
+            LocalConfiguration config = new LocalConfiguration();
+            sqlenv.getConfiguration().addConfigurable(name, config);
+            sqlenv.getConfiguration().setConfiguration(name,
+                    SqlConfiguration.parseSettingList(name, args[0].getList()), context);
+            sqlenv.getConfiguration().removeConfigurable(name, config);
+
+            sqlc = sqlenv.createConnection(context, config.host, config.port, config.user, config.password,
+                    config.schema);
+        } catch (RuntimeException e) {
+            throw new ExtensionException("Could not connect to database, make sure database is up. " + e);
+        }
+    }
 }

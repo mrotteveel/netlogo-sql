@@ -25,113 +25,107 @@ import org.nlogo.api.LogoList;
 
 import java.util.logging.Logger;
 
-
 /**
- * Implements the MySql specific methods that the SQL extension needs to interact with a MySql
- * database engine
+ * Implements the MySql specific methods that the SQL extension needs to
+ * interact with a MySql database engine
  * 
  * @author NetLogo project-team
- *
+ * 
  */
 public class DatabaseMySql extends AbstractDatabase {
 
-	public static final String BRANDNAME = "MySql";
-	public static final int DEFAULT_PORT = 3306;
-	public static final String JDBC_PATTERN = "jdbc:mysql://%s:%d/%s";
-	public static final String DRIVER_CLASSNAME = "com.mysql.jdbc.Driver";
-	
-	private static final Logger LOG = SqlLogger.getLogger();
-	
-	public DatabaseMySql(SqlSetting settings) throws Exception {
-		super(settings);
-	}
-	
-	public DatabaseMySql(String host, int port, String user, String password, String schemaName) {
-		super(host, port, user, password, schemaName);
-	}
-	
-	@Override
-	public String getBrandName() {
-		return BRANDNAME;
-	}
-	
-	@Override
-	public String getDriverClass() {
-		return DRIVER_CLASSNAME;
-	}
-	
-	@Override
-	public String getJdbcUrl() {
-		return String.format(JDBC_PATTERN, getHost(), getPort(), getDatabase());
-	}
-	
-	@Override
-	protected int getDefaultPort() {
-		return DEFAULT_PORT;
-	}
-	
-	@Override
-	public void useDatabase(SqlConnection sqlc, String schemaName) throws ExtensionException {
-		try {
-			SqlStatement statement = sqlc.createStatement("use " + schemaName);
-			// the use <database> will never generate a result set
-			// nor a row count, hence no further processing.
-			statement.executeDirect();
-		}
-		catch ( Exception e ) {
-			throw new ExtensionException("Could not switch database context to '" + schemaName + "' " + e);
-		}
-	}
+    public static final String BRANDNAME = "MySql";
+    public static final int DEFAULT_PORT = 3306;
+    public static final String JDBC_PATTERN = "jdbc:mysql://%s:%d/%s";
+    public static final String DRIVER_CLASSNAME = "com.mysql.jdbc.Driver";
 
+    private static final Logger LOG = SqlLogger.getLogger();
 
-	@Override
-	public String getCurrentDatabase(SqlConnection sqlc) {
-		if ( sqlc == null ) {
-			return ("");
-		}
-		
-		try {
-			String DBName = "";
-			SqlStatement statement = sqlc.createStatement("select database()");
+    public DatabaseMySql(SqlSetting settings) throws Exception {
+        super(settings);
+    }
 
-			if (statement.executeDirect())
-			{
-				// We have a result, process it.
-				SqlResultSet rs = sqlc.getResultSet();
-				LogoList result = rs.fetchRow();
-				DBName = (String) result.first();
-			}
-			
-			return (DBName);
-		}
-		// TODO: more meaningful exception handling
-		catch (Exception ex) {
-			return "";
-		}
-	}
+    public DatabaseMySql(String host, int port, String user, String password, String schemaName) {
+        super(host, port, user, password, schemaName);
+    }
 
-	@Override
-	public boolean findDatabase(SqlConnection sqlc, String schemaName) {
-		if ( sqlc != null ) {
-			try {
-				SqlStatement statement = sqlc.createStatement(
-							"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" +
-							schemaName + "'");
-				if (statement.executeDirect())
-				{
-					// We have a result, process it.
-					SqlResultSet rs = sqlc.getResultSet();
-					LogoList result = rs.fetchRow();
-					String dbName = (String) result.first();
-					return dbName.equalsIgnoreCase(schemaName); 
-				}
-			}
-			catch ( Exception e ) {
-				// log, but ignore, semantics is: database not found
-				LOG.severe("Exception while finding database '" + schemaName + "': " + e);
-			}
-		}
-		return false;
-	}
-	
+    @Override
+    public String getBrandName() {
+        return BRANDNAME;
+    }
+
+    @Override
+    public String getDriverClass() {
+        return DRIVER_CLASSNAME;
+    }
+
+    @Override
+    public String getJdbcUrl() {
+        return String.format(JDBC_PATTERN, getHost(), getPort(), getDatabase());
+    }
+
+    @Override
+    protected int getDefaultPort() {
+        return DEFAULT_PORT;
+    }
+
+    @Override
+    public void useDatabase(SqlConnection sqlc, String schemaName) throws ExtensionException {
+        try {
+            SqlStatement statement = sqlc.createStatement("use " + schemaName);
+            // the use <database> will never generate a result set
+            // nor a row count, hence no further processing.
+            statement.executeDirect();
+        } catch (Exception e) {
+            throw new ExtensionException("Could not switch database context to '" + schemaName + "' " + e);
+        }
+    }
+
+    @Override
+    public String getCurrentDatabase(SqlConnection sqlc) {
+        if (sqlc == null) {
+            return ("");
+        }
+
+        try {
+            String DBName = "";
+            SqlStatement statement = sqlc.createStatement("select database()");
+
+            if (statement.executeDirect()) {
+                // We have a result, process it.
+                SqlResultSet rs = sqlc.getResultSet();
+                LogoList result = rs.fetchRow();
+                DBName = (String) result.first();
+            }
+
+            return (DBName);
+        }
+        // TODO: more meaningful exception handling
+        catch (Exception ex) {
+            return "";
+        }
+    }
+
+    @Override
+    public boolean findDatabase(SqlConnection sqlc, String schemaName) {
+        if (sqlc != null) {
+            try {
+                SqlStatement statement = sqlc
+                        .createStatement("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '"
+                                + schemaName + "'");
+                if (statement.executeDirect()) {
+                    // We have a result, process it.
+                    SqlResultSet rs = sqlc.getResultSet();
+                    LogoList result = rs.fetchRow();
+                    String dbName = (String) result.first();
+                    return dbName.equalsIgnoreCase(schemaName);
+                }
+            } catch (Exception e) {
+                // log, but ignore, semantics is: database not found
+                LOG.severe("Exception while finding database '" + schemaName + "': " + e);
+            }
+        }
+        return false;
+    }
+
 }

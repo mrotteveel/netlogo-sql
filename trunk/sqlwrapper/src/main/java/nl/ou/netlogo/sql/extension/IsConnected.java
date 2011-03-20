@@ -33,68 +33,68 @@ import org.nlogo.api.ExtensionException;
 import org.nlogo.api.Syntax;
 
 /**
- * Class associated with the isConnected? command in a NetLogo model from the SQL extension.
+ * Class associated with the isConnected? command in a NetLogo model from the
+ * SQL extension.
  * 
  * @author NetLogo project-team
- *
+ * 
  */
 public class IsConnected extends DefaultReporter {
-	
-	protected final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
-	
-	/**
- 	 * Checks syntax of the sql:is-connected? command.
- 	 * @return syntax object handle
- 	 */
-	public Syntax getSyntax() {
-		return Syntax.reporterSyntax(Syntax.TYPE_BOOLEAN);
-	}
-	
-	/**
- 	 * Executes sql:is-connected? command from model context.
- 	 * 
- 	 * @param args
- 	 * @param context
- 	 * @throws ExtensionException
- 	 * @throws org.nlogo.api.LogoException
- 	 */
-	public Object report(Argument args[], Context context)
-		throws ExtensionException , org.nlogo.api.LogoException {
 
-		//
-		// Do note that if there is a pool available using
-		// default connection properties this function
-		// always returns true.
-		//
-		Agent agent = context.getAgent();
-		
-		if ( agent == null ) {
-			return (false);
-		}
-		
-		// When we use connection pooling we are implicitly always
-		// connected, hence we return TRUE. Even if there is no
-		// physical connection for this task.
-		SqlConnectionManager sqlmgr = sqlenv.getConnectionManager();
-		
-		if ( sqlmgr != null && sqlmgr.connectionPoolEnabled() ) {
-			return (true);
-		}
-		else {
-			//
-			// We use getSqlConnection() and not getActiveSqlConnection()
-			// as the latter will throw an exception when there is no
-			// connection found. From this command context we just
-			// want to return false for that scenario.
-			//
-			SqlConnection sqlc = sqlenv.getSqlConnection(context, true);
+    protected final SqlEnvironment sqlenv = SqlExtension.getSqlEnvironment();
 
-			if ( sqlc == null ) {
-				return false;
-			}
-			else {
-				return sqlc.isConnected();
-			}
-		}
-	}
+    /**
+     * Checks syntax of the sql:is-connected? command.
+     * 
+     * @return syntax object handle
+     */
+    public Syntax getSyntax() {
+        return Syntax.reporterSyntax(Syntax.TYPE_BOOLEAN);
+    }
+
+    /**
+     * Executes sql:is-connected? command from model context.
+     * 
+     * @param args
+     * @param context
+     * @throws ExtensionException
+     * @throws org.nlogo.api.LogoException
+     */
+    public Object report(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
+
+        //
+        // Do note that if there is a pool available using
+        // default connection properties this function
+        // always returns true.
+        //
+        Agent agent = context.getAgent();
+
+        if (agent == null) {
+            return (false);
+        }
+
+        /*
+         * connected, hence we return TRUE. Even if there is no physical
+         * connection for this task.
+         */
+        SqlConnectionManager sqlmgr = sqlenv.getConnectionManager();
+
+        if (sqlmgr != null && sqlmgr.connectionPoolEnabled()) {
+            return (true);
+        } else {
+            /*
+             * We use getSqlConnection() and not getActiveSqlConnection() as the
+             * latter will throw an exception when there is no connection found.
+             * From this command context we just want to return false for that
+             * scenario.
+             */
+            SqlConnection sqlc = sqlenv.getSqlConnection(context, true);
+
+            if (sqlc == null) {
+                return false;
+            } else {
+                return sqlc.isConnected();
+            }
+        }
+    }
 }

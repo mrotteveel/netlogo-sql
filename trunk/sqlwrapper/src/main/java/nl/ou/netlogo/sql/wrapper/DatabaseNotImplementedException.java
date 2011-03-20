@@ -21,16 +21,16 @@
 package nl.ou.netlogo.sql.wrapper;
 
 /**
- * Thrown when an attempt to create a connection for a database brand for which no
- * implementation of AbstractDatabase exists.
+ * Thrown when an attempt to create a connection for a database brand for which
+ * no implementation of AbstractDatabase exists.
  * 
  * @author NetLogo project-team
- *
+ * 
  */
 public class DatabaseNotImplementedException extends Exception {
-	static final long serialVersionUID = 0;
-	
-	public DatabaseNotImplementedException(String message) {
-		super(message);
-	}
+    static final long serialVersionUID = 0;
+
+    public DatabaseNotImplementedException(String message) {
+        super(message);
+    }
 }
