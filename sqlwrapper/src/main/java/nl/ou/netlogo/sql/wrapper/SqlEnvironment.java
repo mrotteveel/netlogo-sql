@@ -52,7 +52,6 @@ public class SqlEnvironment {
      * List of getter and setter functions for this class
      */
     public SqlConnectionManager getConnectionManager() {
-        LOG.log(Level.FINE, "SqlEnvironment.getConnectionManager()");
         return connectionManager;
     }
 
@@ -92,7 +91,6 @@ public class SqlEnvironment {
      * @throws ExtensionException
      */
     public SqlConnection getActiveSqlConnection(Context context, boolean createConnection) throws ExtensionException {
-        LOG.log(Level.FINE, "SqlEnvironment.getSqlActiveConnection(context=" + context + ")");
         SqlConnection sqlc = getSqlConnection(context, createConnection);
         if (sqlc == null) {
             String problem = "No active database connection available";
@@ -110,28 +108,19 @@ public class SqlEnvironment {
      * 
      * @param context
      *            Context for the connection
-     * @param host
-     *            Hostname
-     * @param port
-     *            Port
-     * @param user
-     *            User
-     * @param passwd
-     *            Password
-     * @param database
-     *            Database schema
+     * @param connectionSettings
+     *            Connection settings
      * @return SqlConnection
      * @throws ExtensionException
      */
-    public SqlConnection createConnection(Context context, String host, int port, String user, String passwd,
-            String database) throws ExtensionException {
+    public SqlConnection createConnection(Context context, SqlSetting connectionSettings) throws ExtensionException {
         Agent agent = context.getAgent();
 
         if (agent == null) {
             throw new ExtensionException("Cannot determine agent.");
         }
 
-        return connectionManager.createConnection(agent, host, port, user, passwd, database);
+        return connectionManager.createConnection(agent, connectionSettings);
     }
 
     /**

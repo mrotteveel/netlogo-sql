@@ -49,7 +49,9 @@ public class GetConfigurationTest extends HeadlessTest {
 		defaults.put("host", "localhost");
 		defaults.put("password", "<default, invalid>");
 		defaults.put("user", "<default, invalid>");
-		defaults.put("database", "<default, invalid>");
+		defaults.put("database", "<default>");
+		defaults.put("jdbc-url", "<default>");
+		defaults.put("driver", "<default>");
 		defaults.put("autodisconnect", "on");
 		
 		EXPECTED_DEFAULTS = Collections.unmodifiableMap(defaults);
@@ -93,6 +95,8 @@ public class GetConfigurationTest extends HeadlessTest {
 		config.put("password", ci.getPassword());
 		config.put("user", ci.getUsername());
 		config.put("database", ci.getSchema());
+		config.put("jdbc-url", "<default>");
+		config.put("driver", "<default>");
 		config.put("autodisconnect", ci.getAutoDisconnect());
 		
 		EXPECTED_CONFIG = Collections.unmodifiableMap(config);

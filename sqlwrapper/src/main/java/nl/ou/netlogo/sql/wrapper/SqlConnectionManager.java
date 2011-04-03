@@ -21,23 +21,24 @@
 package nl.ou.netlogo.sql.wrapper;
 
 import java.sql.Connection;
-
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nl.ou.netlogo.sql.wrapper.SqlConnection.ConnectionEvent;
 
-import org.nlogo.api.*;
+import org.nlogo.api.Agent;
+import org.nlogo.api.Context;
+import org.nlogo.api.ExtensionException;
 
 import com.jolbox.bonecp.BoneCP;
 import com.jolbox.bonecp.BoneCPConfig;
 import com.jolbox.bonecp.ConnectionHandle;
-
-import java.util.concurrent.*;
 
 /**
  * Class used to implement the storage of multiple database connections for a
@@ -64,7 +65,7 @@ public class SqlConnectionManager implements SqlConfigurable, EventObserver<Conn
      */
     private Map<Agent, SqlConnection> connections = new ConcurrentHashMap<Agent, SqlConnection>();
 
-    private AbstractDatabase dbInfo = null;
+    private DatabaseInfo dbInfo = null;
 
     /**
      * the pool of physical connections towards a database when the default
@@ -340,87 +341,31 @@ public class SqlConnectionManager implements SqlConfigurable, EventObserver<Conn
      * 
      * @param agent
      *            Agent object
-     * @param host
-     *            Host
-     * @param port
-     *            Port
-     * @param user
-     *            User
-     * @param password
-     *            Password
-     * @param database
-     *            Database schema
+     * @param connectionSettings
+     *            Connection settings
      * @return SqlConnection
      * @throws ExtensionException
      */
-    public SqlConnection createConnection(Agent agent, String host, int port, String user, String password,
-            String database) throws ExtensionException {
-        return createConnection(agent, "MySql", host, port, user, password, database);
-    }
-
-    /**
-     * Creates a new unmanaged connection for the specified agent.
-     * 
-     * @param agent
-     *            Agent object
-     * @param brand
-     *            Database Engine brand (e.g. "MySql")
-     * @param host
-     *            Host
-     * @param port
-     *            Port
-     * @param user
-     *            User
-     * @param password
-     *            Password
-     * @param database
-     *            Database schema
-     * @return SqlConnection
-     * @throws ExtensionException
-     */
-    public SqlConnection createConnection(Agent agent, String brand, String host, int port, String user,
-            String password, String database) throws ExtensionException {
-        AbstractDatabase myDbInfo = null;
+    public SqlConnection createConnection(Agent agent, SqlSetting connectionSettings) throws ExtensionException {
         try {
-            if (brand.equalsIgnoreCase("mysql")) {
-                myDbInfo = new DatabaseMySql(host, port, user, password, database);
-            } else {
-                String message = "Database interface not implemented for brand '" + brand + "'";
-                LOG.severe(message);
-                throw new DatabaseNotImplementedException(message);
-            }
-
-        } catch (Exception ex) {
-            throw new ExtensionException("Unable to create connection: " + ex);
+            DatabaseInfo localDbInfo = DatabaseFactory.createDatabaseInfo(connectionSettings);
+            SqlConnection sqlConn = createConnection(localDbInfo);
+            registerConnection(agent, sqlConn);
+            return sqlConn;
+        } catch (DatabaseConfigurationException ex) {
+            throw new ExtensionException(ex);
         }
-        return createConnection(agent, myDbInfo);
-    }
-
-    /**
-     * Creates a new unmanaged connection for the specified agent.
-     * 
-     * @param agent
-     *            Agent object
-     * @param myDbInfo
-     *            Intermediator for a specific database engine
-     * @return SqlConnection
-     * @throws ExtensionException
-     */
-    public SqlConnection createConnection(Agent agent, DatabaseInfo myDbInfo) throws ExtensionException {
-        SqlConnection sqlConn = createConnection(myDbInfo);
-        registerConnection(agent, sqlConn);
-        return sqlConn;
     }
 
     /**
      * Creates a new unmanaged connection
      * 
      * @param myDbInfo
-     *            Intermediator for a specific database engine
+     *            DatabaseInfo for a specific database engine
      * @return SqlConnection
      * @throws ExtensionException
      */
-    public SqlConnection createConnection(DatabaseInfo myDbInfo) throws ExtensionException {
+    private SqlConnection createConnection(DatabaseInfo myDbInfo) throws ExtensionException {
         try {
             Class.forName(myDbInfo.getDriverClass());
             Connection conn = DriverManager.getConnection(myDbInfo.getJdbcUrl(), myDbInfo.getUser(),
@@ -435,59 +380,47 @@ public class SqlConnectionManager implements SqlConfigurable, EventObserver<Conn
         }
     }
 
-    public void configure(SqlSetting settings, Context context) throws DatabaseNotImplementedException,
-            ExtensionException {
+    @Override
+    public void configure(SqlSetting settings, Context context) throws Exception {
         if (settings.getName().equals(SqlConfiguration.DEFAULTCONNECTION)) {
-            configureDatabase(settings, context);
+            configureDatabase(settings);
         } else if (settings.getName().equals(SqlConfiguration.CONNECTIONPOOL)) {
             configureConnectionPool(settings);
         }
     }
 
     private void configureConnectionPool(SqlSetting settings) throws ExtensionException {
+        if (!settings.isValid()) {
+            return;
+        }
         try {
-            if (settings.isValid()) {
-                partitions = settings.getInt(SqlConfiguration.CONNECTIONPOOL_OPT_PARTITIONS);
-                maxConnections = settings.getInt(SqlConfiguration.CONNECTIONPOOL_OPT_MAXCONNECTIONS);
-                connectionPoolTimeout = settings.getLong(SqlConfiguration.CONNECTIONPOOL_OPT_TIMEOUT);
-                LOG.fine("Configured connection pool:");
-                LOG.fine("    Partitions: " + partitions);
-                LOG.fine("    Connections (max): " + maxConnections);
-                LOG.fine("    Timeout: " + connectionPoolTimeout);
-            }
+            partitions = settings.getInt(SqlConfiguration.CONNECTIONPOOL_OPT_PARTITIONS);
+            maxConnections = settings.getInt(SqlConfiguration.CONNECTIONPOOL_OPT_MAXCONNECTIONS);
+            connectionPoolTimeout = settings.getLong(SqlConfiguration.CONNECTIONPOOL_OPT_TIMEOUT);
+            LOG.fine("Configured connection pool:");
+            LOG.fine("    Partitions: " + partitions);
+            LOG.fine("    Connections (max): " + maxConnections);
+            LOG.fine("    Timeout: " + connectionPoolTimeout);
         } catch (Exception e) {
             throw new ExtensionException("Exception while configuring connection pool: " + e);
         }
     }
 
-    private void configureDatabase(SqlSetting settings, Context context) throws DatabaseNotImplementedException {
-        String brand = "unknown";
-        try {
-            brand = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_BRAND);
-            if (settings.isValid()) {
-                AbstractDatabase configuredDatabase = null;
-                if (brand.equalsIgnoreCase("mysql")) {
-                    configuredDatabase = new DatabaseMySql(settings);
-                }
-                // else if (brand.equalsIgnoreCase("postgresql")) {
-                // configuredDatabase = new DatabasePostgreSQL(settings);
-                // }
-                else {
-                    String message = "Database not implemented for brand: '" + "'";
-                    LOG.severe(message);
-                    throw new DatabaseNotImplementedException(message);
-                }
-
-                if (configuredDatabase != null) {
-                    this.dbInfo = configuredDatabase;
-                    initDefaultConnectionPool();
-                }
-            }
-        } catch (Exception ex) {
-            String message = "Cannot configure database for brand: '" + brand + "'";
-            LOG.severe(message);
-            throw new DatabaseNotImplementedException(message + ": " + ex);
+    /**
+     * Configures the default database connection based on the SqlSetting object
+     * provided.
+     * 
+     * @param settings
+     *            SqlSetting object
+     * @throws DatabaseConfigurationException
+     *             For configuration errors
+     */
+    private void configureDatabase(SqlSetting settings) throws DatabaseConfigurationException {
+        if (!settings.isValid()) {
+            return;
         }
+        dbInfo = DatabaseFactory.createDatabaseInfo(settings);
+        initDefaultConnectionPool();
     }
 
     /**

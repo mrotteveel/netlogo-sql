@@ -20,10 +20,14 @@
  */
 package nl.ou.netlogo.sql.wrapper;
 
-import org.nlogo.api.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-import java.util.*;
-import java.util.logging.*;
+import org.nlogo.api.Context;
+import org.nlogo.api.ExtensionException;
+import org.nlogo.api.LogoList;
 
 /**
  * Manages the configurable objects in the SQL extension. Acts as an interface
@@ -58,8 +62,8 @@ public class SqlConfiguration {
     public static final String DEFAULTCONNECTION_OPT_PASSWORD = "password";
     public static final String DEFAULTCONNECTION_OPT_DATABASE = "database";
     public static final String DEFAULTCONNECTION_OPT_AUTODISCONNECT = "autodisconnect";
-    public static final String DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME = "driver-classname";
-    public static final String DEFAULTCONNECTION_OPT_JDBC_PREFIX = "jdbc-prefix";
+    public static final String DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME = "driver";
+    public static final String DEFAULTCONNECTION_OPT_JDBC_URL = "jdbc-url";
     public static final String CONNECTIONPOOL_OPT_PARTITIONS = "partitions";
     public static final String CONNECTIONPOOL_OPT_MAXCONNECTIONS = "max-connections";
     public static final String CONNECTIONPOOL_OPT_TIMEOUT = "timeout";
@@ -67,8 +71,6 @@ public class SqlConfiguration {
     public static final String LOGGING_OPT_LOGGING = "file-logging";
     public static final String LOGGING_OPT_LEVEL = "level";
     public static final String LOGGING_OPT_COPYTOSTDERR = "copy-to-stderr";
-
-    private static final Logger LOG = SqlLogger.getLogger();
 
     /**
      * available contains all available aspects
@@ -98,15 +100,16 @@ public class SqlConfiguration {
          * invalid/incomplete configurations to be caught before trying to use
          * them
          */
-        String[][] defaultConnectionSettingsMySql = { { DEFAULTCONNECTION_OPT_BRAND, "MySql" },
+        String[][] defaultConnectionSettings = { 
+                { DEFAULTCONNECTION_OPT_BRAND, "MySql" },
                 { DEFAULTCONNECTION_OPT_HOST, "localhost" },
                 { DEFAULTCONNECTION_OPT_PORT, "3306" },
-                { DEFAULTCONNECTION_OPT_DATABASE, SqlSetting.DefaultInvalidSetting },
-                { DEFAULTCONNECTION_OPT_USER, SqlSetting.DefaultInvalidSetting },
-                { DEFAULTCONNECTION_OPT_PASSWORD, SqlSetting.DefaultInvalidSetting },
+                { DEFAULTCONNECTION_OPT_DATABASE, SqlSetting.DEFAULT_UNSET },
+                { DEFAULTCONNECTION_OPT_USER, SqlSetting.DEFAULT_INVALID },
+                { DEFAULTCONNECTION_OPT_PASSWORD, SqlSetting.DEFAULT_INVALID },
+                { DEFAULTCONNECTION_OPT_JDBC_URL, SqlSetting.DEFAULT_UNSET },
+                { DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME, SqlSetting.DEFAULT_UNSET },
                 { DEFAULTCONNECTION_OPT_AUTODISCONNECT, "on" },
-        // {DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME, "com.mysql.jdbc.Driver"}
-        // {DEFAULTCONNECTION_OPT_JDBC_PREFIX, "jdbc:mysql://"}
         };
         //
         // connectSettingsMySql is used for explicit connections done
@@ -114,13 +117,15 @@ public class SqlConfiguration {
         // the arguments for the sql:command. For ease of use and consistency,
         // this set should be a subset of defaultConnectionSettingsMySql
         //
-        String[][] connectSettingsMySql = {
+        String[][] connectSettings = {
         		{ DEFAULTCONNECTION_OPT_BRAND, "MySql" },
                 { DEFAULTCONNECTION_OPT_HOST, "localhost" },
                 { DEFAULTCONNECTION_OPT_PORT, "3306" },
-                { DEFAULTCONNECTION_OPT_DATABASE, SqlSetting.DefaultInvalidSetting },
-                { DEFAULTCONNECTION_OPT_USER, SqlSetting.DefaultInvalidSetting },
-                { DEFAULTCONNECTION_OPT_PASSWORD, SqlSetting.DefaultInvalidSetting },
+                { DEFAULTCONNECTION_OPT_DATABASE, SqlSetting.DEFAULT_UNSET },
+                { DEFAULTCONNECTION_OPT_USER, SqlSetting.DEFAULT_INVALID },
+                { DEFAULTCONNECTION_OPT_PASSWORD, SqlSetting.DEFAULT_INVALID },
+                { DEFAULTCONNECTION_OPT_JDBC_URL, SqlSetting.DEFAULT_UNSET },
+                { DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME, SqlSetting.DEFAULT_UNSET },
         };
         String[][] connectionPoolSettings = { 
         		{ CONNECTIONPOOL_OPT_PARTITIONS, "1" },
@@ -140,10 +145,10 @@ public class SqlConfiguration {
                 { LOGGING_OPT_COPYTOSTDERR, "off" },
         };
         try {
-            this.addAvailable(DEFAULTCONNECTION, defaultConnectionSettingsMySql);
+            this.addAvailable(DEFAULTCONNECTION, defaultConnectionSettings);
             this.addAvailable(CONNECTIONPOOL, connectionPoolSettings);
             this.addAvailable(LOGGING, loggingSettings);
-            this.addAvailable(EXPLICITCONNECTION, connectSettingsMySql);
+            this.addAvailable(EXPLICITCONNECTION, connectSettings);
         } catch (Exception ex) {
             // ignore, for now. should log error at least
             System.err.println("SqlConfiguration: broke in constructor\n");
@@ -162,26 +167,9 @@ public class SqlConfiguration {
      * @throws ExtensionException
      */
     private void addAvailable(String name, String[][] settings) throws ExtensionException {
-        addAvailable(name, settings, true);
-    }
-
-    /**
-     * Adds an configurable aspect to the available aspects
-     * 
-     * @param name
-     *            name of aspect, should match a key in available and optional
-     *            configured
-     * @param settings
-     *            array of name value pairs: "option-name" => "default-value"
-     * @param visible
-     *            indicates whether the aspect should actually be visible to the
-     *            sql:configure command
-     * @throws ExtensionException
-     */
-    private void addAvailable(String name, String[][] settings, boolean visible) throws ExtensionException {
         if (!available.containsKey(name)) {
             try {
-                available.put(name, new SqlSetting(name, settings, visible));
+                available.put(name, new SqlSetting(name, settings));
             } catch (Exception ex) {
                 throw new ExtensionException(ex);
             }
@@ -200,7 +188,7 @@ public class SqlConfiguration {
      * @see SqlConfigurable
      */
     public void addConfigurable(String name, SqlConfigurable configurable) throws ExtensionException {
-        LOG.fine("Adding configuration for '" + name + "'");
+        SqlLogger.getLogger().fine("Adding configuration for '" + name + "'");
         if (available.containsKey(name)) {
             if (!configurables.containsKey(name)) {
                 configurables.put(name, new HashSet<SqlConfigurable>());
@@ -260,38 +248,25 @@ public class SqlConfiguration {
                 }
             }
             configuredSetting = configured.get(name);
-            Iterator<String> it = keyValuePairs.keySet().iterator();
-            while (it.hasNext()) {
-                String key = it.next();
-                if (availableSetting.containsKey(key)) {
-                    String value = keyValuePairs.get(key);
-                    configuredSetting.put(key, value);
-                } else {
-                    String message = "Attempt to configure unknown key '" + key + "' for name '" + name + "'";
-                    LOG.severe(message);
-                    throw new ExtensionException(message);
-                }
-            }
+            assignSettings(keyValuePairs, configuredSetting, availableSetting);
         } else {
             String message = "Attempt to configure for unknown name ('" + name + "')";
-            LOG.severe(message);
+            SqlLogger.getLogger().severe(message);
             throw new ExtensionException(message);
         }
 
         // push the new settings to any registered SqlConfigurable
         if (configuredSetting != null && configurables.containsKey(name)) {
-            Iterator<SqlConfigurable> it = configurables.get(name).iterator();
-            while (it.hasNext()) {
+            for (SqlConfigurable configurable : configurables.get(name)) {
                 try {
-                    it.next().configure(configuredSetting, context);
+                    configurable.configure(configuredSetting, context);
                 } catch (Exception ex) {
                     String message = "setConfiguration('" + name + "'): while calling configurable.configure: " + ex;
-                    LOG.severe(message);
+                    SqlLogger.getLogger().severe(message);
                     throw new ExtensionException(message);
                 }
             }
         }
-
     }
 
     /**
@@ -331,9 +306,8 @@ public class SqlConfiguration {
 
         // push the new settings to any registered SqlConfigurable
         if (setting != null && configurables.containsKey(name)) {
-            Iterator<SqlConfigurable> it = configurables.get(name).iterator();
-            while (it.hasNext()) {
-                it.next().configure(setting, context);
+            for (SqlConfigurable configurable : configurables.get(name)) {
+                configurable.configure(setting, context);
             }
         }
     }
@@ -345,17 +319,22 @@ public class SqlConfiguration {
      * @param name
      *            name of aspect
      * @return SqlSetting
-     * @throws Exception
      * @throws ExtensionException
      */
-    public SqlSetting getConfiguration(String name) throws Exception, ExtensionException {
+    public SqlSetting getConfiguration(String name) throws ExtensionException {
         if (configured.containsKey(name)) {
             return configured.get(name);
         } else if (available.containsKey(name)) {
-            return available.get(name).clone();
+            try {
+                return available.get(name).clone();
+            } catch (CloneNotSupportedException e) {
+                String message = "Unable to clone SqlSetting object for name '" + name + "'";
+                SqlLogger.getLogger().severe(message);
+                throw new ExtensionException(message);
+            }
         } else {
             String message = "Attempt to get configuration for unknown name ('" + name + "')";
-            LOG.severe(message);
+            SqlLogger.getLogger().severe(message);
             throw new ExtensionException(message);
         }
     }
@@ -416,9 +395,8 @@ public class SqlConfiguration {
      */
     public static Map<String, String> parseSettingList(String name, LogoList settingList) throws ExtensionException {
         Map<String, String> kvPairs = new HashMap<String, String>();
-        Iterator<Object> it = settingList.iterator();
-        while (it.hasNext()) {
-            LogoList logoKvPair = (LogoList) it.next();
+        for (Object obj : settingList) {
+            LogoList logoKvPair = (LogoList) obj;
             /*
              * a key-value pair could be valid if
              * - it is indeed a pair of strings, or
@@ -440,5 +418,27 @@ public class SqlConfiguration {
         }
 
         return kvPairs;
+    }
+
+    /**
+     * Assigns the key/value pairs to a SqlSetting object
+     * 
+     * @param keyValuePairs Map containing the settings
+     * @param setting Setting object to fill from keyValuePairs
+     * @param settingConstraint Constraint for settings (keys must be available in this setting), optional: use null to not check settings
+     * @throws ExtensionException For errors assigning values (eg setting-key not available in settingConstraint)
+     */
+    public static void assignSettings(Map<String, String> keyValuePairs, SqlSetting setting,
+            SqlSetting settingConstraint) throws ExtensionException {
+        for (String key : keyValuePairs.keySet()) {
+            if (settingConstraint == null || settingConstraint.containsKey(key)) {
+                String value = keyValuePairs.get(key);
+                setting.put(key, value);
+            } else {
+                String message = "Attempt to configure unknown key '" + key;
+                SqlLogger.getLogger().severe(message);
+                throw new ExtensionException(message);
+            }
+        }
     }
 }

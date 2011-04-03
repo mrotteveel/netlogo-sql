@@ -20,11 +20,38 @@
  */
 package nl.ou.netlogo.sql.wrapper;
 
-import nl.ou.netlogo.sql.extension.*;
+import java.util.logging.Level;
 
-import org.nlogo.api.*;
+import nl.ou.netlogo.sql.extension.AutoCommitEnabled;
+import nl.ou.netlogo.sql.extension.AutoCommitOff;
+import nl.ou.netlogo.sql.extension.AutoCommitOn;
+import nl.ou.netlogo.sql.extension.CommitTransaction;
+import nl.ou.netlogo.sql.extension.Configure;
+import nl.ou.netlogo.sql.extension.Connect;
+import nl.ou.netlogo.sql.extension.CurrentDatabase;
+import nl.ou.netlogo.sql.extension.Disconnect;
+import nl.ou.netlogo.sql.extension.ExecDirect;
+import nl.ou.netlogo.sql.extension.ExecQuery;
+import nl.ou.netlogo.sql.extension.ExecUpdate;
+import nl.ou.netlogo.sql.extension.FetchResultSet;
+import nl.ou.netlogo.sql.extension.FetchRow;
+import nl.ou.netlogo.sql.extension.FindDatabase;
+import nl.ou.netlogo.sql.extension.GetConfiguration;
+import nl.ou.netlogo.sql.extension.GetFullConfiguration;
+import nl.ou.netlogo.sql.extension.GetRowCount;
+import nl.ou.netlogo.sql.extension.IsConnected;
+import nl.ou.netlogo.sql.extension.IsConnectedDebug;
+import nl.ou.netlogo.sql.extension.Log;
+import nl.ou.netlogo.sql.extension.ResultSetAvailable;
+import nl.ou.netlogo.sql.extension.RollbackTransaction;
+import nl.ou.netlogo.sql.extension.RowAvailable;
+import nl.ou.netlogo.sql.extension.ShowVersion;
+import nl.ou.netlogo.sql.extension.StartTransaction;
+import nl.ou.netlogo.sql.extension.UseDatabase;
 
-import java.util.logging.*;
+import org.nlogo.api.DefaultClassManager;
+import org.nlogo.api.ExtensionException;
+import org.nlogo.api.PrimitiveManager;
 
 /**
  * ClassManager for the sql extension for NetLogo.
@@ -65,7 +92,7 @@ public class SqlExtension extends DefaultClassManager {
     // the load() method is called once. All environment defaults
     // are available. The environment is shared across agents.
     //
-    static SqlEnvironment sqlenv = null;
+    private static SqlEnvironment sqlenv = null;
     private static SqlLogger sqlLogger = null;
 
     static {
@@ -139,7 +166,6 @@ public class SqlExtension extends DefaultClassManager {
      */
     public static SqlEnvironment getSqlEnvironment() {
         if (sqlenv == null) {
-            SqlLogger.getLogger().log(Level.FINE, "Creating new SqlEnvironment");
             sqlenv = new SqlEnvironment();
 
             //
