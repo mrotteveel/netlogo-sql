@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.nlogo.api.LogoList;
 import org.nlogo.api.ExtensionException;
+import org.nlogo.api.LogoList;
 
 import com.jolbox.bonecp.ConnectionHandle;
 

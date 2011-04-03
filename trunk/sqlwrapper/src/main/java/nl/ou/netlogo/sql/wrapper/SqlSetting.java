@@ -20,14 +20,17 @@
  */
 package nl.ou.netlogo.sql.wrapper;
 
-import java.util.*;
-import java.util.logging.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.logging.Logger;
 
 public class SqlSetting implements Cloneable {
     private String name;
     private boolean visible;
     private HashMap<String, String> settings = new HashMap<String, String>();
-    public static final String DefaultInvalidSetting = "<default, invalid>";
+    public static final String DEFAULT_INVALID = "<default, invalid>";
+    public static final String DEFAULT_UNSET = "<default>";
 
     public static final Logger LOG = SqlLogger.getLogger();
 
@@ -35,10 +38,6 @@ public class SqlSetting implements Cloneable {
     }
 
     public SqlSetting(String name, String[][] settings) throws Exception {
-        this(name, settings, true);
-    }
-
-    public SqlSetting(String name, String[][] settings, boolean visible) throws Exception {
         this.name = name;
         for (int i = 0; i < settings.length; ++i) {
             if (settings[i].length == 2) {
@@ -47,7 +46,7 @@ public class SqlSetting implements Cloneable {
                 throw new Exception("Wrong number of elements in settings[" + i + "] for '" + name + "'");
             }
         }
-        this.visible = visible;
+        this.visible = true;
     }
 
     /**
@@ -143,9 +142,8 @@ public class SqlSetting implements Cloneable {
     }
 
     public boolean isValid() {
-        Iterator<String> it = this.settings.values().iterator();
-        while (it.hasNext()) {
-            if (it.next().equals(SqlSetting.DefaultInvalidSetting)) {
+        for (String value : settings.values()) {
+            if (value.equals(SqlSetting.DEFAULT_INVALID)) {
                 return false;
             }
         }

@@ -24,15 +24,13 @@ import nl.ou.netlogo.sql.wrapper.SqlConfiguration;
 import nl.ou.netlogo.sql.wrapper.SqlConnection;
 import nl.ou.netlogo.sql.wrapper.SqlEnvironment;
 import nl.ou.netlogo.sql.wrapper.SqlExtension;
+import nl.ou.netlogo.sql.wrapper.SqlSetting;
 
 import org.nlogo.api.Argument;
 import org.nlogo.api.Context;
 import org.nlogo.api.DefaultCommand;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.Syntax;
-
-import nl.ou.netlogo.sql.wrapper.SqlConfigurable;
-import nl.ou.netlogo.sql.wrapper.SqlSetting;
 
 /**
  * Class representing the connect command in a NetLogo model from the SQL
@@ -76,24 +74,6 @@ public class Connect extends DefaultCommand {
          */
         SqlConnection sqlc = sqlenv.getSqlConnection(context, false);
 
-        class LocalConfiguration implements SqlConfigurable {
-            public String host;
-            public int port;
-            public String user;
-            public String password;
-            public String schema;
-            public String brand;
-
-            public void configure(SqlSetting settings, Context context) throws Exception {
-                host = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_HOST);
-                port = settings.getInt(SqlConfiguration.DEFAULTCONNECTION_OPT_PORT);
-                user = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_USER);
-                password = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_PASSWORD);
-                schema = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DATABASE);
-                brand = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_BRAND);
-            }
-        }
-
         if (sqlc != null) {
             try {
                 sqlc.close();
@@ -102,25 +82,15 @@ public class Connect extends DefaultCommand {
             }
         }
         try {
-            /*
-             * the mechanism of SqlConfiguration is used to parse the arguments
-             * of the connect command by creating a local configurable object,
-             * registering it as SqlConfigurable with SqlConfiguration, parsing
-             * the arguments, and removing it from SqlConfiguration
-             * 
-             * WARNING: This only works because NetLogo executes
-             * single-threaded!
-             */
-            final String name = SqlConfiguration.EXPLICITCONNECTION;
-            LocalConfiguration config = new LocalConfiguration();
-            sqlenv.getConfiguration().addConfigurable(name, config);
-            sqlenv.getConfiguration().setConfiguration(name,
-                    SqlConfiguration.parseSettingList(name, args[0].getList()), context);
-            sqlenv.getConfiguration().removeConfigurable(name, config);
+            SqlSetting connectionSetting = sqlenv.getConfiguration().getConfiguration(SqlConfiguration.EXPLICITCONNECTION);
+            SqlConfiguration.assignSettings(
+                    SqlConfiguration.parseSettingList(SqlConfiguration.EXPLICITCONNECTION, args[0].getList()),
+                    connectionSetting, connectionSetting);
 
-            sqlc = sqlenv.createConnection(context, config.host, config.port, config.user, config.password,
-                    config.schema);
-        } catch (RuntimeException e) {
+            sqlc = sqlenv.createConnection(context, connectionSetting);
+        } catch (ExtensionException ex) {
+            throw ex;
+        } catch (Exception e) {
             throw new ExtensionException("Could not connect to database, make sure database is up. " + e);
         }
     }

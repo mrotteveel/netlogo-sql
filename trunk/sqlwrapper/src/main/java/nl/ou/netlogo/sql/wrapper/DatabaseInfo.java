@@ -32,19 +32,14 @@ import org.nlogo.api.ExtensionException;
 public interface DatabaseInfo {
 
     /**
-     * @return indication whether the object is fully configured
-     */
-    public boolean isConfigured();
-
-    /**
      * @return database url for JDBC
      */
-    public String getJdbcUrl();
+    String getJdbcUrl();
 
     /**
      * @return JDBC driver class for database
      */
-    public String getDriverClass();
+    String getDriverClass();
 
     /**
      * @param conn
@@ -55,7 +50,7 @@ public interface DatabaseInfo {
      *             If this feature is not available
      * @throws ExtensionException
      */
-    public void useDatabase(SqlConnection conn, String schemaName) throws DatabaseFeatureNotImplementedException,
+    void useDatabase(SqlConnection conn, String schemaName) throws DatabaseFeatureNotImplementedException,
             ExtensionException;
 
     /**
@@ -65,7 +60,7 @@ public interface DatabaseInfo {
      * @throws DatabaseFeatureNotImplementedException
      *             If this feature is not available
      */
-    public String getCurrentDatabase(SqlConnection conn) throws DatabaseFeatureNotImplementedException;
+    String getCurrentDatabase(SqlConnection conn) throws DatabaseFeatureNotImplementedException;
 
     /**
      * @param sqlc
@@ -76,47 +71,30 @@ public interface DatabaseInfo {
      * @throws DatabaseFeatureNotImplementedException
      *             If this feature is not available
      */
-    public boolean findDatabase(SqlConnection sqlc, String schemaName) throws DatabaseFeatureNotImplementedException;
-
-    /**
-     * @return configured host for database engine
-     */
-    public String getHost();
-
-    /**
-     * @return configured network port for database engine
-     */
-    public int getPort();
+    boolean findDatabase(SqlConnection sqlc, String schemaName) throws DatabaseFeatureNotImplementedException;
 
     /**
      * @return configured user to access database engine
      */
-    public String getUser();
+    String getUser();
 
     /**
      * @return configured password to access database engine
      */
-    public String getPassword();
+    String getPassword();
 
     /**
      * @return configured database to access
      */
-    public String getDatabase();
+    String getDatabase();
 
     /**
      * @return name indicating the brand of the database
      */
-    public String getBrandName();
-
-    /**
-     * Sets the auto disconnect option
-     * 
-     * @param toggle
-     */
-    public void setAutoDisconnect(boolean toggle);
+    String getBrandName();
 
     /**
      * @return indication whether auto disconnect is on or off
      */
-    public boolean useAutoDisconnect();
+    boolean useAutoDisconnect();
 }

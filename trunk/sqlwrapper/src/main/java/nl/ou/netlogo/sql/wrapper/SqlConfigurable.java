@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo.sql.wrapper;
 
-import org.nlogo.api.*;
+import org.nlogo.api.Context;
 
 public interface SqlConfigurable {
-    public void configure(SqlSetting settings, Context context) throws Exception;
+    void configure(SqlSetting settings, Context context) throws Exception;
 }

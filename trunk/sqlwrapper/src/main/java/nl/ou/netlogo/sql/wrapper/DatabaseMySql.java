@@ -32,41 +32,15 @@ import java.util.logging.Logger;
  * @author NetLogo project-team
  * 
  */
-public class DatabaseMySql extends AbstractDatabase {
+public class DatabaseMySql extends GenericDatabase {
 
     public static final String BRANDNAME = "MySql";
-    public static final int DEFAULT_PORT = 3306;
-    public static final String JDBC_PATTERN = "jdbc:mysql://%s:%d/%s";
-    public static final String DRIVER_CLASSNAME = "com.mysql.jdbc.Driver";
 
     private static final Logger LOG = SqlLogger.getLogger();
 
-    public DatabaseMySql(SqlSetting settings) throws Exception {
-        super(settings);
-    }
-
-    public DatabaseMySql(String host, int port, String user, String password, String schemaName) {
-        super(host, port, user, password, schemaName);
-    }
-
-    @Override
-    public String getBrandName() {
-        return BRANDNAME;
-    }
-
-    @Override
-    public String getDriverClass() {
-        return DRIVER_CLASSNAME;
-    }
-
-    @Override
-    public String getJdbcUrl() {
-        return String.format(JDBC_PATTERN, getHost(), getPort(), getDatabase());
-    }
-
-    @Override
-    protected int getDefaultPort() {
-        return DEFAULT_PORT;
+    public DatabaseMySql(String jdbcUrl, String driverClass, String user, String password,
+            boolean autoDisconnect) {
+        super(BRANDNAME, jdbcUrl, driverClass, user, password, autoDisconnect);
     }
 
     @Override
