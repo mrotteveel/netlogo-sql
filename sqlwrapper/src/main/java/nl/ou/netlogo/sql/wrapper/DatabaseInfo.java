@@ -84,11 +84,6 @@ public interface DatabaseInfo {
     String getPassword();
 
     /**
-     * @return configured database to access
-     */
-    String getDatabase();
-
-    /**
      * @return name indicating the brand of the database
      */
     String getBrandName();

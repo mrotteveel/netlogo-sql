@@ -36,13 +36,12 @@ public class GenericDatabase implements DatabaseInfo {
     private final String user;
     private final String password;
     private final boolean autoDisconnect;
-    private String database;
 
     /**
      * Constructs a GenericDatabase object.
      * 
      * @param brandName
-     *            Brand name
+     *            Brand name (purely informational)
      * @param jdbcUrl
      *            JDBC URL for connection
      * @param driverClass
@@ -97,25 +96,16 @@ public class GenericDatabase implements DatabaseInfo {
     @Override
     public void useDatabase(SqlConnection conn, String schemaName) throws DatabaseFeatureNotImplementedException,
             ExtensionException {
-        throw new DatabaseFeatureNotImplementedException("Not supported by generic database");
+        throw new DatabaseFeatureNotImplementedException(String.format("Not supported by %s database", brandName));
     }
 
     @Override
     public String getCurrentDatabase(SqlConnection conn) throws DatabaseFeatureNotImplementedException {
-        throw new DatabaseFeatureNotImplementedException("Not supported by generic database");
+        throw new DatabaseFeatureNotImplementedException(String.format("Not supported by %s database", brandName));
     }
 
     @Override
     public boolean findDatabase(SqlConnection sqlc, String schemaName) throws DatabaseFeatureNotImplementedException {
-        throw new DatabaseFeatureNotImplementedException("Not supported by generic database");
-    }
-    
-    public void setDatabase(String database) {
-        this.database = database;
-    }
-
-    @Override
-    public String getDatabase() {
-        return database;
+        throw new DatabaseFeatureNotImplementedException(String.format("Not supported by %s database", brandName));
     }
 }
