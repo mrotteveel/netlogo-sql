@@ -41,9 +41,11 @@ public enum DatabaseSupport {
             if (!settings.isValid()) {
                 return false;
             }
+            // Generic database requires JDBC URL
             if (settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_JDBC_URL).equals(SqlSetting.DEFAULT_UNSET)) {
                 return false;
             }
+            // Generic database requires driver classname
             if (settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME).equals(SqlSetting.DEFAULT_UNSET)) {
                 return false;
             }
@@ -52,6 +54,7 @@ public enum DatabaseSupport {
         
         public DatabaseInfo buildDatabaseInfo(SqlSetting settings) throws Exception {
             boolean autoDisconnect = false;
+            // Autodisconnect should only apply to the default connection (connection pool)
             if (settings.getName().equals(SqlConfiguration.DEFAULTCONNECTION)) {
                 autoDisconnect = SqlSetting.toggleValue(settings
                         .getString(SqlConfiguration.DEFAULTCONNECTION_OPT_AUTODISCONNECT));
@@ -75,6 +78,7 @@ public enum DatabaseSupport {
         
         public String getDriverClass(SqlSetting settings) throws Exception {
             String driverClass = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME);
+            // Use default MySQL driver name when no drivername has been set
             if (driverClass.equals(SqlSetting.DEFAULT_UNSET)) {
                 return "com.mysql.jdbc.Driver";
             }
@@ -85,6 +89,7 @@ public enum DatabaseSupport {
             if (!settings.isValid()) {
                 return false;
             }
+            // Name of the database schema is required for MySQL
             if (settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DATABASE).equals(SqlSetting.DEFAULT_UNSET)) {
                 return false;
             }
@@ -93,6 +98,7 @@ public enum DatabaseSupport {
         
         public DatabaseInfo buildDatabaseInfo(SqlSetting settings) throws Exception {
             boolean autoDisconnect = false;
+            // Autodisconnect should only apply to the default connection (connection pool)
             if (settings.getName().equals(SqlConfiguration.DEFAULTCONNECTION)) {
                 autoDisconnect = SqlSetting.toggleValue(settings
                         .getString(SqlConfiguration.DEFAULTCONNECTION_OPT_AUTODISCONNECT));
@@ -129,5 +135,12 @@ public enum DatabaseSupport {
      */
     public abstract boolean validateSettings(SqlSetting settings) throws Exception;
     
+    /**
+     * Build the DatabaseInfo based on the settings.
+     * 
+     * @param settings SqlSetting object
+     * @return DatabaseInfo object based on the supplied settings
+     * @throws Exception
+     */
     public abstract DatabaseInfo buildDatabaseInfo(SqlSetting settings) throws Exception;
 }
