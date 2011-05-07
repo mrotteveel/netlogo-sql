@@ -20,6 +20,7 @@
  */
 package nl.ou.netlogo;
 
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getGenericConnectCommand;
 import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
 import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
 import static org.junit.Assert.assertFalse;
@@ -38,80 +39,111 @@ import nl.ou.netlogo.testsupport.HeadlessTest;
  */
 public class FindDatabaseTest extends HeadlessTest {
 
-	/**
-	 * Test if sql:find-database correctly reports on the existence of a known schema (on a connection created with sql:connect).
-	 * <p>
-	 * Expected: sql:find-database returns true.
-	 * </p>
-	 * 
-	 * @throws Exception For any exceptions during testing
-	 */
-	@Test
-	public void testFindDatabase_exists() throws Exception {
-		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
-		Boolean dbFound = (Boolean)workspace.report("sql:find-database \"" + ConnectionInformation.getInstance().getSchema() + "\"");
-		assertTrue("Existing database schema should be found", dbFound);
-	}
-	
-	/**
-	 * Test if sql:find-database works on a pooled connection.
-	 * <p>
-	 * Expected: sql:find-database returns true.
-	 * </p>
-	 * 
-	 * @throws Exception For any exceptions during testing
-	 */
-	@Test
-	public void testFindDatabase_connectionpool() throws Exception {
-		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLPoolConfigurationCommand());
-		Boolean dbFound = (Boolean)workspace.report("sql:find-database \"" + ConnectionInformation.getInstance().getSchema() + "\"");
-		assertTrue("Existing database schema should be found", dbFound);
-	}
-	
-	/**
-	 * Test if sql:find-database performs an autodisconnect on a pooled connection with autodisconnect enabled.
-	 * <p>
-	 * Expected: sql:find-database performs an autodisconnect.
-	 * </p>
-	 * 
-	 * @throws Exception
-	 */
-	@Test
-	public void testFindDatabase_connectionPool_autodisconnect() throws Exception {
-		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLPoolConfigurationCommand(true));
-		
-		workspace.report("sql:find-database \"" + ConnectionInformation.getInstance().getSchema() + "\"");
-		
-		assertFalse("Expected autodisconnect after sql:find-database", (Boolean)workspace.report("sql:debug-is-connected?"));
-	}
-	
-	/**
-	 * Test if sql:find-database correctly reports on the existence of a schema that does not exist.
-	 * <p>
-	 * Expected: sql:find-database returns false.
-	 * </p>
-	 * 
-	 * @throws Exception For any exceptions during testing
-	 */
-	@Test
-	public void testFindDatabase_notExists() throws Exception {
-		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
-		Boolean dbFound = (Boolean)workspace.report("sql:find-database \"DOESNOTEXIST\"");
-		assertFalse("Non-existent database schema should not be found", dbFound);
-	}
-	
-	/**
-	 * Test if sql:find-database throws an exception if there is no database connection.
-	 * 
-	 * @throws Exception For any exceptions during testing
-	 */
-	@Test(expected=EngineException.class)
-	public void testFindDatabase_noConnection() throws Exception {
-		workspace.open("init-sql.nlogo");
-		workspace.report("sql:find-database \"" + ConnectionInformation.getInstance().getSchema() + "\"");
-	}
+    /**
+     * Test if sql:find-database correctly reports on the existence of a known
+     * schema (on a connection created with sql:connect).
+     * <p>
+     * Expected: sql:find-database returns true.
+     * </p>
+     * 
+     * @throws Exception
+     *             For any exceptions during testing
+     */
+    @Test
+    public void testFindDatabase_exists() throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(getMySQLConnectCommand());
+        Boolean dbFound = (Boolean) workspace.report("sql:find-database \""
+                + ConnectionInformation.getInstance().getSchema() + "\"");
+        assertTrue("Existing database schema should be found", dbFound);
+    }
+
+    /**
+     * Test if sql:find-database works on a pooled connection.
+     * <p>
+     * Expected: sql:find-database returns true.
+     * </p>
+     * 
+     * @throws Exception
+     *             For any exceptions during testing
+     */
+    @Test
+    public void testFindDatabase_connectionpool() throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(getMySQLPoolConfigurationCommand());
+        Boolean dbFound = (Boolean) workspace.report("sql:find-database \""
+                + ConnectionInformation.getInstance().getSchema() + "\"");
+        assertTrue("Existing database schema should be found", dbFound);
+    }
+
+    /**
+     * Test if sql:find-database performs an autodisconnect on a pooled
+     * connection with autodisconnect enabled.
+     * <p>
+     * Expected: sql:find-database performs an autodisconnect.
+     * </p>
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void testFindDatabase_connectionPool_autodisconnect() throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(getMySQLPoolConfigurationCommand(true));
+
+        workspace.report("sql:find-database \"" + ConnectionInformation.getInstance().getSchema() + "\"");
+
+        assertFalse("Expected autodisconnect after sql:find-database",
+                (Boolean) workspace.report("sql:debug-is-connected?"));
+    }
+
+    /**
+     * Test if sql:find-database correctly reports on the existence of a schema
+     * that does not exist.
+     * <p>
+     * Expected: sql:find-database returns false.
+     * </p>
+     * 
+     * @throws Exception
+     *             For any exceptions during testing
+     */
+    @Test
+    public void testFindDatabase_notExists() throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(getMySQLConnectCommand());
+        Boolean dbFound = (Boolean) workspace.report("sql:find-database \"DOESNOTEXIST\"");
+        assertFalse("Non-existent database schema should not be found", dbFound);
+    }
+
+    /**
+     * Test if sql:find-database throws an exception if there is no database
+     * connection.
+     * <p>
+     * Expected: throws exception
+     * </p>
+     * 
+     * @throws Exception
+     *             For any exceptions during testing
+     */
+    @Test(expected = EngineException.class)
+    public void testFindDatabase_noConnection() throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.report("sql:find-database \"" + ConnectionInformation.getInstance().getSchema() + "\"");
+    }
+
+    /**
+     * Test if sql:find-database throws an exception if used on a brand generic
+     * connection.
+     * <p>
+     * Expected: throws exception
+     * </p>
+     * 
+     * @throws Exception
+     *             For any exceptions during testing
+     */
+    @Test(expected = EngineException.class)
+    public void testFindDatabase_generic() throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(getGenericConnectCommand());
+        workspace.report("sql:find-database \"" + ConnectionInformation.getInstance().getSchema() + "\"");
+    }
 }
