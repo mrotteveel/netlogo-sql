@@ -20,10 +20,10 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getGenericConnectCommand;
 import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
 import static org.junit.Assert.assertEquals;
-
 import nl.ou.netlogo.testsupport.ConnectionInformation;
 import nl.ou.netlogo.testsupport.HeadlessTest;
 
@@ -37,69 +37,93 @@ import org.nlogo.nvm.EngineException;
  * @author Mark Rotteveel
  */
 public class UseDatabaseTest extends HeadlessTest {
-	
-	/**
-	 * Test if sql:use-database is able to switch to an existing schema (too which the user has access).
-	 * <p>
-	 * Expected: switch is successful.
-	 * </p>
-	 * <p>
-	 * Assumptions: configured database schema for the test is not "information_schema", and test user
-	 * has access to information_schema.
-	 * </p>
-	 * 
-	 * @throws Exception For any exceptions during testing
-	 */
-	@Test
-	public void testUseDatabase_existingSchema() throws Exception {
-		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
-		workspace.command("sql:exec-direct \"SELECT DATABASE()\"");
-		LogoList list = (LogoList)workspace.report("sql:fetch-row");
-		assertEquals("Unexpected database name", ConnectionInformation.getInstance().getSchema(), list.get(0));
 
-		workspace.command("sql:use-database \"information_schema\"");
-		
-		workspace.command("sql:exec-direct \"SELECT DATABASE()\"");
-		list = (LogoList)workspace.report("sql:fetch-row");
-		assertEquals("Unexpected database name", "information_schema", list.get(0));
-	}
-	
-	// TODO use advanced junit features to check exception
-	
-	/**
-	 * Test if sql:use-database throws an exception if asked to switch to a non-existent schema.
-	 * <p>
-	 * Expected: throws exception
-	 * </p>
-	 * <p>
-	 * Assumptions: schema "DOESNOTEXIST" does not exist on the test database server.
-	 * </p>
-	 * 
-	 * @throws Exception For any exceptions during testing
-	 */
-	@Test(expected = EngineException.class)
-	public void testUseDatabase_nonExistentSchema() throws Exception {
-		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
-		
-		workspace.command("sql:use-database \"DOESNOTEXIST\"");
-	}
-	
-	/**
-	 * Test if sql:use-database throws an exception if used on a pooled connection.
-	 * <p>
-	 * Expected: throws exception
-	 * </p>
-	 * 
-	 * @throws Exception For any exceptions during testing
-	 */
-	@Test(expected = EngineException.class)
-	public void testUseDatabase_connectionPool() throws Exception {
-		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLPoolConfigurationCommand());
-		
-		workspace.command("sql:use-database \"information_schema\"");
-	}
+    /**
+     * Test if sql:use-database is able to switch to an existing schema (too
+     * which the user has access).
+     * <p>
+     * Expected: switch is successful.
+     * </p>
+     * <p>
+     * Assumptions: configured database schema for the test is not
+     * "information_schema", and test user has access to information_schema.
+     * </p>
+     * 
+     * @throws Exception
+     *             For any exceptions during testing
+     */
+    @Test
+    public void testUseDatabase_existingSchema() throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(getMySQLConnectCommand());
+        workspace.command("sql:exec-direct \"SELECT DATABASE()\"");
+        LogoList list = (LogoList) workspace.report("sql:fetch-row");
+        assertEquals("Unexpected database name", ConnectionInformation.getInstance().getSchema(), list.get(0));
+
+        workspace.command("sql:use-database \"information_schema\"");
+
+        workspace.command("sql:exec-direct \"SELECT DATABASE()\"");
+        list = (LogoList) workspace.report("sql:fetch-row");
+        assertEquals("Unexpected database name", "information_schema", list.get(0));
+    }
+
+    // TODO use advanced junit features to check exception
+
+    /**
+     * Test if sql:use-database throws an exception if asked to switch to a
+     * non-existent schema.
+     * <p>
+     * Expected: throws exception
+     * </p>
+     * <p>
+     * Assumptions: schema "DOESNOTEXIST" does not exist on the test database
+     * server.
+     * </p>
+     * 
+     * @throws Exception
+     *             For any exceptions during testing
+     */
+    @Test(expected = EngineException.class)
+    public void testUseDatabase_nonExistentSchema() throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(getMySQLConnectCommand());
+
+        workspace.command("sql:use-database \"DOESNOTEXIST\"");
+    }
+
+    /**
+     * Test if sql:use-database throws an exception if used on a pooled
+     * connection.
+     * <p>
+     * Expected: throws exception
+     * </p>
+     * 
+     * @throws Exception
+     *             For any exceptions during testing
+     */
+    @Test(expected = EngineException.class)
+    public void testUseDatabase_connectionPool() throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(getMySQLPoolConfigurationCommand());
+
+        workspace.command("sql:use-database \"information_schema\"");
+    }
+
+    /**
+     * Test if sql:use-database throws an exception if used with a brand generic
+     * connection.
+     * <p>
+     * Expected: throws exception
+     * </p>
+     * 
+     * @throws Exception For any exceptions during testing
+     */
+    @Test(expected = EngineException.class)
+    public void testUseDatabase_generic() throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(getGenericConnectCommand());
+
+        workspace.command("sql:use-database \"information_schema\"");
+    }
 
 }
