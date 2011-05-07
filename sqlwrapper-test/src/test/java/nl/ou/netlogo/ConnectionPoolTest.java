@@ -38,7 +38,7 @@ import org.nlogo.nvm.EngineException;
 
 import nl.ou.netlogo.testsupport.ConnectionInformation;
 import nl.ou.netlogo.testsupport.HeadlessTest;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertFalse;
@@ -78,7 +78,7 @@ public class ConnectionPoolTest extends HeadlessTest {
 		Turtle turtle = workspace.world.createTurtle(breed);
 		assertNotNull("Unable to create turtle", turtle);
 		
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		
 		workspace.command("sql:exec-direct \"SELECT CAST(connection_id() AS CHAR)\"");
 		LogoList observerRow = (LogoList)workspace.report("sql:fetch-row");
@@ -104,7 +104,7 @@ public class ConnectionPoolTest extends HeadlessTest {
 	public void testConnectionPool_useConnectCommand() throws Exception {
 		workspace.open("init-sql.nlogo"); 
 	
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		ConnectionInformation ci = ConnectionInformation.getInstance();
 		workspace.command(String.format("sql:connect [[\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
 				ci.getHost(), ci.getPort(), 
@@ -127,7 +127,7 @@ public class ConnectionPoolTest extends HeadlessTest {
 		AgentSet breed = workspace.world.getBreed("TESTAGENT");
 		assertNotNull("Breed TESTAGENT not defined in workspace", breed);
 	
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		ConnectionInformation ci = ConnectionInformation.getInstance();
 		workspace.command(String.format("sql:connect [[\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
 				ci.getHost(), ci.getPort(), 
@@ -205,7 +205,7 @@ public class ConnectionPoolTest extends HeadlessTest {
 	 * @throws Exception For any exceptions during testing
 	 */
 	private void allocateMaxConnections(AgentSet breed) throws Exception {
-		workspace.command(getDefaultPoolConfigurationCommand(false));
+		workspace.command(getMySQLPoolConfigurationCommand(false));
 		System.out.printf("Expecting to be able to allocate %d connections%n", DEFAULT_MAX_CONNECTIONS);
 		ConnectionInformation ci = ConnectionInformation.getInstance();
 		for (int i = 0; i < DEFAULT_MAX_CONNECTIONS; i++) {
@@ -291,7 +291,7 @@ public class ConnectionPoolTest extends HeadlessTest {
 		assertNotNull("Breed TESTAGENT not defined in workspace", breed);
 		int testMax = 10;
 		workspace.command(String.format("sql:configure \"connectionpool\" [[\"max-connections\" %d]]", testMax));
-		workspace.command(getDefaultPoolConfigurationCommand(false));
+		workspace.command(getMySQLPoolConfigurationCommand(false));
 		
 		ensureMaxConnections(breed, testMax);
 	}
@@ -312,7 +312,7 @@ public class ConnectionPoolTest extends HeadlessTest {
 		assertNotNull("Breed TESTAGENT not defined in workspace", breed);
 		int testMax = 30;
 		workspace.command(String.format("sql:configure \"connectionpool\" [[\"max-connections\" %d]]", testMax));
-		workspace.command(getDefaultPoolConfigurationCommand(false));
+		workspace.command(getMySQLPoolConfigurationCommand(false));
 		
 		ensureMaxConnections(breed, testMax);
 	}
@@ -332,7 +332,7 @@ public class ConnectionPoolTest extends HeadlessTest {
 		workspace.open("init-sql.nlogo");
 		int testMax = 0;
 		workspace.command(String.format("sql:configure \"connectionpool\" [[\"max-connections\" %d]]", testMax));
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 	}
 	
 	/**
@@ -351,7 +351,7 @@ public class ConnectionPoolTest extends HeadlessTest {
 		
 		int testMax = 5;
 		workspace.command(String.format("sql:configure \"connectionpool\" [[\"max-connections\" %d]]", testMax));
-		workspace.command(getDefaultPoolConfigurationCommand(false));
+		workspace.command(getMySQLPoolConfigurationCommand(false));
 		
 		ensureMaxConnections(breed, testMax);
 	}
@@ -372,7 +372,7 @@ public class ConnectionPoolTest extends HeadlessTest {
 		
 		int testMax = 4;
 		workspace.command(String.format("sql:configure \"connectionpool\" [[\"max-connections\" %d]]", testMax));
-		workspace.command(getDefaultPoolConfigurationCommand(false));
+		workspace.command(getMySQLPoolConfigurationCommand(false));
 		
 		ensureMaxConnections(breed, testMax);
 	}
@@ -396,7 +396,7 @@ public class ConnectionPoolTest extends HeadlessTest {
 		int testMax = 9;
 		int partitons = 2;
 		workspace.command(String.format("sql:configure \"connectionpool\" [[\"max-connections\" %d] [\"partitions\" %d]]", testMax, partitons));
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 	}
 	
 	/**
@@ -412,7 +412,7 @@ public class ConnectionPoolTest extends HeadlessTest {
 		workspace.open("init-sql.nlogo");
 		int testMax = 0;
 		workspace.command(String.format("sql:configure \"connectionpool\" [[\"partitions\" %d]]", testMax));
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 	}
 	
 	/**

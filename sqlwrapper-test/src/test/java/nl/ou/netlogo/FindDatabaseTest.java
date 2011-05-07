@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultSqlConnectCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -49,7 +49,7 @@ public class FindDatabaseTest extends HeadlessTest {
 	@Test
 	public void testFindDatabase_exists() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		Boolean dbFound = (Boolean)workspace.report("sql:find-database \"" + ConnectionInformation.getInstance().getSchema() + "\"");
 		assertTrue("Existing database schema should be found", dbFound);
 	}
@@ -65,7 +65,7 @@ public class FindDatabaseTest extends HeadlessTest {
 	@Test
 	public void testFindDatabase_connectionpool() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		Boolean dbFound = (Boolean)workspace.report("sql:find-database \"" + ConnectionInformation.getInstance().getSchema() + "\"");
 		assertTrue("Existing database schema should be found", dbFound);
 	}
@@ -81,7 +81,7 @@ public class FindDatabaseTest extends HeadlessTest {
 	@Test
 	public void testFindDatabase_connectionPool_autodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand(true));
+		workspace.command(getMySQLPoolConfigurationCommand(true));
 		
 		workspace.report("sql:find-database \"" + ConnectionInformation.getInstance().getSchema() + "\"");
 		
@@ -99,7 +99,7 @@ public class FindDatabaseTest extends HeadlessTest {
 	@Test
 	public void testFindDatabase_notExists() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		Boolean dbFound = (Boolean)workspace.report("sql:find-database \"DOESNOTEXIST\"");
 		assertFalse("Non-existent database schema should not be found", dbFound);
 	}

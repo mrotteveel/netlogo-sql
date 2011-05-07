@@ -22,7 +22,7 @@ package nl.ou.netlogo;
 
 import nl.ou.netlogo.testsupport.ConnectionInformation;
 import nl.ou.netlogo.testsupport.HeadlessTest;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultSqlConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -48,9 +48,9 @@ public class ConnectTest extends HeadlessTest {
 	 * @throws Exception For any exceptions during testing
 	 */
 	@Test
-	public void testConnect() throws Exception {
+	public void testConnect_MySQL() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		assertTrue("Expected connection to be established", (Boolean)workspace.report("sql:is-connected?"));
 	}
 	
@@ -70,7 +70,7 @@ public class ConnectTest extends HeadlessTest {
 		Turtle turtle = workspace.world.createTurtle(breed);
 		assertNotNull("Unable to create turtle", turtle);
 		
-		workspace.evaluateCommands(getDefaultSqlConnectCommand(), turtle, true);
+		workspace.evaluateCommands(getMySQLConnectCommand(), turtle, true);
 		assertTrue("Expected connection to be established", (Boolean)workspace.evaluateReporter("sql:is-connected?", turtle));
 		assertFalse("Expected no connection for observer", (Boolean)workspace.report("sql:is-connected?"));
 	}
@@ -86,7 +86,7 @@ public class ConnectTest extends HeadlessTest {
 	 * @throws Exception For any exceptions during testing
 	 */
 	@Test(expected = EngineException.class)
-	public void testConnect_incorrect() throws Exception {
+	public void testConnect_incorrectHost() throws Exception {
 		workspace.open("init-sql.nlogo");
 		workspace.command("sql:connect [[\"host\" \"non-existent\"][\"port\" \"3306\"] [\"user\" \"test\"] [\"password\" \"test\"] [\"database\" \"test\"]]");
 	}

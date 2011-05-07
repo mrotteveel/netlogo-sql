@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultSqlConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -93,7 +93,7 @@ public class FetchRowTest extends HeadlessTest {
 	@Test
 	public void testFetchRow() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 		
 		boolean isConnected = (Boolean)workspace.report("sql:debug-is-connected?");
@@ -124,7 +124,7 @@ public class FetchRowTest extends HeadlessTest {
 	@Test
 	public void testFetchRow_emptyResult() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " WHERE 1 = 0\"");
 		
 		LogoList row = (LogoList)workspace.report("sql:fetch-row");
@@ -143,7 +143,7 @@ public class FetchRowTest extends HeadlessTest {
 	@Test
 	public void testFetchRow_connect_noAutodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 		
 		boolean isConnected = (Boolean)workspace.report("sql:debug-is-connected?");
@@ -171,7 +171,7 @@ public class FetchRowTest extends HeadlessTest {
 	@Test
 	public void testFetchRow_connectionPool_noAutodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand(false));
+		workspace.command(getMySQLPoolConfigurationCommand(false));
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 		
 		boolean isConnected = (Boolean)workspace.report("sql:debug-is-connected?");
@@ -199,7 +199,7 @@ public class FetchRowTest extends HeadlessTest {
 	@Test
 	public void testFetchRow_connectionPool_autodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 		
 		boolean isConnected = (Boolean)workspace.report("sql:debug-is-connected?");
@@ -250,7 +250,7 @@ public class FetchRowTest extends HeadlessTest {
 	@Test
 	public void testFetchRow_connect_noStatement() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		Object row = workspace.report("sql:fetch-row");
 		
@@ -269,7 +269,7 @@ public class FetchRowTest extends HeadlessTest {
 	@Test
 	public void testFetchRow_connectionpool_noStatement() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		
 		Object row = workspace.report("sql:fetch-row");
 		
@@ -288,7 +288,7 @@ public class FetchRowTest extends HeadlessTest {
 	@Test
 	public void testFetchRow_updateQuery() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		workspace.command("sql:exec-direct \"UPDATE " + tableName + "  SET INT_FIELD = 5\"");
 
 		Object row = workspace.report("sql:fetch-row");

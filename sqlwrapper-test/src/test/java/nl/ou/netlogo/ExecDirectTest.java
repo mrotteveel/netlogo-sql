@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultSqlConnectCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -96,7 +96,7 @@ public class ExecDirectTest extends HeadlessTest {
 	@Test
 	public void testSelect_connect_resultsetAvailable() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + "\"");
 		
@@ -115,7 +115,7 @@ public class ExecDirectTest extends HeadlessTest {
 	@Test
 	public void testSelect_connect_noAutodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + "\"");
 		
@@ -134,7 +134,7 @@ public class ExecDirectTest extends HeadlessTest {
 	@Test
 	public void testSelect_connectionpool_resultsetAvailable() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + "\"");
 		
@@ -153,7 +153,7 @@ public class ExecDirectTest extends HeadlessTest {
 	@Test
 	public void testSelect_connectionPool_noAutodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand(false));
+		workspace.command(getMySQLPoolConfigurationCommand(false));
 		
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + "\"");
 		
@@ -172,7 +172,7 @@ public class ExecDirectTest extends HeadlessTest {
 	@Test
 	public void testSelect_connectionPool_autodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + "\"");
 		
@@ -191,7 +191,7 @@ public class ExecDirectTest extends HeadlessTest {
 	@Test
 	public void testUpdate_connect_resultsetAvailable() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-direct \"UPDATE " + tableName + " SET INT_FIELD = 2345 WHERE ID = 1\"");
 		
@@ -210,7 +210,7 @@ public class ExecDirectTest extends HeadlessTest {
 	@Test
 	public void testUpdate_connect_noAutodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-direct \"UPDATE " + tableName + " SET INT_FIELD = 2345 WHERE ID = 1\"");
 		
@@ -229,7 +229,7 @@ public class ExecDirectTest extends HeadlessTest {
 	@Test
 	public void testUpdate_connectionPool_resultsetAvailable() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-direct \"UPDATE " + tableName + " SET INT_FIELD = 2345 WHERE ID = 1\"");
 		
@@ -248,7 +248,7 @@ public class ExecDirectTest extends HeadlessTest {
 	@Test
 	public void testUpdate_connectionPool_NoAutodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand(false));
+		workspace.command(getMySQLPoolConfigurationCommand(false));
 		
 		workspace.command("sql:exec-direct \"UPDATE " + tableName + " SET INT_FIELD = 2345 WHERE ID = 1\"");
 		
@@ -267,7 +267,7 @@ public class ExecDirectTest extends HeadlessTest {
 	@Test
 	public void testUpdate_connectionPool_autoDisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		
 		workspace.command("sql:exec-direct \"UPDATE " + tableName + " SET INT_FIELD = 2345 WHERE ID = 1\"");
 		
@@ -289,7 +289,7 @@ public class ExecDirectTest extends HeadlessTest {
 	@Test(expected=EngineException.class)
 	public void testSyntaxError() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-direct \"SLECT * FROM " + tableName + "\"");
 	}

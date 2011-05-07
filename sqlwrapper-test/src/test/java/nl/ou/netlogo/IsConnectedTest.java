@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultSqlConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -50,7 +50,7 @@ public class IsConnectedTest extends HeadlessTest {
 	@Test
 	public void testIsConnected_whenConnected() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		assertTrue("Expected true for sql:is-connected?", (Boolean)workspace.report("sql:is-connected?"));
 	}
@@ -81,7 +81,7 @@ public class IsConnectedTest extends HeadlessTest {
 	@Test
 	public void testConnectionPool_isConnected() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 
 		assertFalse("Expected debug-is-connected? to return false", (Boolean)workspace.report("sql:debug-is-connected?"));
 		assertTrue("Expected is-connected? to return true with connectionpooling", (Boolean)workspace.report("sql:is-connected?"));
@@ -100,7 +100,7 @@ public class IsConnectedTest extends HeadlessTest {
 	@Test
 	public void testConnectionPool_isConnected_afterDisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 
 		// Establish actual connection
 		workspace.command("sql:exec-direct \"SELECT 1\"");
@@ -127,7 +127,7 @@ public class IsConnectedTest extends HeadlessTest {
 		Turtle turtle1 = workspace.world.createTurtle(breed);
 		Turtle turtle2 = workspace.world.createTurtle(breed);
 		
-		workspace.evaluateCommands(getDefaultSqlConnectCommand(), turtle2, true);
+		workspace.evaluateCommands(getMySQLConnectCommand(), turtle2, true);
 		
 		assertFalse("Expected turtle1 to not be connected", (Boolean)workspace.evaluateReporter("sql:is-connected?", turtle1));
 		assertTrue("Expected turtle2 to be connected", (Boolean)workspace.evaluateReporter("sql:is-connected?", turtle2));

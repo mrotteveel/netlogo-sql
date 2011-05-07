@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultSqlConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -103,7 +103,7 @@ public class RowAvailableTest extends HeadlessTest {
 	@Test
 	public void testRowAvailable_connectionPool_noStatement() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		workspace.report("sql:row-available?");
 		assertFalse("Expected false for row-available? with connection pooling without statement", 
 				(Boolean)workspace.report("sql:row-available?"));
@@ -120,7 +120,7 @@ public class RowAvailableTest extends HeadlessTest {
 	@Test
 	public void testRowAvailable_connect_noStatement() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		assertFalse("row-available? for no query should return false", (Boolean)workspace.report("sql:row-available?"));
 	}
@@ -136,7 +136,7 @@ public class RowAvailableTest extends HeadlessTest {
 	@Test 
 	public void testRowAvailable_nonEmptyFirst() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 		
 		assertTrue("Non-empty result should return true for first row-available?", (Boolean)workspace.report("sql:row-available?"));
@@ -153,7 +153,7 @@ public class RowAvailableTest extends HeadlessTest {
 	@Test 
 	public void testRowAvailable_ExecQuery() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		workspace.command("sql:exec-query \"SELECT * FROM " + tableName + " ORDER BY ID\" []");
 		
 		assertTrue("Non-empty result should return true for first row-available?", (Boolean)workspace.report("sql:row-available?"));
@@ -170,7 +170,7 @@ public class RowAvailableTest extends HeadlessTest {
 	@Test 
 	public void testRowAvailable_emptyFirst() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " WHERE 1 = 0\"");
 		
 		assertFalse("Empty result should return false for row-available?", (Boolean)workspace.report("sql:row-available?"));
@@ -187,7 +187,7 @@ public class RowAvailableTest extends HeadlessTest {
 	@Test
 	public void testRowAvailable_fourFetchRows() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 		for (int row = 1; row <= 4; row++) {
 			assertTrue(String.format("row-available? before row %s should be true", row), (Boolean)workspace.report("sql:row-available?"));
@@ -208,7 +208,7 @@ public class RowAvailableTest extends HeadlessTest {
 	@Test
 	public void testRowAvailable_FetchResultSet() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 		
 		assertTrue("row-available? before fetch-resultset should be true", (Boolean)workspace.report("sql:row-available?"));
@@ -228,7 +228,7 @@ public class RowAvailableTest extends HeadlessTest {
 	@Test
 	public void testRowAvailable_after_autodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 		workspace.report("sql:fetch-resultset");
@@ -248,7 +248,7 @@ public class RowAvailableTest extends HeadlessTest {
 	@Test
 	public void testRowAvailable_connect_EmptyResult_noAutodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " WHERE 1 = 0\"");
 		
 		assertFalse("row-available on empty result should be false", (Boolean)workspace.report("sql:row-available?"));
@@ -266,7 +266,7 @@ public class RowAvailableTest extends HeadlessTest {
 	@Test
 	public void testRowAvailable_connectionpool_EmptyResult_noAutodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand(false));
+		workspace.command(getMySQLPoolConfigurationCommand(false));
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " WHERE 1 = 0\"");
 		
 		assertFalse("row-available on empty result should be false", (Boolean)workspace.report("sql:row-available?"));
@@ -284,7 +284,7 @@ public class RowAvailableTest extends HeadlessTest {
 	@Test
 	public void testRowAvailable_connectionpool_EmptyResult_autodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " WHERE 1 = 0\"");
 		
 		assertFalse("row-available on empty result should be false", (Boolean)workspace.report("sql:row-available?"));
@@ -302,7 +302,7 @@ public class RowAvailableTest extends HeadlessTest {
 	@Test
 	public void testRowAvailable_updateStatement() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		workspace.command("sql:exec-direct \"DELETE FROM " + tableName + "\"");
 		
 		assertFalse("row-available after update statement(delete) should be false", (Boolean)workspace.report("sql:row-available?"));
@@ -319,7 +319,7 @@ public class RowAvailableTest extends HeadlessTest {
 	@Test
 	public void testRowAvailable_ExecUpdate() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		workspace.command("sql:exec-update \"DELETE FROM " + tableName + "\" []");
 		
 		assertFalse("row-available after update statement(delete) should be false", (Boolean)workspace.report("sql:row-available?"));

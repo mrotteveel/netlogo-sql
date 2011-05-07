@@ -41,14 +41,14 @@ public class DatabaseHelper {
 
 	public static Connection getConnection() throws SQLException {
 		ConnectionInformation instance = ConnectionInformation.getInstance();
-		return DriverManager.getConnection(getJdbcURL(), instance.getUsername(), instance.getPassword());
+		return DriverManager.getConnection(getMySQLJdbcURL(), instance.getUsername(), instance.getPassword());
 	}
 	
 	/**
 	 * 
 	 * @return JDBC URL for the database
 	 */
-	public static String getJdbcURL() {
+	public static String getMySQLJdbcURL() {
 		ConnectionInformation instance = ConnectionInformation.getInstance();
 		return String.format("jdbc:mysql://%s:%s/%s", instance.getHost(), instance.getPort(), instance.getSchema());
 	}
@@ -58,7 +58,7 @@ public class DatabaseHelper {
 	 * 
 	 * @return sql:connect command
 	 */
-	public static String getDefaultSqlConnectCommand() {
+	public static String getMySQLConnectCommand() {
 		ConnectionInformation instance = ConnectionInformation.getInstance();
 		return String.format("sql:connect [[\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
 				instance.getHost(), instance.getPort(), 
@@ -67,12 +67,12 @@ public class DatabaseHelper {
 	
 	/**
 	 * Creates the default sql:set-default command for a valid pool configuration. Autodisconnect is not
-	 * explicitly set for this command and uses the plugin default. Use {@link #getDefaultPoolConfigurationCommand(boolean)}
+	 * explicitly set for this command and uses the plugin default. Use {@link #getMySQLPoolConfigurationCommand(boolean)}
 	 * for explicit control. 
 	 * 
 	 * @return sql:set-default "connect" command
 	 */
-	public static String getDefaultPoolConfigurationCommand() {
+	public static String getMySQLPoolConfigurationCommand() {
 		ConnectionInformation instance = ConnectionInformation.getInstance();
 		return String.format(
 				"sql:configure \"defaultconnection\" [[\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] " +
@@ -90,7 +90,7 @@ public class DatabaseHelper {
 	 * 
 	 * @return sql:set-default "connect" command
 	 */
-	public static String getDefaultPoolConfigurationCommand(boolean autodisconnect) {
+	public static String getMySQLPoolConfigurationCommand(boolean autodisconnect) {
 		ConnectionInformation instance = ConnectionInformation.getInstance();
 		return String.format(
 				"sql:configure \"defaultconnection\" [[\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] " +

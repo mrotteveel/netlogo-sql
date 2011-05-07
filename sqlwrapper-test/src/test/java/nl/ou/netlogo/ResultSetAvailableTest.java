@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultSqlConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
 import static org.junit.Assert.assertFalse;
 
 import org.junit.Test;
@@ -65,7 +65,7 @@ public class ResultSetAvailableTest extends HeadlessTest {
 	@Test
 	public void testResultsetAvailable_connectionPool_noStatement() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		
 		assertFalse("Expected false for resultset-available? without connection", (Boolean)workspace.report("sql:resultset-available?"));
 	}
@@ -81,7 +81,7 @@ public class ResultSetAvailableTest extends HeadlessTest {
 	@Test
 	public void testResultSetAvailable_noStatement() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		Boolean hasResultset = (Boolean)workspace.report("sql:resultset-available?");
 		assertFalse("Unexpected resultset availability: expected no resultset", hasResultset);
 	}
