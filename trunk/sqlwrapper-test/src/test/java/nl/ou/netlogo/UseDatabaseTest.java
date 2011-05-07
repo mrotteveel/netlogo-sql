@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultSqlConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
 import static org.junit.Assert.assertEquals;
 
 import nl.ou.netlogo.testsupport.ConnectionInformation;
@@ -53,7 +53,7 @@ public class UseDatabaseTest extends HeadlessTest {
 	@Test
 	public void testUseDatabase_existingSchema() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		workspace.command("sql:exec-direct \"SELECT DATABASE()\"");
 		LogoList list = (LogoList)workspace.report("sql:fetch-row");
 		assertEquals("Unexpected database name", ConnectionInformation.getInstance().getSchema(), list.get(0));
@@ -81,7 +81,7 @@ public class UseDatabaseTest extends HeadlessTest {
 	@Test(expected = EngineException.class)
 	public void testUseDatabase_nonExistentSchema() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:use-database \"DOESNOTEXIST\"");
 	}
@@ -97,7 +97,7 @@ public class UseDatabaseTest extends HeadlessTest {
 	@Test(expected = EngineException.class)
 	public void testUseDatabase_connectionPool() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		
 		workspace.command("sql:use-database \"information_schema\"");
 	}

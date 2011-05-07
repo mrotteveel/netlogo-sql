@@ -53,7 +53,7 @@ public class ConfigureTest extends HeadlessTest {
 	 * @throws Exception For any exceptions during testing
 	 */
 	@Test
-	public void testConfigure_defaultconnection_allParameters() throws Exception {
+	public void testConfigure_MySQL_defaultconnection_allParameters() throws Exception {
 		workspace.open("init-sql.nlogo");
 		
 		ConnectionInformation ci = ConnectionInformation.getInstance();
@@ -77,7 +77,7 @@ public class ConfigureTest extends HeadlessTest {
 	 * @throws Exception For any exceptions during testing
 	 */
 	@Test
-	public void testConfigure_defaultconnection_minusPort() throws IOException, CompilerException, LogoException {
+	public void testConfigure_MySQL_defaultconnection_minusPort() throws IOException, CompilerException, LogoException {
 		workspace.open("init-sql.nlogo");
 		
 		ConnectionInformation ci = ConnectionInformation.getInstance();
@@ -100,7 +100,7 @@ public class ConfigureTest extends HeadlessTest {
 	 * @throws Exception For any exceptions during testing
 	 */
 	@Test
-	public void testConfigure_defaultconnection_minusHost() throws Exception {
+	public void testConfigure_MySQL_defaultconnection_minusHost() throws Exception {
 		workspace.open("init-sql.nlogo");
 		
 		ConnectionInformation ci = ConnectionInformation.getInstance();

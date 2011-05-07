@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultSqlConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -53,7 +53,7 @@ public class CurrentDatabaseTest extends HeadlessTest {
 	@Test
 	public void testCurrentDatabase_afterConnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		String currentDB = (String)workspace.report("sql:current-database");
 		
@@ -88,7 +88,7 @@ public class CurrentDatabaseTest extends HeadlessTest {
 	@Test
 	public void testCurrentDatabase_connect_noAutodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.report("sql:current-database");
 		
@@ -110,7 +110,7 @@ public class CurrentDatabaseTest extends HeadlessTest {
 	@Test
 	public void testCurrentDatabase_connectionPool() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		
 		String currentDB = (String)workspace.report("sql:current-database");
 		
@@ -128,7 +128,7 @@ public class CurrentDatabaseTest extends HeadlessTest {
 	@Test
 	public void testCurrentDatabase_connectionPool_noAutodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand(false));
+		workspace.command(getMySQLPoolConfigurationCommand(false));
 		
 		workspace.report("sql:current-database");
 		
@@ -145,7 +145,7 @@ public class CurrentDatabaseTest extends HeadlessTest {
 	@Test
 	public void testCurrentDatabase_autodisconnect_connectionPool_enabledForPool() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand(true));
+		workspace.command(getMySQLPoolConfigurationCommand(true));
 		workspace.command("sql:configure \"defaultconnection\" [[\"autodisconnect\" \"on\"]]");
 		
 		workspace.report("sql:current-database");

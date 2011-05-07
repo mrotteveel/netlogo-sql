@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultSqlConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -95,7 +95,7 @@ public class ExecUpdateTest extends HeadlessTest {
 	@Test
 	public void testDelete_noParameter() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-update \"DELETE FROM " + tableName + "\" []");
 		
@@ -124,7 +124,7 @@ public class ExecUpdateTest extends HeadlessTest {
 	@Test
 	public void testUpdate_noWhereCondition() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-update \"UPDATE " + tableName + " SET CHAR_FIELD = ?\" [\"updated\"]");
 		
@@ -153,7 +153,7 @@ public class ExecUpdateTest extends HeadlessTest {
 	@Test
 	public void testUpdate_withWhereCondition() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-update \"UPDATE " + tableName + " SET CHAR_FIELD = ? WHERE ID = ?\" [\"updated\" 2]");
 		
@@ -184,7 +184,7 @@ public class ExecUpdateTest extends HeadlessTest {
 	@Test
 	public void testUpdate_connect_noAutodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-update \"UPDATE " + tableName + " SET CHAR_FIELD = ? WHERE ID = ?\" [\"updated\" 2]");
 		
@@ -204,7 +204,7 @@ public class ExecUpdateTest extends HeadlessTest {
 	@Test
 	public void testUpdate_connectionPool_noAutodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand(false));
+		workspace.command(getMySQLPoolConfigurationCommand(false));
 		
 		workspace.command("sql:exec-update \"UPDATE " + tableName + " SET CHAR_FIELD = ? WHERE ID = ?\" [\"updated\" 2]");
 		
@@ -224,7 +224,7 @@ public class ExecUpdateTest extends HeadlessTest {
 	@Test
 	public void testUpdate_connectionPool_autodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		
 		workspace.command("sql:exec-update \"UPDATE " + tableName + " SET CHAR_FIELD = ? WHERE ID = ?\" [\"updated\" 2]");
 		
@@ -249,7 +249,7 @@ public class ExecUpdateTest extends HeadlessTest {
 	@Test
 	public void testInsert() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-update \"INSERT INTO " + tableName + " (ID, CHAR_FIELD, INT_FIELD, VARCHAR_FIELD) VALUES (?, ?, ?, ?)\" [3 \"A String\" 513 \"Another String\"]");
 		
@@ -281,7 +281,7 @@ public class ExecUpdateTest extends HeadlessTest {
 	@Test
 	public void testDelete() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-update \"DELETE FROM " + tableName + " WHERE VARCHAR_FIELD = ? AND INT_FIELD = ?\" [\"VARCHAR-2\" 3456]");
 		
@@ -307,7 +307,7 @@ public class ExecUpdateTest extends HeadlessTest {
 	@Test(expected=EngineException.class)
 	public void testSyntaxError() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-update \"DLETE FROM " + tableName + "\" []");
 	}
@@ -320,7 +320,7 @@ public class ExecUpdateTest extends HeadlessTest {
 	@Test(expected=EngineException.class)
 	public void testTooManyParameters() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-update \"DELETE FROM " + tableName + " WHERE ID = ?\" [2 5]");
 	}
@@ -333,7 +333,7 @@ public class ExecUpdateTest extends HeadlessTest {
 	@Test(expected=EngineException.class)
 	public void testTooFewParameters() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-update \"DELETE FROM " + tableName + " WHERE ID = ? OR ID = ?\" [2]");
 	}
@@ -346,7 +346,7 @@ public class ExecUpdateTest extends HeadlessTest {
 	@Test(expected=EngineException.class)
 	public void testNoParametersWhenExpected() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-update \"DELETE FROM " + tableName + " WHERE ID = ?\" []");
 	}
@@ -359,7 +359,7 @@ public class ExecUpdateTest extends HeadlessTest {
 	@Test(expected=EngineException.class)
 	public void testParameterWhenNoneExpected() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-update \"DELETE FROM " + tableName + "\" [2]");
 	}
@@ -372,7 +372,7 @@ public class ExecUpdateTest extends HeadlessTest {
 	@Test(expected=EngineException.class)
 	public void testExecUpdate_select() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:exec-update \"SELECT * FROM " + tableName + "\" []");
 	}

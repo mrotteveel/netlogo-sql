@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultSqlConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -53,7 +53,7 @@ public class AutoCommitEnabledTest extends HeadlessTest {
 	@Test
 	public void testAutoCommitDefault() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		boolean isAutoCommit = (Boolean)workspace.report("sql:autocommit-enabled?");
 		assertTrue("AutoCommit should be true by default", isAutoCommit);
@@ -70,7 +70,7 @@ public class AutoCommitEnabledTest extends HeadlessTest {
 	@Test
 	public void testAutoCommitOff() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:autocommit-off");
 		
@@ -89,7 +89,7 @@ public class AutoCommitEnabledTest extends HeadlessTest {
 	@Test
 	public void testAutoCommitOn_noOp() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:autocommit-on");
 		
@@ -108,7 +108,7 @@ public class AutoCommitEnabledTest extends HeadlessTest {
 	@Test
 	public void testAutoCommitOn_switchOff_and_On() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultSqlConnectCommand());
+		workspace.command(getMySQLConnectCommand());
 		
 		workspace.command("sql:autocommit-off");
 		workspace.command("sql:autocommit-on");
@@ -134,7 +134,7 @@ public class AutoCommitEnabledTest extends HeadlessTest {
 	@Test
 	public void testAutoCommitOn_connectionPool() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getDefaultPoolConfigurationCommand());
+		workspace.command(getMySQLPoolConfigurationCommand());
 		AgentSet breed = workspace.world.getBreed("TESTAGENT");
 		assertNotNull("Breed TESTAGENT not defined in workspace", breed);
 		
