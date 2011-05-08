@@ -101,7 +101,11 @@ public class SqlSetting implements Cloneable {
      */
     public int getInt(String key) throws Exception {
         if (settings.containsKey(key)) {
-            return (int) Double.parseDouble(settings.get(key));
+            String value = settings.get(key);
+            if (DEFAULT_UNSET.equals(value)) {
+                return 0;
+            }
+            return (int) Double.parseDouble(value);
         } else {
             throw new Exception("Attempt to read setting for non-existent key '" + key + "' for name '" + name + "'");
         }
