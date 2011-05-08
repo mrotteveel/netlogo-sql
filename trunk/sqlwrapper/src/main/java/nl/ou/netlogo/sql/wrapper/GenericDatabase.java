@@ -20,7 +20,6 @@
  */
 package nl.ou.netlogo.sql.wrapper;
 
-
 import org.nlogo.api.ExtensionException;
 
 /**
@@ -93,19 +92,37 @@ public class GenericDatabase implements DatabaseInfo {
         return autoDisconnect;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Implementation in GenericDatabase is a no-op (does nothing).
+     * </p>
+     */
     @Override
     public void useDatabase(SqlConnection conn, String schemaName) throws DatabaseFeatureNotImplementedException,
             ExtensionException {
-        throw new DatabaseFeatureNotImplementedException(String.format("Not supported by %s database", brandName));
+        // no-op
     }
 
+    /**
+     * {@inheritDoc}
+     * 
+     * @return Implementation in GenericDatabase returns <code>default</code>
+     *         always.
+     */
     @Override
     public String getCurrentDatabase(SqlConnection conn) throws DatabaseFeatureNotImplementedException {
-        throw new DatabaseFeatureNotImplementedException(String.format("Not supported by %s database", brandName));
+        return "default";
     }
 
+    /**
+     * {@inheritDoc}
+     * 
+     * @return Implementation in GenericDatabase returns <code>false</code>
+     *         always.
+     */
     @Override
     public boolean findDatabase(SqlConnection sqlc, String schemaName) throws DatabaseFeatureNotImplementedException {
-        throw new DatabaseFeatureNotImplementedException(String.format("Not supported by %s database", brandName));
+        return false;
     }
 }
