@@ -195,14 +195,16 @@ public class SqlStatement {
             }
         } catch (Exception e) {
             // ignore: resultset will not be used anymore
+        } finally {
+            resultSet = null;
         }
         try {
             statement.close();
         } catch (Exception e) {
             // ignore: statement will not be used anymore
+        } finally {
+            statement = null;
         }
-        resultSet = null;
-        statement = null;
     }
 
     /**
