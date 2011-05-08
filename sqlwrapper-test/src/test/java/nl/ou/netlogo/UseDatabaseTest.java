@@ -110,15 +110,20 @@ public class UseDatabaseTest extends HeadlessTest {
     }
 
     /**
-     * Test if sql:use-database throws an exception if used with a brand generic
-     * connection.
+     * Test if sql:use-database does not throw an exception when called on a
+     * brand generic connection.
      * <p>
-     * Expected: throws exception
+     * Expected: Does nothing
+     * </p>
+     * <p>
+     * TODO Add additional validation if use-database is an actual no-op for
+     * generic database connection.
      * </p>
      * 
-     * @throws Exception For any exceptions during testing
+     * @throws Exception
+     *             For any exceptions during testing
      */
-    @Test(expected = EngineException.class)
+    @Test
     public void testUseDatabase_generic() throws Exception {
         workspace.open("init-sql.nlogo");
         workspace.command(getGenericConnectCommand());

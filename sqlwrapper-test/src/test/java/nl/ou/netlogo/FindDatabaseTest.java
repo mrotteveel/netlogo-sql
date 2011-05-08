@@ -131,19 +131,43 @@ public class FindDatabaseTest extends HeadlessTest {
     }
 
     /**
-     * Test if sql:find-database throws an exception if used on a brand generic
-     * connection.
+     * Test if sql:find-database returns <code>false</code> if used on a brand
+     * generic connection for a schema known to exist
      * <p>
-     * Expected: throws exception
+     * Expected: sql:find-database on generic database returns
+     * <code>false</code> always
      * </p>
      * 
      * @throws Exception
      *             For any exceptions during testing
      */
-    @Test(expected = EngineException.class)
-    public void testFindDatabase_generic() throws Exception {
+    @Test
+    public void testFindDatabase_generic_existingSchema() throws Exception {
         workspace.open("init-sql.nlogo");
         workspace.command(getGenericConnectCommand());
-        workspace.report("sql:find-database \"" + ConnectionInformation.getInstance().getSchema() + "\"");
+        Boolean dbFound = (Boolean) workspace.report("sql:find-database \""
+                + ConnectionInformation.getInstance().getSchema() + "\"");
+        assertFalse("sql:find-database on a generic connection should return false", dbFound);
+    }
+
+    /**
+     * Test if sql:find-database return false if used on a brand generic
+     * connection for a schema that is know to not exist.
+     * <p>
+     * Expected: sql:find-database on generic database returns
+     * <code>false</code> always
+     * </p>
+     * 
+     * @throws Exception
+     *             For any exceptions during testing
+     */
+    @Test
+    public void testFindDatabase_generic_notExists() throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(getGenericConnectCommand());
+
+        Boolean dbFound = (Boolean) workspace.report("sql:find-database \"DOESNOTEXIST\"");
+
+        assertFalse("sql:find-database on a generic connection should return false", dbFound);
     }
 }

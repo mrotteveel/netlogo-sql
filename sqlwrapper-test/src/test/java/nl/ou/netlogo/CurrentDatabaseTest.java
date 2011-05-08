@@ -170,20 +170,23 @@ public class CurrentDatabaseTest extends HeadlessTest {
     }
 
     /**
-     * Test if sql:current-database throws an exception if used on a brand
+     * Test if sql:current-database returns <code>default</code> on a brand
      * generic connection.
      * <p>
-     * Expected: throws exception
+     * Expected: returns <code>default</code> for a brand generic connection.
      * </p>
      * 
      * @throws Exception
      *             For any exceptions during testing
      */
-    @Test(expected = EngineException.class)
+    @Test
     public void testCurrentDatabase_generic() throws Exception {
         workspace.open("init-sql.nlogo");
         workspace.command(getGenericConnectCommand());
-        workspace.report("sql:current-database");
+
+        String currentDB = (String) workspace.report("sql:current-database");
+
+        assertEquals("Unexpected value for sql:current-database on generic connection", "default", currentDB);
     }
 
 }
