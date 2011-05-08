@@ -23,7 +23,7 @@
       </author>
     </authorgroup>
 
-    <releaseinfo>Covers SQL Wrapper version 1.0</releaseinfo>
+    <releaseinfo>Covers SQL Wrapper version 1.1-SNAPSHOT</releaseinfo>
   </info>
 
   <preface>
@@ -99,6 +99,9 @@
           </tbody>
         </tgroup>
       </informaltable>
+
+      <para>SQL Wrapper also provides a generic database option to use JDBC
+      drivers to connect to database systems not explicitly supported.</para>
     </section>
 
     <section>
@@ -150,8 +153,20 @@
           <filename>C:\Program Files\NetLogo 4.1\extensions</filename></para>
 
           <para>On Linux : Use the program "unzip" to unzip the file to the
-          <filename>extensions</filename> subdirectory of the directory where
-          NetLogo is installed</para>
+          <filename>extensions</filename> subdirectory of the NetLogo
+          installation directory</para>
+        </listitem>
+
+        <listitem>
+          <para>(optional) Add the JDBC drivers for your database into the
+          <filename>extensions/sql</filename> subdirectory, see <xref
+          linkend="brand-generic" xrefstyle="select: title" /></para>
+
+          <note>
+            <para>This step is only required for use with the generic database
+            option, or for database drivers that are not included in the SQL
+            Wrapper distribution for legal reasons</para>
+          </note>
         </listitem>
 
         <listitem>
@@ -338,107 +353,10 @@
 
           <para>The aspect <parameter>"defaultconnection"</parameter>
           configures the database connection information for the connection
-          pool and (re)initializes the connection pool.</para>
-
-          <synopsis><command>sql:configure</command> <literal>"defaultconnection"</literal> [[<literal>"brand"</literal> <parameter>brandname</parameter>] [<literal>"host"</literal> <parameter>hostname</parameter>] [<literal>"port"</literal> <parameter>port</parameter>] [<literal>"user"</literal> <parameter>username</parameter>] [<literal>"password"</literal> <parameter>password</parameter>] [<literal>"database"</literal> <parameter>schema</parameter>] [<literal>"autodisconnect"</literal> <parameter>autodisconnect</parameter>]]</synopsis>
-
-          <variablelist>
-            <varlistentry>
-              <term>brandname</term>
-
-              <listitem>
-                <para>name of the database type (type: string). Optional,
-                defaults to <code>MySQL</code> if the "brand" list is not
-                passed. Valid values: <code>MySQL</code></para>
-              </listitem>
-            </varlistentry>
-
-            <varlistentry>
-              <term>hostname</term>
-
-              <listitem>
-                <para>hostname of the database server (type: string).
-                Optional, defaults to <code>localhost</code> if the "host"
-                list is not passed.</para>
-              </listitem>
-            </varlistentry>
-
-            <varlistentry>
-              <term>port</term>
-
-              <listitem>
-                <para>port number of the database server (type: integer).
-                Optional, defaults to <code>3306</code> if the "port" list is
-                not passed.</para>
-              </listitem>
-            </varlistentry>
-
-            <varlistentry>
-              <term>username</term>
-
-              <listitem>
-                <para>Username to the database (type: string)</para>
-              </listitem>
-            </varlistentry>
-
-            <varlistentry>
-              <term>password</term>
-
-              <listitem>
-                <para>Password to the database (type: string)</para>
-              </listitem>
-            </varlistentry>
-
-            <varlistentry>
-              <term>schema</term>
-
-              <listitem>
-                <para>name of the database schema (type: string)</para>
-              </listitem>
-            </varlistentry>
-
-            <varlistentry>
-              <term>autodisconnect</term>
-
-              <listitem>
-                <para>configure automatic disconnect (type: string). Optional,
-                defaults to <code>on</code> if the "autodisconnect" list is
-                not passed. Valid values: <code>off</code> or
-                <code>false</code> (disable autodisconnect), <code>on</code>
-                or <code>true</code> (enable autodisconnect)</para>
-
-                <para>The automatic disconnect will close connections as soon
-                as possible (this returns them to the connection pool for use
-                by other agents). With this option enabled, a connection will
-                be closed after executing an update
-                (<command>UPDATE</command>, <command>INSERT</command>,
-                <command>DELETE</command>) or after fetching the full
-                resultset (<link
-                linkend="fetch-resultset"><command>fetch-resultset</command></link>)
-                or the last row of a resultset (<link
-                linkend="fetch-row"><command>fetch-row</command></link>) of a
-                <command>SELECT</command>. Use of autodisconnect is strongly
-                recommended for models using a large number of agents, because
-                otherwise the number of required connections will be high as
-                well (and could exceed the maximum number of connections
-                supported by the database). Autodisconnect is only applied to
-                connections obtained from the connection pool, connections
-                created using <link
-                linkend="connect"><command>sql:connect</command></link> will
-                not be automatically disconnected.</para>
-              </listitem>
-            </varlistentry>
-          </variablelist>
-
-          <para>When the automatic connection management (or connection
-          pooling) has been configured, all commands and reporters will obtain
-          a connection from the connection pool if no explicit connection has
-          been created using <link
-          linkend="connect"><command>sql:connect</command></link>. A
-          connection is associated with the current agent until the connection
-          is closed using <link
-          linkend="disconnect"><command>sql:disconnect</command></link> or
-          automatically disconnected when autodisconnect is enabled.</para>
+          pool and (re)initializes the connection pool. The configuration
+          options for this aspect are discussed in more detail in <xref
+          linkend="connection-pool-connection"
+          xrefstyle="select: title" /></para>
         </section>
 
         <section xml:id="aspect-connectionpool">
@@ -643,21 +561,19 @@
     <chapter>
       <title>Connecting to a Database</title>
 
-      <section>
+      <section xml:id="connection-pool-connection">
         <title>Connection pool (or automatic connection management)</title>
 
         <para>It is advisable to use the connection pool provided by <xref
         linkend="aspect-defaultconnection" xrefstyle="select: title" />. The
         connection pool simplifies working with connections, especially when
         combined with the <emphasis>autodisconnect</emphasis> option.</para>
-      </section>
 
-      <section xml:id="connect">
-        <title>sql:connect</title>
+        <para>The aspect <parameter>"defaultconnection"</parameter> configures
+        the database connection information for the connection pool and
+        (re)initializes the connection pool.</para>
 
-        <para>Create a connection to a database for the current agent.</para>
-
-        <synopsis><command>sql:connect</command> [[<literal>"brand"</literal> <parameter>brandname</parameter>] [<literal>"host"</literal> <parameter>hostname</parameter>] [<literal>"port"</literal> <parameter>port</parameter>] [<literal>"user"</literal> <parameter>username</parameter>] [<literal>"password"</literal> <parameter>password</parameter>] [<literal>"database"</literal> <parameter>schema</parameter>]]</synopsis>
+        <synopsis><command>sql:configure</command> <literal>"defaultconnection"</literal> [[<literal>"brand"</literal> <parameter>brandname</parameter>] [<literal>"host"</literal> <parameter>hostname</parameter>] [<literal>"port"</literal> <parameter>port</parameter>] [<literal>"database"</literal> <parameter>schema</parameter>] [<literal>"jdbc-url"</literal> <parameter>jdbc-url</parameter>] [<literal>"driver"</literal> <parameter>driver-class</parameter>] [<literal>"user"</literal> <parameter>username</parameter>] [<literal>"password"</literal> <parameter>password</parameter>] [<literal>"autodisconnect"</literal> <parameter>autodisconnect</parameter>]]</synopsis>
 
         <variablelist>
           <varlistentry>
@@ -666,7 +582,10 @@
             <listitem>
               <para>name of the database type (type: string). Optional,
               defaults to <code>MySQL</code> if the "brand" list is not
-              passed. Valid values: <code>MySQL</code></para>
+              passed. </para>
+
+              <para>Valid values: <literal>MySQL</literal>,
+              <literal>generic</literal> (case insensitive)</para>
             </listitem>
           </varlistentry>
 
@@ -675,8 +594,10 @@
 
             <listitem>
               <para>hostname of the database server (type: string). Optional,
-              defaults to <code>localhost</code> if "host" list is not
+              defaults to <code>localhost</code> if the "host" list is not
               passed.</para>
+
+              <para>Applies to: <literal>MySQL</literal></para>
             </listitem>
           </varlistentry>
 
@@ -684,9 +605,44 @@
             <term>port</term>
 
             <listitem>
-              <para>port number of the database server (type: integer or
-              string). Optional, defaults to <code>3306</code> if "port" list
-              is not passed.</para>
+              <para>port number of the database server (type: integer).
+              Optional, defaults to <code>3306</code> if the "port" list is
+              not passed.</para>
+
+              <para>Applies to: <literal>MySQL</literal></para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>schema</term>
+
+            <listitem>
+              <para>name of the database schema (type: string)</para>
+
+              <para>Applies to: <literal>MySQL</literal></para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>jdbc-url</term>
+
+            <listitem>
+              <para>URL to the database, using the JDBC (Java DataBase
+              Connectivity) format for your database (type: string). Required
+              for <literal>generic</literal>.</para>
+
+              <para>Applies to: <literal>generic</literal></para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>driver-class</term>
+
+            <listitem>
+              <para>Name of the JDBC driver class to load. For
+              <literal>MySQL</literal> defaults to
+              <classname>com.mysql.jdbc.Driver</classname> (type: string).
+              Required for <literal>generic</literal>.</para>
             </listitem>
           </varlistentry>
 
@@ -707,13 +663,64 @@
           </varlistentry>
 
           <varlistentry>
-            <term>schema</term>
+            <term>autodisconnect</term>
 
             <listitem>
-              <para>name of the database schema (type: string)</para>
+              <para>configure automatic disconnect (type: string). Optional,
+              defaults to <code>on</code> if the "autodisconnect" list is not
+              passed. Valid values: <code>off</code> or <code>false</code>
+              (disable autodisconnect), <code>on</code> or <code>true</code>
+              (enable autodisconnect)</para>
+
+              <para>The automatic disconnect will close connections as soon as
+              possible (this returns them to the connection pool for use by
+              other agents). With this option enabled, a connection will be
+              closed after executing an update (<command>UPDATE</command>,
+              <command>INSERT</command>, <command>DELETE</command>) or after
+              fetching the full resultset (<link
+              linkend="fetch-resultset"><command>fetch-resultset</command></link>)
+              or the last row of a resultset (<link
+              linkend="fetch-row"><command>fetch-row</command></link>) of a
+              <command>SELECT</command>. Use of autodisconnect is strongly
+              recommended for models using a large number of agents, because
+              otherwise the number of required connections will be high as
+              well (and could exceed the maximum number of connections
+              supported by the database). Autodisconnect is only applied to
+              connections obtained from the connection pool, connections
+              created using <link
+              linkend="connect"><command>sql:connect</command></link> will not
+              be automatically disconnected.</para>
             </listitem>
           </varlistentry>
         </variablelist>
+
+        <para>When the automatic connection management (or connection pooling)
+        has been configured, all commands and reporters will obtain a
+        connection from the connection pool if no explicit connection has been
+        created using <link
+        linkend="connect"><command>sql:connect</command></link>. A connection
+        is associated with the current agent until the connection is closed
+        using <link
+        linkend="disconnect"><command>sql:disconnect</command></link> or
+        automatically disconnected when autodisconnect is enabled.</para>
+
+        <para>For more detailed information on the generic brand
+        configuration, refer to <xref linkend="brand-generic"
+        xrefstyle="select: title" /></para>
+      </section>
+
+      <section xml:id="connect">
+        <title>sql:connect</title>
+
+        <para>Create a connection to a database for the current agent.</para>
+
+        <synopsis><command>sql:connect</command> [[<literal>"brand"</literal> <parameter>brandname</parameter>] [<literal>"host"</literal> <parameter>hostname</parameter>] [<literal>"port"</literal> <parameter>port</parameter>] [<literal>"database"</literal> <parameter>schema</parameter>] [<literal>"jdbc-url"</literal> <parameter>jdbc-url</parameter>] [<literal>"driver"</literal> <parameter>driver-class</parameter>] [<literal>"user"</literal> <parameter>username</parameter>] [<literal>"password"</literal> <parameter>password</parameter>]]</synopsis>
+
+        <para>The parameters of <command>sql:connect</command> are a subset of
+        the parameters of <xref linkend="aspect-defaultconnection"
+        xrefstyle="select: title" />. For a full description see <xref
+        linkend="connection-pool-connection"
+        xrefstyle="select: title" />.</para>
 
         <para>The <command>sql:connect</command> command can be used to create
         a connection for a specific agent (the agent in the current context).
@@ -722,10 +729,6 @@
         subject to <emphasis>autodisconnect</emphasis> and need to be closed
         manually using <link
         linkend="disconnect"><command>sql:disconnect</command></link>.</para>
-
-        <para>The parameters of <command>sql:connect</command> are a subset of
-        the parameters of <xref linkend="aspect-defaultconnection"
-        xrefstyle="select: title" />.</para>
       </section>
 
       <section xml:id="disconnect">
@@ -1952,7 +1955,7 @@ sql:configure "defaultconnection" &lt;connection-list&gt;</programlisting>
 
       <para>In general use of transactions look like this:</para>
 
-      <programlisting>sql-configure "defaultconnection" &lt;connection-list&gt;
+      <programlisting>sql:configure "defaultconnection" &lt;connection-list&gt;
 
 ask &lt;agents&gt; [
   sql:start-transaction
@@ -1962,7 +1965,7 @@ ask &lt;agents&gt; [
 
       <para>or:</para>
 
-      <programlisting>sql-configure "defaultconnection" &lt;connection-list&gt;
+      <programlisting>sql:configure "defaultconnection" &lt;connection-list&gt;
 
 ask &lt;agents&gt; [
   sql:start-transaction
@@ -1976,6 +1979,73 @@ ask &lt;agents&gt; [
         <para>The transaction behavior of the current version of SQL Wrapper
         is unspecified if an error occurs when executing a query.</para>
       </warning>
+    </chapter>
+
+    <chapter xml:id="brand-generic">
+      <title>Connecting to other databases</title>
+
+      <para>The generic brand option in <link
+      linkend="connect"><command>sql:connect</command></link> and <xref
+      linkend="connection-pool-connection" xrefstyle="select: title" /> enable
+      you to connect to databases not explicitly supported by SQL Wrapper, or
+      to specify advanced connection properties not exposed for the supported
+      databases. SQL Wrapper uses Java DataBase Connectivity (JDBC) to connect
+      to these databases. Almost all database systems have support for JDBC
+      (in the form of JDBC drivers).</para>
+
+      <para>To use the generic brand option, you will first need to obtain the
+      JDBC driver for your database. This driver is usually downloadable from
+      the website of the database-vendor. Next you need to read the
+      documentation of the JDBC driver to find out the following
+      things:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>The filename(s) of the driver-archive(s) (jar-file)</para>
+        </listitem>
+
+        <listitem>
+          <para>The name of the driver-class</para>
+        </listitem>
+
+        <listitem>
+          <para>The syntax and rules for defining a JDBC-url to connect to
+          your database</para>
+        </listitem>
+      </orderedlist>
+
+      <para>To install the driver, copy the driver-archive file(s) into the
+      <filename>extensions/sql</filename> directory inside the NetLogo
+      installation directory (this directory also contains the other SQL
+      Wrapper files). After installing the driver files, you will need to
+      restart NetLogo to be able to use the drivers.</para>
+
+      <warning>
+        <para>If you update to a newer version of a JDBC driver, make sure you
+        delete the old driver, otherwise it is possible that the old driver
+        will still be used.</para>
+      </warning>
+
+      <para>Next, find out the correct JDBC-url for your database using the
+      documentation or support of your database vendor. Every database vendor
+      has its own syntax-rules, so carefully read the documentation for your
+      database. Some databases allow you to include the username and password
+      into the JDBC-url. SQL Wrapper however expects you to set the username
+      and password separately.</para>
+
+      <para>With the information gathered you should now be able to connect to
+      your database using:</para>
+
+      <programlisting>sql:connect [["brand" "generic"] ["driver" "<emphasis>&lt;name of your driver&gt;</emphasis>"] ["jdbc-url" "<emphasis>&lt;your JDBC-url&gt;</emphasis>"] ["user" "<emphasis>&lt;your username&gt;</emphasis>"] ["password" "<emphasis>&lt;your password&gt;</emphasis>"]]</programlisting>
+
+      <para>In this way you can connect to a large number of database,
+      including Oracle, Microsoft SQL Server, PostgreSQL and Firebird.</para>
+
+      <important>
+        <para>The JDBC driver should be a JDBC Type-4 (or pure-Java) driver
+        and not require loading any external native library file (.dll or .so)
+        to connect to the database.</para>
+      </important>
     </chapter>
   </part>
 
@@ -2931,7 +3001,7 @@ under certain conditions; type ‘<literal>show c</literal>’ for details.
     school, if any, to sign a “copyright disclaimer” for the program, if
     necessary. For more information on this, and how to apply and follow the
     <acronym>GNU</acronym> <acronym>GPL</acronym>, see <link
-    xlink:href="???">http://www.gnu.org/licenses/</link>.</para>
+    xlink:href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</link>.</para>
 
     <para>The <acronym>GNU</acronym> General Public License does not permit
     incorporating your program into proprietary programs. If your program is a
@@ -2939,6 +3009,6 @@ under certain conditions; type ‘<literal>show c</literal>’ for details.
     proprietary applications with the library. If this is what you want to do,
     use the <acronym>GNU</acronym> Lesser General Public License instead of
     this License. But first, please read <link
-    xlink:href="???">http://www.gnu.org/philosophy/why-not-lgpl.html</link>.</para>
+    xlink:href="http://www.gnu.org/philosophy/why-not-lgpl.html">http://www.gnu.org/philosophy/why-not-lgpl.html</link>.</para>
   </appendix>
 </book>
