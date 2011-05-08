@@ -45,7 +45,7 @@ public class GetConfigurationTest extends HeadlessTest {
 	static {
 		Map<String, String> defaults = new HashMap<String, String>();
 		defaults.put("brand", "MySql");
-		defaults.put("port", "3306");
+		defaults.put("port", "<default>");
 		defaults.put("host", "localhost");
 		defaults.put("password", "<default, invalid>");
 		defaults.put("user", "<default, invalid>");

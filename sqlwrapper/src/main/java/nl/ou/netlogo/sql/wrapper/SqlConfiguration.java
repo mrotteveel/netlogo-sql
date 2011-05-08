@@ -103,7 +103,7 @@ public class SqlConfiguration {
         String[][] defaultConnectionSettings = { 
                 { DEFAULTCONNECTION_OPT_BRAND, "MySql" },
                 { DEFAULTCONNECTION_OPT_HOST, "localhost" },
-                { DEFAULTCONNECTION_OPT_PORT, "3306" },
+                { DEFAULTCONNECTION_OPT_PORT, SqlSetting.DEFAULT_UNSET },
                 { DEFAULTCONNECTION_OPT_DATABASE, SqlSetting.DEFAULT_UNSET },
                 { DEFAULTCONNECTION_OPT_USER, SqlSetting.DEFAULT_INVALID },
                 { DEFAULTCONNECTION_OPT_PASSWORD, SqlSetting.DEFAULT_INVALID },
@@ -112,15 +112,15 @@ public class SqlConfiguration {
                 { DEFAULTCONNECTION_OPT_AUTODISCONNECT, "on" },
         };
         //
-        // connectSettingsMySql is used for explicit connections done
+        // connectSettings is used for explicit connections done
         // through the sql:connect command. This set is then used to validate
         // the arguments for the sql:command. For ease of use and consistency,
-        // this set should be a subset of defaultConnectionSettingsMySql
+        // this set should be a subset of defaultConnectionSettings
         //
         String[][] connectSettings = {
         		{ DEFAULTCONNECTION_OPT_BRAND, "MySql" },
                 { DEFAULTCONNECTION_OPT_HOST, "localhost" },
-                { DEFAULTCONNECTION_OPT_PORT, "3306" },
+                { DEFAULTCONNECTION_OPT_PORT, SqlSetting.DEFAULT_UNSET },
                 { DEFAULTCONNECTION_OPT_DATABASE, SqlSetting.DEFAULT_UNSET },
                 { DEFAULTCONNECTION_OPT_USER, SqlSetting.DEFAULT_INVALID },
                 { DEFAULTCONNECTION_OPT_PASSWORD, SqlSetting.DEFAULT_INVALID },
