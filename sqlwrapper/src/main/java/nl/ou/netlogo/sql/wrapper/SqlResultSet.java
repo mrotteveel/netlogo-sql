@@ -41,6 +41,7 @@ public class SqlResultSet {
     private ResultSet resultSet;
     private ResultSetMetaData metaData;
     private boolean endOfResultSet = true;
+    private boolean fetching = false;
     private final AutodisconnectCoordinator autodisconnectCoordinator;
 
     /**
@@ -56,18 +57,12 @@ public class SqlResultSet {
         this.resultSet = resultSet;
         this.autodisconnectCoordinator = autodisconnectCoordinator;
 
-        /*
-         * initial state of a resultset is before the first row, or the
-         * resultset is empty
-         */
         try {
-            if (this.resultSet.isBeforeFirst()) {
-                if (this.resultSet.first()) {
-                    endOfResultSet = false;
-                    metaData = this.resultSet.getMetaData();
-                }
-            }
-            if (endOfResultSet) {
+            if (resultSet.next()) {
+                // ResultSet has at least one row
+                metaData = resultSet.getMetaData();
+                endOfResultSet = false;
+            } else {
                 autodisconnectCoordinator.endOfResultSet();
             }
         } catch (SQLException ex) {
@@ -82,7 +77,7 @@ public class SqlResultSet {
      * @return true if so, false otherwise
      */
     public boolean isResultSetAvailable() {
-        return this.resultSet != null;
+        return resultSet != null;
     }
 
     /**
@@ -91,7 +86,25 @@ public class SqlResultSet {
      * @return true if so, false otherwise.
      */
     public boolean isRowAvailable() {
-        return this.isResultSetAvailable() && !this.endOfResultSet;
+        return isResultSetAvailable() && !isEndOfResultSet();
+    }
+    
+    /**
+     * Indicates if the end of the resultset was reached.
+     * 
+     * @return <code>true</code> end was reached
+     */
+    public boolean isEndOfResultSet() {
+        return endOfResultSet;
+    }
+
+    /**
+     * Indicates if results have been fetched from the resultset.
+     * 
+     * @return <code>true</code> a fetchRow() call has been performed
+     */
+    public boolean isFetching() {
+        return fetching;
     }
 
     /**
@@ -99,8 +112,9 @@ public class SqlResultSet {
      * @throws ExtensionException
      */
     public LogoList fetchRow() throws ExtensionException {
-        LOG.log(Level.FINE, "SqlResultSet.fetchRow()");
-        if (endOfResultSet) {
+        // Set fetching to true to indicate fetchRow() is called at least once:
+        fetching = true;
+        if (isEndOfResultSet()) {
             return new LogoList();
         }
 
@@ -144,9 +158,7 @@ public class SqlResultSet {
                 }
             }
 
-            if (!resultSet.isLast()) {
-                resultSet.next();
-            } else {
+            if (!resultSet.next()) {
                 endOfResultSet = true;
                 autodisconnectCoordinator.endOfResultSet();
             }
@@ -158,35 +170,15 @@ public class SqlResultSet {
     }
 
     /**
-     * Indicates if the end of the resultset was reached.
-     * 
-     * @return <code>true</code> end was reached
-     */
-    public boolean isEndOfResultSet() {
-        return endOfResultSet;
-    }
-
-    /**
      * @return list of rows
      * @throws ExtensionException
      */
     public LogoList fetchResultSet() throws ExtensionException {
-        LOG.log(Level.FINE, "SqlResultSet.fetchResultSet()");
         LogoList rows = new LogoList();
 
-        if (resultSet == null) {
+        // Return empty list if there is no row available, if something has already been fetched
+        if (!isRowAvailable() || isFetching()) {
             return rows;
-        }
-
-        // since rows could already have been fetched, reset the result set
-        // Note that this upsets the sequence if fetchResultSet() is called
-        // while the same result set is being accessed through fetchRow()
-        // should we protect the user by saving the position in the result set
-        // and resetting it when done?
-        try {
-            resultSet.first();
-        } catch (SQLException ex) {
-            throw new ExtensionException(ex);
         }
 
         LogoList cols;
@@ -194,7 +186,6 @@ public class SqlResultSet {
             cols = fetchRow();
             rows.add(cols);
         }
-        autodisconnectCoordinator.endOfResultSet();
         return rows;
     }
 
@@ -208,6 +199,9 @@ public class SqlResultSet {
             } catch (SQLException e) {
                 LOG.warning("Exception while closing result set: " + e);
                 // ignore: result set will not be used anymore
+            } finally {
+                resultSet = null;
+                metaData = null;
             }
         }
     }
