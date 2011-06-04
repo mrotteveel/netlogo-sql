@@ -96,6 +96,12 @@
 
               <entry>4.1, 5.0, 5.1, 5.4, 5.5</entry>
             </row>
+
+            <row>
+              <entry>PostgreSQL</entry>
+
+              <entry>8.x, 9.x</entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -582,10 +588,11 @@
             <listitem>
               <para>name of the database type (type: string). Optional,
               defaults to <code>MySQL</code> if the "brand" list is not
-              passed. </para>
+              passed.</para>
 
               <para>Valid values: <literal>MySQL</literal>,
-              <literal>generic</literal> (case insensitive)</para>
+              <literal>generic</literal>, <literal>PostgreSQL</literal> (case
+              insensitive)</para>
             </listitem>
           </varlistentry>
 
@@ -597,7 +604,8 @@
               defaults to <code>localhost</code> if the "host" list is not
               passed.</para>
 
-              <para>Applies to: <literal>MySQL</literal></para>
+              <para>Applies to: <literal>MySQL</literal>,
+              <literal>PostgreSQL</literal></para>
             </listitem>
           </varlistentry>
 
@@ -606,10 +614,13 @@
 
             <listitem>
               <para>port number of the database server (type: integer).
-              Optional, defaults to <code>3306</code> if the "port" list is
-              not passed.</para>
+              Optional, defaults to <code>3306</code> for
+              <literal>MySQL</literal> and <code>5432</code> for
+              <literal>PostgreSQL</literal> if the "port" list is not
+              passed.</para>
 
-              <para>Applies to: <literal>MySQL</literal></para>
+              <para>Applies to: <literal>MySQL</literal>,
+              <literal>PostgreSQL</literal></para>
             </listitem>
           </varlistentry>
 
@@ -619,7 +630,8 @@
             <listitem>
               <para>name of the database schema (type: string)</para>
 
-              <para>Applies to: <literal>MySQL</literal></para>
+              <para>Applies to: <literal>MySQL</literal>,
+              <literal>PostgreSQL</literal></para>
             </listitem>
           </varlistentry>
 
@@ -639,10 +651,14 @@
             <term>driver-class</term>
 
             <listitem>
-              <para>Name of the JDBC driver class to load. For
-              <literal>MySQL</literal> defaults to
-              <classname>com.mysql.jdbc.Driver</classname> (type: string).
+              <para>Name of the JDBC driver class to load (type: string).
               Required for <literal>generic</literal>.</para>
+
+              <para>For <literal>MySQL</literal> defaults to
+              <classname>com.mysql.jdbc.Driver</classname></para>
+
+              <para>For <literal>PostgreSQL</literal> defaults to
+              <classname>org.postgresql.Driver</classname></para>
             </listitem>
           </varlistentry>
 
