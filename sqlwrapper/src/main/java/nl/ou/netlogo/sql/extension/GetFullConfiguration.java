@@ -70,7 +70,7 @@ public class GetFullConfiguration extends DefaultReporter {
                 LogoList conf = new LogoList();
                 String name = it.next();
                 conf.add(name);
-                SqlSetting setting = sqlenv.getConfiguration().get(name);
+                SqlSetting setting = sqlenv.getConfiguration().getConfiguration(name);
                 if (setting.isVisible()) {
                     Iterator<String> keys = setting.keySet().iterator();
                     // loop over the key-value pairs for a configured entity
