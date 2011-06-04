@@ -20,23 +20,22 @@
  */
 package nl.ou.netlogo.sql.wrapper;
 
-
 /**
- * Provides explit support for databases
+ * Provides explicit support for databases
  * 
  * @author Mark Rotteveel
  */
 public enum DatabaseSupport {
-    
+
     GENERIC {
         public String buildJdbcUrl(SqlSetting settings) throws Exception {
             return settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_JDBC_URL);
         }
-        
+
         public String getDriverClass(SqlSetting settings) throws Exception {
             return settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME);
         }
-        
+
         public boolean validateSettings(SqlSetting settings) throws Exception {
             if (!settings.isValid()) {
                 return false;
@@ -46,22 +45,17 @@ public enum DatabaseSupport {
                 return false;
             }
             // Generic database requires driver classname
-            if (settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME).equals(SqlSetting.DEFAULT_UNSET)) {
+            if (settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME).equals(
+                    SqlSetting.DEFAULT_UNSET)) {
                 return false;
             }
             return true;
         }
-        
-        public DatabaseInfo buildDatabaseInfo(SqlSetting settings) throws Exception {
-            boolean autoDisconnect = false;
-            // Autodisconnect should only apply to the default connection (connection pool)
-            if (settings.getName().equals(SqlConfiguration.DEFAULTCONNECTION)) {
-                autoDisconnect = SqlSetting.toggleValue(settings
-                        .getString(SqlConfiguration.DEFAULTCONNECTION_OPT_AUTODISCONNECT));
-            }
-            return new GenericDatabase(name(), buildJdbcUrl(settings), getDriverClass(settings),
-                    settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_USER),
-                    settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_PASSWORD), autoDisconnect);
+
+        @Override
+        protected DatabaseInfo buildDatabaseInfo(String brandName, String jdbcUrl, String driverClass, String user,
+                String password, boolean autoDisconnect) throws Exception {
+            return new GenericDatabase(name(), jdbcUrl, driverClass, user, password, autoDisconnect);
         }
     },
     MYSQL {
@@ -71,11 +65,11 @@ public enum DatabaseSupport {
             String host = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_HOST);
             int port = settings.getInt(SqlConfiguration.DEFAULTCONNECTION_OPT_PORT);
             String database = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DATABASE);
-            
+
             port = port != 0 ? port : defaultPort;
             return String.format(jdbcPattern, host, port, database);
         }
-        
+
         public String getDriverClass(SqlSetting settings) throws Exception {
             String driverClass = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME);
             // Use default MySQL driver name when no drivername has been set
@@ -84,7 +78,7 @@ public enum DatabaseSupport {
             }
             return driverClass;
         }
-        
+
         public boolean validateSettings(SqlSetting settings) throws Exception {
             if (!settings.isValid()) {
                 return false;
@@ -95,52 +89,126 @@ public enum DatabaseSupport {
             }
             return true;
         }
-        
-        public DatabaseInfo buildDatabaseInfo(SqlSetting settings) throws Exception {
-            boolean autoDisconnect = false;
-            // Autodisconnect should only apply to the default connection (connection pool)
-            if (settings.getName().equals(SqlConfiguration.DEFAULTCONNECTION)) {
-                autoDisconnect = SqlSetting.toggleValue(settings
-                        .getString(SqlConfiguration.DEFAULTCONNECTION_OPT_AUTODISCONNECT));
+
+        @Override
+        protected DatabaseInfo buildDatabaseInfo(String brandName, String jdbcUrl, String driverClass, String user,
+                String password, boolean autoDisconnect) throws Exception {
+            return new DatabaseMySql(jdbcUrl, driverClass, user, password, autoDisconnect);
+        }
+    },
+    POSTGRESQL {
+
+        @Override
+        public String buildJdbcUrl(SqlSetting settings) throws Exception {
+            final String jdbcPattern = "jdbc:postgresql://%s:%d/%s";
+            final int defaultPort = 5432;
+            String host = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_HOST);
+            int port = settings.getInt(SqlConfiguration.DEFAULTCONNECTION_OPT_PORT);
+            String database = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DATABASE);
+
+            port = port != 0 ? port : defaultPort;
+            return String.format(jdbcPattern, host, port, database);
+        }
+
+        @Override
+        public String getDriverClass(SqlSetting settings) throws Exception {
+            String driverClass = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME);
+            // Use default PostgreSQL driver name when no drivername has been set
+            if (driverClass.equals(SqlSetting.DEFAULT_UNSET)) {
+                return "org.postgresql.Driver";
             }
-            return new DatabaseMySql(buildJdbcUrl(settings), getDriverClass(settings),
-                    settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_USER),
-                    settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_PASSWORD), autoDisconnect);
+            return driverClass;
+        }
+
+        @Override
+        public boolean validateSettings(SqlSetting settings) throws Exception {
+            if (!settings.isValid()) {
+                return false;
+            }
+            // Name of the database schema is required for PostgreSQL
+            if (settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DATABASE).equals(SqlSetting.DEFAULT_UNSET)) {
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        protected DatabaseInfo buildDatabaseInfo(String brandName, String jdbcUrl, String driverClass, String user,
+                String password, boolean autoDisconnect) throws Exception {
+            return new GenericDatabase(name(), jdbcUrl, driverClass, user, password, autoDisconnect);
         }
     };
-    
+
     /**
      * Builds the JDBC URL for this database based on the provided settings.
      * 
-     * @param settings SqlSetting object
+     * @param settings
+     *            SqlSetting object
      * @return JDBC URL
      * @throws Exception
      */
     public abstract String buildJdbcUrl(SqlSetting settings) throws Exception;
-    
+
     /**
-     * Returns the driver class for this database based on the provided settings.
+     * Returns the driver class for this database based on the provided
+     * settings.
      * 
-     * @param settings SqlSetting object
+     * @param settings
+     *            SqlSetting object
      * @return Name of the JDBC driver class
      * @throws Exception
      */
     public abstract String getDriverClass(SqlSetting settings) throws Exception;
-    
+
     /**
      * Provides database specific validation of the settings object.
      * 
-     * @param settings SqlSetting object
-     * @return <code>true</code> if settings are valid to configure database, false otherwise
+     * @param settings
+     *            SqlSetting object
+     * @return <code>true</code> if settings are valid to configure database,
+     *         false otherwise
      */
     public abstract boolean validateSettings(SqlSetting settings) throws Exception;
-    
+
     /**
      * Build the DatabaseInfo based on the settings.
      * 
-     * @param settings SqlSetting object
+     * @param settings
+     *            SqlSetting object
      * @return DatabaseInfo object based on the supplied settings
      * @throws Exception
      */
-    public abstract DatabaseInfo buildDatabaseInfo(SqlSetting settings) throws Exception;
+    public DatabaseInfo buildDatabaseInfo(SqlSetting settings) throws Exception {
+        boolean autoDisconnect = false;
+        // Autodisconnect should only apply to the default connection (connection pool)
+        if (settings.getName().equals(SqlConfiguration.DEFAULTCONNECTION)) {
+            autoDisconnect = SqlSetting.toggleValue(settings
+                    .getString(SqlConfiguration.DEFAULTCONNECTION_OPT_AUTODISCONNECT));
+        }
+        return buildDatabaseInfo(name(), buildJdbcUrl(settings), getDriverClass(settings),
+                settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_USER),
+                settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_PASSWORD), autoDisconnect);
+    }
+
+    /**
+     * Builds the DatabaseInfo based on the provided parameters. Used by default
+     * implementation of {@link #buildDatabaseInfo(SqlSetting)}
+     * 
+     * @param brandName
+     *            Brandname of the database
+     * @param jdbcUrl
+     *            JDBC URL to the database
+     * @param driverClass
+     *            JDBC driver class
+     * @param user
+     *            User
+     * @param password
+     *            Password
+     * @param autoDisconnect
+     *            Use autodisconnect
+     * @return DatabaseInfo object based on the supplied parameters
+     * @throws Exception
+     */
+    protected abstract DatabaseInfo buildDatabaseInfo(String brandName, String jdbcUrl, String driverClass,
+            String user, String password, boolean autoDisconnect) throws Exception;
 }
