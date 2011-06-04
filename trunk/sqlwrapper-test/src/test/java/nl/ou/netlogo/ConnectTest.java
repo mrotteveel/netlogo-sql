@@ -25,6 +25,7 @@ import nl.ou.netlogo.testsupport.HeadlessTest;
 import static nl.ou.netlogo.testsupport.DatabaseHelper.getGenericConnectCommand;
 import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
 import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLJdbcURL;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -32,6 +33,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.nlogo.agent.AgentSet;
 import org.nlogo.agent.Turtle;
+import org.nlogo.api.LogoList;
 import org.nlogo.nvm.EngineException;
 
 /**
@@ -251,5 +253,22 @@ public class ConnectTest extends HeadlessTest {
         workspace.command(String.format("sql:connect [[\"host\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
                 ci.getHost(), ci.getUsername(), ci.getPassword(), ci.getSchema()));
         assertTrue("Expected connection to be established", (Boolean) workspace.report("sql:is-connected?"));
+    }
+    
+    /**
+     * Test if sql:connect does not modify the stored (default) configuration.
+     * <p>
+     * Expected: configuration details of explicit-connection are the same before and after
+     * call to sql:connect.
+     * </p>
+     */
+    @Test
+    public void testConnect_noModificationSettings() throws Exception {
+        workspace.open("init-sql.nlogo");
+        LogoList configBefore = (LogoList)workspace.evaluateReporter("sql:get-configuration \"explicit-connection\"");
+        workspace.command(getGenericConnectCommand());
+        LogoList configAfter = (LogoList)workspace.evaluateReporter("sql:get-configuration \"explicit-connection\"");
+        
+        assertEquals("Expected (default) configuration of explicit-connection to be unchanged", configBefore, configAfter);
     }
 }

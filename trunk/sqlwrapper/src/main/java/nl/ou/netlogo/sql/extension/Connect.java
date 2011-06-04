@@ -83,9 +83,9 @@ public class Connect extends DefaultCommand {
         }
         try {
             SqlSetting connectionSetting = sqlenv.getConfiguration().getConfiguration(SqlConfiguration.EXPLICITCONNECTION);
-            SqlConfiguration.assignSettings(
+            connectionSetting.assignSettings(
                     SqlConfiguration.parseSettingList(SqlConfiguration.EXPLICITCONNECTION, args[0].getList()),
-                    connectionSetting, connectionSetting);
+                    connectionSetting);
 
             sqlc = sqlenv.createConnection(context, connectionSetting);
         } catch (ExtensionException ex) {

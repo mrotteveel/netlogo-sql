@@ -145,10 +145,10 @@ public class SqlConfiguration {
                 { LOGGING_OPT_COPYTOSTDERR, "off" },
         };
         try {
-            this.addAvailable(DEFAULTCONNECTION, defaultConnectionSettings);
-            this.addAvailable(CONNECTIONPOOL, connectionPoolSettings);
-            this.addAvailable(LOGGING, loggingSettings);
-            this.addAvailable(EXPLICITCONNECTION, connectSettings);
+            addAvailable(DEFAULTCONNECTION, defaultConnectionSettings);
+            addAvailable(CONNECTIONPOOL, connectionPoolSettings);
+            addAvailable(LOGGING, loggingSettings);
+            addAvailable(EXPLICITCONNECTION, connectSettings);
         } catch (Exception ex) {
             // ignore, for now. should log error at least
             System.err.println("SqlConfiguration: broke in constructor\n");
@@ -195,7 +195,7 @@ public class SqlConfiguration {
             }
             configurables.get(name).add(configurable);
             try {
-                configurable.configure(this.get(name), null);
+                configurable.configure(getConfiguration(name), null);
             } catch (Exception ex) {
                 throw new ExtensionException("Problem while configuring '" + name + "' (" + configurable + "): " + ex);
             }
@@ -248,7 +248,7 @@ public class SqlConfiguration {
                 }
             }
             configuredSetting = configured.get(name);
-            assignSettings(keyValuePairs, configuredSetting, availableSetting);
+            configuredSetting.assignSettings(keyValuePairs, availableSetting);
         } else {
             String message = "Attempt to configure for unknown name ('" + name + "')";
             SqlLogger.getLogger().severe(message);
@@ -265,49 +265,6 @@ public class SqlConfiguration {
                     SqlLogger.getLogger().severe(message);
                     throw new ExtensionException(message);
                 }
-            }
-        }
-    }
-
-    /**
-     * Implementation of the sql:configure command, for the special case when an
-     * aspect has only one (possibly unnamed) option
-     * 
-     * @param name
-     *            name of aspect to configure
-     * @param key
-     *            name of option to configure (could be an empty string (""))
-     * @param value
-     *            value for the option
-     * @param context
-     *            Context object identifying the context the sql:configure was
-     *            called from
-     * @throws ExtensionException
-     */
-    public void setConfiguration(String name, String key, String value, Context context) throws Exception,
-            ExtensionException {
-        SqlSetting setting = null;
-        if (available.containsKey(name)) {
-            setting = available.get(name);
-            if (setting.containsKey(key)) {
-                if (!configured.containsKey(name)) {
-                    // start with a copy of the available setting, this will set defaults
-                    setting = setting.clone();
-                    configured.put(name, setting);
-                }
-                setting = configured.get(name);
-                setting.put(key, value);
-            } else {
-                throw new ExtensionException("Attempt to configure unknown key '" + key + "' for name '" + name + "'");
-            }
-        } else {
-            throw new ExtensionException("Attempt to configure for unknown name ('" + name + "')");
-        }
-
-        // push the new settings to any registered SqlConfigurable
-        if (setting != null && configurables.containsKey(name)) {
-            for (SqlConfigurable configurable : configurables.get(name)) {
-                configurable.configure(setting, context);
             }
         }
     }
@@ -340,15 +297,6 @@ public class SqlConfiguration {
     }
 
     /**
-     * Alias for getConfiguration()
-     * 
-     * @see SqlConfiguration#getConfiguration(String name)
-     */
-    public SqlSetting get(String name) throws Exception, ExtensionException {
-        return this.getConfiguration(name);
-    }
-
-    /**
      * Retrieves a set of all names of aspects available for configuration
      * 
      * @return set of names
@@ -364,22 +312,6 @@ public class SqlConfiguration {
      */
     public Map<String, SqlSetting> getConfiguration() {
         return configured;
-    }
-
-    /**
-     * Retrieves the currently configured value (or default) of an option of an
-     * aspect
-     * 
-     * @param name
-     *            name of aspect
-     * @param key
-     *            name of option
-     * @return configured value
-     * @throws Exception
-     */
-    public String getSetting(String name, String key) throws Exception {
-        SqlSetting setting = getConfiguration(name);
-        return setting.getString(key);
     }
 
     /**
@@ -418,27 +350,5 @@ public class SqlConfiguration {
         }
 
         return kvPairs;
-    }
-
-    /**
-     * Assigns the key/value pairs to a SqlSetting object
-     * 
-     * @param keyValuePairs Map containing the settings
-     * @param setting Setting object to fill from keyValuePairs
-     * @param settingConstraint Constraint for settings (keys must be available in this setting), optional: use null to not check settings
-     * @throws ExtensionException For errors assigning values (eg setting-key not available in settingConstraint)
-     */
-    public static void assignSettings(Map<String, String> keyValuePairs, SqlSetting setting,
-            SqlSetting settingConstraint) throws ExtensionException {
-        for (String key : keyValuePairs.keySet()) {
-            if (settingConstraint == null || settingConstraint.containsKey(key)) {
-                String value = keyValuePairs.get(key);
-                setting.put(key, value);
-            } else {
-                String message = "Attempt to configure unknown key '" + key;
-                SqlLogger.getLogger().severe(message);
-                throw new ExtensionException(message);
-            }
-        }
     }
 }

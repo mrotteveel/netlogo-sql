@@ -67,7 +67,7 @@ public class GetConfiguration extends DefaultReporter {
         LogoList confList = new LogoList();
         try {
             confList.add(name);
-            SqlSetting setting = sqlenv.getConfiguration().get(name);
+            SqlSetting setting = sqlenv.getConfiguration().getConfiguration(name);
             Iterator<String> keys = setting.keySet().iterator();
             // loop over the key-value pairs for the configured entity
             while (keys.hasNext()) {

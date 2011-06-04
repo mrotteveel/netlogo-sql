@@ -22,8 +22,11 @@ package nl.ou.netlogo.sql.wrapper;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+
+import org.nlogo.api.ExtensionException;
 
 public class SqlSetting implements Cloneable {
     private String name;
@@ -47,6 +50,26 @@ public class SqlSetting implements Cloneable {
             }
         }
         this.visible = true;
+    }
+    
+    /**
+     * Assigns the key/value pairs to a SqlSetting object
+     * 
+     * @param keyValuePairs Map containing the settings
+     * @param settingConstraint Constraint for settings (keys must be available in this setting), optional: use null to not check settings
+     * @throws ExtensionException For errors assigning values (eg setting-key not available in settingConstraint)
+     */
+    public void assignSettings(Map<String, String> keyValuePairs, SqlSetting settingConstraint) throws ExtensionException {
+        for (String key : keyValuePairs.keySet()) {
+            if (settingConstraint == null || settingConstraint.containsKey(key)) {
+                String value = keyValuePairs.get(key);
+                settings.put(key, value);
+            } else {
+                String message = "Attempt to configure unknown key '" + key;
+                SqlLogger.getLogger().severe(message);
+                throw new ExtensionException(message);
+            }
+        }
     }
 
     /**
@@ -159,9 +182,12 @@ public class SqlSetting implements Cloneable {
         return this.visible;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public SqlSetting clone() throws CloneNotSupportedException {
-        return (SqlSetting) super.clone();
+        SqlSetting clone = (SqlSetting) super.clone();
+        clone.settings = (HashMap<String, String>) settings.clone();
+        return clone;
     }
 
     /**
