@@ -30,10 +30,15 @@ import java.util.Collections;
 import java.util.List;
 
 public class DatabaseHelper {
-
+    
     static {
         try {
             Class.forName("com.mysql.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+        try {
+            Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
             throw new ExceptionInInitializerError(e);
         }

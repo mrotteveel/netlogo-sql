@@ -32,19 +32,22 @@ import java.util.Properties;
  */
 public class ConnectionInformation {
 	
-	public static final String HOST_PROPERTY = "db.host";
-	public static final String PORT_PROPERTY = "db.port";
-	public static final String SCHEMA_PROPERTY = "db.schema";
-	public static final String USERNAME_PROPERTY = "db.username";
-	public static final String PASSWORD_PROPERTY = "db.password";
-	public static final String AUTODISCONNECT_PROPERTY = "db.autodisconnect";
-	public static final String MAXCONNECTIONS_PROPERTY = "db.maxconnections";
+	public static final String HOST_PROPERTY = ".db.host";
+	public static final String PORT_PROPERTY = ".db.port";
+	public static final String SCHEMA_PROPERTY = ".db.schema";
+	public static final String USERNAME_PROPERTY = ".db.username";
+	public static final String PASSWORD_PROPERTY = ".db.password";
+	public static final String AUTODISCONNECT_PROPERTY = ".db.autodisconnect";
+	public static final String MAXCONNECTIONS_PROPERTY = ".db.maxconnections";
+	public static final String MYSQL_PREFIX = "mysql";
+	public static final String POSTGRESQL_PREFIX = "postgresql";
 
-	private static ConnectionInformation instance;
-	private Properties defaultConnectionProperties;
+	private static Properties defaultConnectionProperties;
+	private final String dbPrefix;
 	
-	private ConnectionInformation(Properties defaultConnectionProperties) {
-		this.defaultConnectionProperties = defaultConnectionProperties;
+	private ConnectionInformation(String dbPrefix) {
+		this.dbPrefix = dbPrefix;
+		initDefaultConnectionProperties();
 	}
 	
 	public String getHost() {
@@ -71,16 +74,20 @@ public class ConnectionInformation {
 		return getProperty(AUTODISCONNECT_PROPERTY);
 	}
 	
+	public String getDbPrefix() {
+	    return dbPrefix;
+	}
+	
 	private String getProperty(String name) {
-		return System.getProperty(name, defaultConnectionProperties.getProperty(name));
+	    String fullName = dbPrefix + name;
+		return System.getProperty(fullName, defaultConnectionProperties.getProperty(fullName));
 	}
 
 	/**
-	 * 
-	 * @return Singleton instance of ConnectionInformation
+	 * Initializes the defaultConnectionProperties by loading them from file.
 	 */
-	public static ConnectionInformation getInstance() {
-		if (instance == null) {
+	private static void initDefaultConnectionProperties() {
+		if (defaultConnectionProperties == null) {
 			InputStream is = ConnectionInformation.class
 					.getResourceAsStream("/test-connection.properties");
 			Properties props = new Properties();
@@ -97,9 +104,25 @@ public class ConnectionInformation {
 					}
 				}
 			}
-			instance = new ConnectionInformation(props);
+			defaultConnectionProperties = props;
 		}
-		return instance;
 	}
-
+	
+	/**
+	 * 
+	 * @return ConnectionInformation instance for MySQL
+	 */
+	public static ConnectionInformation getInstance() {
+	    return getInstance(MYSQL_PREFIX);
+	}
+	
+	/**
+	 * Create ConnectionInformation instance for the given prefix.
+	 * 
+	 * @param dbPrefix Prefix of the connection properties info.
+	 * @return ConnectionInformation instance
+	 */
+	public static ConnectionInformation getInstance(String dbPrefix) {
+	    return new ConnectionInformation(dbPrefix);
+	}
 }
