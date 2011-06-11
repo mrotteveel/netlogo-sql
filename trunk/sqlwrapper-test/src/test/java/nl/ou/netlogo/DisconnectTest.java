@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultConnectCommand;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -50,7 +50,7 @@ public class DisconnectTest extends HeadlessTest {
 	@Test
 	public void testDisconnect_whenConnected() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		assertTrue("Expected true for sql:is-connected?", (Boolean)workspace.report("sql:is-connected?"));
 		
 		workspace.command("sql:disconnect");
@@ -92,8 +92,8 @@ public class DisconnectTest extends HeadlessTest {
 		Turtle turtle = workspace.world.createTurtle(breed);
 		assertNotNull("Unable to create turtle", turtle);
 		
-		workspace.command(getMySQLConnectCommand());
-		workspace.evaluateCommands(getMySQLConnectCommand(), turtle, true);
+		workspace.command(getDefaultConnectCommand());
+		workspace.evaluateCommands(getDefaultConnectCommand(), turtle, true);
 		
 		assertTrue("Expected true for sql:is-connected? of observer", (Boolean)workspace.report("sql:is-connected?"));
 		assertTrue("Expected true for sql:is-connected? of agent", (Boolean)workspace.evaluateReporter("sql:is-connected?", turtle));
@@ -115,7 +115,7 @@ public class DisconnectTest extends HeadlessTest {
 	@Test
 	public void testConnectionPool_isolatedDisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLPoolConfigurationCommand());
+		workspace.command(getDefaultPoolConfigurationCommand());
 		
 		assertFalse("Expected false for sql:debug-is-connected? of observer", (Boolean)workspace.report("sql:debug-is-connected?"));
 		workspace.command("sql:disconnect");

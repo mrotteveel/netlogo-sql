@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultConnectCommand;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -91,7 +91,7 @@ public class ExecQueryTest extends HeadlessTest {
 	@Test
 	public void testSelect_noParameter() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		
 		workspace.command("sql:exec-query \"SELECT * FROM " + tableName + " ORDER BY ID\" []");
 		
@@ -113,7 +113,7 @@ public class ExecQueryTest extends HeadlessTest {
 	@Test
 	public void testSelect_withParameter() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		
 		workspace.command("sql:exec-query \"SELECT * FROM " + tableName + " WHERE ID = ?\" [2]");
 		
@@ -138,7 +138,7 @@ public class ExecQueryTest extends HeadlessTest {
 	@Test
 	public void testSelect_connect_noAutodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		
 		workspace.command("sql:exec-query \"SELECT * FROM " + tableName + " WHERE ID = ?\" [2]");
 		
@@ -158,7 +158,7 @@ public class ExecQueryTest extends HeadlessTest {
 	@Test
 	public void testSelect_connectionPool_noAutodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLPoolConfigurationCommand(false));
+		workspace.command(getDefaultPoolConfigurationCommand(false));
 		
 		workspace.command("sql:exec-query \"SELECT * FROM " + tableName + " WHERE ID = ?\" [2]");
 		
@@ -178,7 +178,7 @@ public class ExecQueryTest extends HeadlessTest {
 	@Test
 	public void testSelect_connectionPool_autodisconnect() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLPoolConfigurationCommand());
+		workspace.command(getDefaultPoolConfigurationCommand());
 		
 		workspace.command("sql:exec-query \"SELECT * FROM " + tableName + " WHERE ID = ?\" [2]");
 		
@@ -194,7 +194,7 @@ public class ExecQueryTest extends HeadlessTest {
 	@Test(expected=EngineException.class)
 	public void testSyntaxError() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		
 		workspace.command("sql:exec-query \"SLECT * FROM " + tableName + "\" []");
 	}
@@ -207,7 +207,7 @@ public class ExecQueryTest extends HeadlessTest {
 	@Test(expected=EngineException.class)
 	public void testTooManyParameters() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		
 		workspace.command("sql:exec-query \"SELECT * FROM " + tableName + " WHERE ID = ?\" [2 5]");
 	}
@@ -220,7 +220,7 @@ public class ExecQueryTest extends HeadlessTest {
 	@Test(expected=EngineException.class)
 	public void testTooFewParameters() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		
 		workspace.command("sql:exec-query \"SELECT * FROM " + tableName + " WHERE ID = ? OR ID = ?\" [2]");
 	}
@@ -233,7 +233,7 @@ public class ExecQueryTest extends HeadlessTest {
 	@Test(expected=EngineException.class)
 	public void testNoParametersWhenExpected() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		
 		workspace.command("sql:exec-query \"SELECT * FROM " + tableName + " WHERE ID = ?\" []");
 	}
@@ -246,7 +246,7 @@ public class ExecQueryTest extends HeadlessTest {
 	@Test(expected=EngineException.class)
 	public void testParameterWhenNoneExpected() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		
 		workspace.command("sql:exec-query \"SELECT * FROM " + tableName + "\" [2]");
 	}
@@ -259,7 +259,7 @@ public class ExecQueryTest extends HeadlessTest {
 	@Test(expected=EngineException.class)
 	public void testExecQuery_delete() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		
 		workspace.command("sql:exec-query \"DELETE FROM " + tableName + "\" []");
 	}
@@ -276,7 +276,7 @@ public class ExecQueryTest extends HeadlessTest {
 	@AfterClass
 	public static void dropTable() {
 		try {
-			DatabaseHelper.executeUpdate(new String[] {"DROP TABLE " + tableName});
+			DatabaseHelper.executeUpdate("DROP TABLE " + tableName);
 		} catch (SQLException e) {
 			throw new IllegalStateException("Unable to drop table " + tableName, e);
 		} 

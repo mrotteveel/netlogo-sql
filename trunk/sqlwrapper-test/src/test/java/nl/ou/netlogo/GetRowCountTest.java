@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultConnectCommand;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -90,7 +90,7 @@ public class GetRowCountTest extends HeadlessTest {
 	@Test
 	public void testSelect_ExecDirect_rowCount() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + "\"");
 		
 		Object rowCount = workspace.report("sql:get-rowcount");
@@ -109,7 +109,7 @@ public class GetRowCountTest extends HeadlessTest {
 	@Test
 	public void testSelect_ExecQuery_rowCount() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		workspace.command("sql:exec-query \"SELECT * FROM " + tableName + "\" []");
 		
 		Object rowCount = workspace.report("sql:get-rowcount");
@@ -128,7 +128,7 @@ public class GetRowCountTest extends HeadlessTest {
 	@Test
 	public void testUpdate_ExecDirect_rowCount() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		workspace.command("sql:exec-direct \"UPDATE " + tableName + " SET INT_FIELD = 2345 WHERE ID = 1\"");
 		
 		Object rowCount = workspace.report("sql:get-rowcount");
@@ -147,7 +147,7 @@ public class GetRowCountTest extends HeadlessTest {
 	@Test
 	public void testUpdate_ExecUpdate_rowCount() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		workspace.command("sql:exec-update \"UPDATE " + tableName + " SET INT_FIELD = 2345 WHERE ID = 1\" []");
 		
 		Object rowCount = workspace.report("sql:get-rowcount");
@@ -166,7 +166,7 @@ public class GetRowCountTest extends HeadlessTest {
 	@Test
 	public void testUpdate_autodisconnect_rowCount() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLPoolConfigurationCommand());
+		workspace.command(getDefaultPoolConfigurationCommand());
 		workspace.command("sql:exec-update \"UPDATE " + tableName + " SET INT_FIELD = 2345 WHERE ID = ?\" [1]");
 		
 		boolean isConnected = (Boolean)workspace.report("sql:debug-is-connected?");
@@ -205,7 +205,7 @@ public class GetRowCountTest extends HeadlessTest {
 	@Test
 	public void testGetRowCount_connect_noStatement() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLConnectCommand());
+		workspace.command(getDefaultConnectCommand());
 		
 		Object rowCount = (Double)workspace.report("sql:get-rowcount");
 		
@@ -223,7 +223,7 @@ public class GetRowCountTest extends HeadlessTest {
 	@Test
 	public void testGetRowCount_connectionPool_noStatement() throws Exception {
 		workspace.open("init-sql.nlogo");
-		workspace.command(getMySQLPoolConfigurationCommand());
+		workspace.command(getDefaultPoolConfigurationCommand());
 		
 		Object result = workspace.report("sql:get-rowcount");
 		
@@ -242,7 +242,7 @@ public class GetRowCountTest extends HeadlessTest {
 	@AfterClass
 	public static void dropTable() {
 		try {
-			DatabaseHelper.executeUpdate(new String[] {"DROP TABLE " + tableName});
+			DatabaseHelper.executeUpdate("DROP TABLE " + tableName);
 		} catch (SQLException e) {
 			throw new IllegalStateException("Unable to drop table " + tableName, e);
 		} 

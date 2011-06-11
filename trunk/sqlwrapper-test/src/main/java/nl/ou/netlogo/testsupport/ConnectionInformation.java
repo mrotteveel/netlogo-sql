@@ -50,35 +50,7 @@ public class ConnectionInformation {
 		initDefaultConnectionProperties();
 	}
 	
-	public String getHost() {
-		return getProperty(HOST_PROPERTY);
-	}
-	
-	public String getPort() {
-		return getProperty(PORT_PROPERTY);
-	}
-	
-	public String getSchema() {
-		return getProperty(SCHEMA_PROPERTY);
-	}
-	
-	public String getUsername() {
-		return getProperty(USERNAME_PROPERTY);
-	}
-	
-	public String getPassword() {
-		return getProperty(PASSWORD_PROPERTY);
-	}
-	
-	public String getAutoDisconnect() {
-		return getProperty(AUTODISCONNECT_PROPERTY);
-	}
-	
-	public String getDbPrefix() {
-	    return dbPrefix;
-	}
-	
-	private String getProperty(String name) {
+	protected String getProperty(String name) {
 	    String fullName = dbPrefix + name;
 		return System.getProperty(fullName, defaultConnectionProperties.getProperty(fullName));
 	}
@@ -109,20 +81,12 @@ public class ConnectionInformation {
 	}
 	
 	/**
-	 * 
-	 * @return ConnectionInformation instance for MySQL
-	 */
-	public static ConnectionInformation getInstance() {
-	    return getInstance(MYSQL_PREFIX);
-	}
-	
-	/**
 	 * Create ConnectionInformation instance for the given prefix.
 	 * 
 	 * @param dbPrefix Prefix of the connection properties info.
 	 * @return ConnectionInformation instance
 	 */
-	public static ConnectionInformation getInstance(String dbPrefix) {
+	protected static ConnectionInformation getInstance(String dbPrefix) {
 	    return new ConnectionInformation(dbPrefix);
 	}
 }
