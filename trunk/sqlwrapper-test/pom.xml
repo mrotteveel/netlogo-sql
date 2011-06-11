@@ -40,10 +40,19 @@
   		<version>4.8.2</version>
   		<type>jar</type>
   	</dependency>
-  	<dependency>
+  	
+  	<!-- MySQL database driver -->
+	<dependency>
 		<groupId>mysql</groupId>
 		<artifactId>mysql-connector-java</artifactId>
 		<version>5.1.16</version>
 	</dependency>
+	
+	<!-- PostgreSQL driver -->
+	<dependency>
+    	<groupId>postgresql</groupId>
+    	<artifactId>postgresql</artifactId>
+    	<version>9.0-801.jdbc4</version>
+    </dependency>
   </dependencies>
 </project>
