@@ -31,7 +31,7 @@ import org.junit.Test;
 import org.nlogo.api.LogoList;
 import org.nlogo.nvm.EngineException;
 
-import nl.ou.netlogo.testsupport.ConnectionInformation;
+import nl.ou.netlogo.testsupport.Database;
 import nl.ou.netlogo.testsupport.HeadlessTest;
 
 /**
@@ -88,16 +88,16 @@ public class GetConfigurationTest extends HeadlessTest {
 	private static final Map<String, String> EXPECTED_CONFIG;
 	static {
 		Map<String, String> config = new HashMap<String, String>();
-		ConnectionInformation ci = ConnectionInformation.getInstance();
+		Database db = Database.MYSQL;
 		config.put("brand", "MySql");
-		config.put("port", ci.getPort());
-		config.put("host", ci.getHost());
-		config.put("password", ci.getPassword());
-		config.put("user", ci.getUsername());
-		config.put("database", ci.getSchema());
+		config.put("port", db.getPort());
+		config.put("host", db.getHost());
+		config.put("password", db.getPassword());
+		config.put("user", db.getUsername());
+		config.put("database", db.getSchema());
 		config.put("jdbc-url", "<default>");
 		config.put("driver", "<default>");
-		config.put("autodisconnect", ci.getAutoDisconnect());
+		config.put("autodisconnect", db.getAutoDisconnect());
 		
 		EXPECTED_CONFIG = Collections.unmodifiableMap(config);
 	}
@@ -114,10 +114,10 @@ public class GetConfigurationTest extends HeadlessTest {
 	public void testGetConfiguration_defaultconnection_withConfig() throws Exception {
 		workspace.open("init-sql.nlogo");
 		
-		ConnectionInformation ci = ConnectionInformation.getInstance();
+		Database db = Database.MYSQL;
 		workspace.command(
 				String.format("sql:configure \"defaultconnection\" [[\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"] [\"autodisconnect\" \"%s\"]]",
-				ci.getHost(), ci.getPort(), ci.getUsername(), ci.getPassword(), ci.getSchema(), ci.getAutoDisconnect()));
+				db.getHost(), db.getPort(), db.getUsername(), db.getPassword(), db.getSchema(), db.getAutoDisconnect()));
 		
 		LogoList resultList = (LogoList)workspace.report("sql:get-configuration \"defaultconnection\"");
 		assertEquals("Unexpected configuration name", "defaultconnection", resultList.get(0));

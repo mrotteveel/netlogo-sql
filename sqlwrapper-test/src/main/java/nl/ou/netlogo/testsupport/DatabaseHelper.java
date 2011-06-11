@@ -30,45 +30,41 @@ import java.util.Collections;
 import java.util.List;
 
 public class DatabaseHelper {
-    
-    static {
-        try {
-            Class.forName("com.mysql.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new ExceptionInInitializerError(e);
-        }
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new ExceptionInInitializerError(e);
-        }
-    }
 
-    public static Connection getConnection() throws SQLException {
-        ConnectionInformation instance = ConnectionInformation.getInstance();
-        return DriverManager.getConnection(getMySQLJdbcURL(), instance.getUsername(), instance.getPassword());
+    static {
+        for (Database db : Database.values()) {
+            try {
+                Class.forName(db.getDriver());
+            } catch (ClassNotFoundException e) {
+                throw new ExceptionInInitializerError(e);
+            }
+        }
     }
+    
+    public static final Database PLUGIN_DEFAULT_DATABASE = Database.MYSQL;
 
     /**
+     * Creates a connection to the specified test database.
      * 
-     * @return JDBC URL for the database
+     * @param db
+     *            Database to connect to
+     * @return Connection to the test database
+     * @throws SQLException
      */
-    public static String getMySQLJdbcURL() {
-        ConnectionInformation instance = ConnectionInformation.getInstance();
-        return String.format("jdbc:mysql://%s:%s/%s", instance.getHost(), instance.getPort(), instance.getSchema());
+    public static Connection getConnection(Database db) throws SQLException {
+        return DriverManager.getConnection(db.getJdbcUrl(), db.getUsername(), db.getPassword());
     }
 
     /**
      * Creates the default sql:connect command for a valid connection using the
-     * (default) MySQL brand.
+     * default brand (MySQL).
      * 
      * @return sql:connect command
      */
-    public static String getMySQLConnectCommand() {
-        ConnectionInformation instance = ConnectionInformation.getInstance();
+    public static String getDefaultConnectCommand() {
+        Database db = PLUGIN_DEFAULT_DATABASE;
         return String.format("sql:connect [[\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
-                        instance.getHost(), instance.getPort(), instance.getUsername(), instance.getPassword(),
-                        instance.getSchema());
+                        db.getHost(), db.getPort(), db.getUsername(), db.getPassword(), db.getSchema());
     }
 
     /**
@@ -78,52 +74,56 @@ public class DatabaseHelper {
      * @return sql:connect command
      */
     public static String getGenericConnectCommand() {
-        ConnectionInformation instance = ConnectionInformation.getInstance();
+        Database db = PLUGIN_DEFAULT_DATABASE;
         return String.format("sql:connect [[\"brand\" \"generic\"] [\"jdbc-url\" \"%s\"] [\"driver\" \"com.mysql.jdbc.Driver\"] [\"user\" \"%s\"] [\"password\" \"%s\"]]",
-                        getMySQLJdbcURL(), instance.getUsername(), instance.getPassword());
+                        db.getJdbcUrl(), db.getUsername(), db.getPassword());
     }
 
     /**
      * Creates the default sql:set-default command for a valid pool
-     * configuration using the (default) MySQL brand. Autodisconnect is not
-     * explicitly set for this command and uses the plugin default. Use
-     * {@link #getMySQLPoolConfigurationCommand(boolean)} for explicit control.
+     * configuration using the default brand (MySQL). 
+     * <p>
+     * Autodisconnect is not explicitly set for this command and uses the plugin default. Use
+     * {@link #getDefaultPoolConfigurationCommand(boolean)} for explicit control.
+     * </p>
      * 
      * @return sql:set-default "connect" command
      */
-    public static String getMySQLPoolConfigurationCommand() {
-        ConnectionInformation instance = ConnectionInformation.getInstance();
-        return String.format("sql:configure \"defaultconnection\" [[\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]", 
-                instance.getHost(), instance.getPort().toString(), instance.getUsername(), instance.getPassword(), instance.getSchema());
+    public static String getDefaultPoolConfigurationCommand() {
+        Database db = PLUGIN_DEFAULT_DATABASE;
+        return String.format("sql:configure \"defaultconnection\" [[\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
+                        db.getHost(), db.getPort().toString(), db.getUsername(), db.getPassword(), db.getSchema());
     }
 
     /**
      * Creates the default sql:set-default command for a valid pool
-     * configuration using the generic brand. Autodisconnect is not explicitly
-     * set for this command and uses the plugin default. Use
+     * configuration using the generic brand.
+     * <p>
+     * Autodisconnect is not explicitly set for this command and uses the plugin default. Use
      * {@link #getGenericPoolConfigurationCommand(boolean)} for explicit
      * control.
+     * </p>
      * 
      * @return sql:set-default "connect" command
      */
     public static String getGenericPoolConfigurationCommand() {
-        ConnectionInformation instance = ConnectionInformation.getInstance();
-        return String.format("sql:configure \"defaultconnection\" [[\"brand\" \"generic\"] [\"jdbc-url\" \"%s\"] [\"driver\" \"com.mysql.jdbc.Driver\"] [\"user\" \"%s\"] [\"password\" \"%s\"]]", 
-                getMySQLJdbcURL(), instance.getUsername(), instance.getPassword());
+        Database db = PLUGIN_DEFAULT_DATABASE;
+        return String.format("sql:configure \"defaultconnection\" [[\"brand\" \"generic\"] [\"jdbc-url\" \"%s\"] [\"driver\" \"com.mysql.jdbc.Driver\"] [\"user\" \"%s\"] [\"password\" \"%s\"]]",
+                        db.getJdbcUrl(), db.getUsername(), db.getPassword());
     }
 
     /**
      * Creates the default sql:set-default command for a valid pool
-     * configuration using the (default) MySQL brand, and allows for switching
+     * configuration using the default brand (MySQL), and allows for switching
      * autodisconnect on/off.
      * 
      * @return sql:set-default "connect" command
      */
-    public static String getMySQLPoolConfigurationCommand(boolean autodisconnect) {
-        ConnectionInformation instance = ConnectionInformation.getInstance();
+    public static String getDefaultPoolConfigurationCommand(boolean autodisconnect) {
+        Database db = PLUGIN_DEFAULT_DATABASE;
         return String.format("sql:configure \"defaultconnection\" [[\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"] [\"autodisconnect\" \"%s\"]]",
-                instance.getHost(), instance.getPort().toString(), instance.getUsername(), instance.getPassword(),
-                instance.getSchema(), autodisconnect ? "on" : "off");
+                        db.getHost(), db.getPort().toString(), db.getUsername(), db.getPassword(), db.getSchema(),
+                        autodisconnect ? "on" : "off");
     }
 
     /**
@@ -134,13 +134,17 @@ public class DatabaseHelper {
      * @return sql:set-default "connect" command
      */
     public static String getGenericPoolConfigurationCommand(boolean autodisconnect) {
-        ConnectionInformation instance = ConnectionInformation.getInstance();
-        return String.format("sql:configure \"defaultconnection\" [[\"brand\" \"generic\"] [\"jdbc-url\" \"%s\"] [\"driver\" \"com.mysql.jdbc.Driver\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"autodisconnect\" \"%s\"]]", getMySQLJdbcURL(),
-                        instance.getUsername(), instance.getPassword(), autodisconnect ? "on" : "off");
+        Database db = PLUGIN_DEFAULT_DATABASE;
+        return String.format("sql:configure \"defaultconnection\" [[\"brand\" \"generic\"] [\"jdbc-url\" \"%s\"] [\"driver\" \"com.mysql.jdbc.Driver\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"autodisconnect\" \"%s\"]]",
+                        db.getJdbcUrl(), db.getUsername(), db.getPassword(), autodisconnect ? "on" : "off");
     }
 
     /**
-     * Method to execute DDL or DML (but not SELECT) statements.
+     * Method to execute DDL or DML (but not SELECT) statements on the MySQL
+     * test database.
+     * <p>
+     * These statements are executed against the default test database (MySQL).
+     * </p>
      * 
      * @param statements
      *            Statements to execute
@@ -148,10 +152,24 @@ public class DatabaseHelper {
      *             For any error executing the statements.
      */
     public static void executeUpdate(String... statements) throws SQLException {
+        executeUpdate(PLUGIN_DEFAULT_DATABASE, statements);
+    }
+
+    /**
+     * Method to execute DDL or DML (but not SELECT) statements.
+     * 
+     * @param db
+     *            Database to use for these queries
+     * @param statements
+     *            Statements to execute
+     * @throws SQLException
+     *             For any error executing the statements.
+     */
+    public static void executeUpdate(Database db, String... statements) throws SQLException {
         Connection con = null;
         Statement stmt = null;
         try {
-            con = getConnection();
+            con = getConnection(db);
             con.setAutoCommit(false);
             stmt = con.createStatement();
             for (String statement : statements) {
@@ -174,6 +192,9 @@ public class DatabaseHelper {
     /**
      * Method to execute a query that has a single row as result (for queries
      * with multiple rows as a result, only the first row is returned).
+     * <p>
+     * This query is executed against the default test database (MySQL)
+     * </p>
      * 
      * @param query
      *            Query to execute
@@ -181,11 +202,26 @@ public class DatabaseHelper {
      * @throws SQLException
      */
     public static List<String> executeSingletonQuery(String query) throws SQLException {
+        return executeSingletonQuery(PLUGIN_DEFAULT_DATABASE, query);
+    }
+
+    /**
+     * Method to execute a query that has a single row as result (for queries
+     * with multiple rows as a result, only the first row is returned).
+     * 
+     * @param db
+     *            Database to use for this query
+     * @param query
+     *            Query to execute
+     * @return List containing the values of the single row
+     * @throws SQLException
+     */
+    public static List<String> executeSingletonQuery(Database db, String query) throws SQLException {
         Connection con = null;
         Statement stmt = null;
         ResultSet rs = null;
         try {
-            con = getConnection();
+            con = getConnection(db);
             stmt = con.createStatement();
             rs = stmt.executeQuery(query);
             if (!rs.next()) {

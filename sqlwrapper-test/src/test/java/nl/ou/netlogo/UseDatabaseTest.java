@@ -21,10 +21,10 @@
 package nl.ou.netlogo;
 
 import static nl.ou.netlogo.testsupport.DatabaseHelper.getGenericConnectCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
 import static org.junit.Assert.assertEquals;
-import nl.ou.netlogo.testsupport.ConnectionInformation;
+import nl.ou.netlogo.testsupport.Database;
 import nl.ou.netlogo.testsupport.HeadlessTest;
 
 import org.junit.Test;
@@ -55,10 +55,10 @@ public class UseDatabaseTest extends HeadlessTest {
     @Test
     public void testUseDatabase_existingSchema() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLConnectCommand());
+        workspace.command(getDefaultConnectCommand());
         workspace.command("sql:exec-direct \"SELECT DATABASE()\"");
         LogoList list = (LogoList) workspace.report("sql:fetch-row");
-        assertEquals("Unexpected database name", ConnectionInformation.getInstance().getSchema(), list.get(0));
+        assertEquals("Unexpected database name", Database.MYSQL.getSchema(), list.get(0));
 
         workspace.command("sql:use-database \"information_schema\"");
 
@@ -86,7 +86,7 @@ public class UseDatabaseTest extends HeadlessTest {
     @Test(expected = EngineException.class)
     public void testUseDatabase_nonExistentSchema() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLConnectCommand());
+        workspace.command(getDefaultConnectCommand());
 
         workspace.command("sql:use-database \"DOESNOTEXIST\"");
     }
@@ -104,7 +104,7 @@ public class UseDatabaseTest extends HeadlessTest {
     @Test(expected = EngineException.class)
     public void testUseDatabase_connectionPool() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLPoolConfigurationCommand());
+        workspace.command(getDefaultPoolConfigurationCommand());
 
         workspace.command("sql:use-database \"information_schema\"");
     }

@@ -20,11 +20,10 @@
  */
 package nl.ou.netlogo;
 
-import nl.ou.netlogo.testsupport.ConnectionInformation;
+import nl.ou.netlogo.testsupport.Database;
 import nl.ou.netlogo.testsupport.HeadlessTest;
 import static nl.ou.netlogo.testsupport.DatabaseHelper.getGenericConnectCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLJdbcURL;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultConnectCommand;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -57,7 +56,7 @@ public class ConnectTest extends HeadlessTest {
     @Test
     public void testConnect_MySQL_default() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLConnectCommand());
+        workspace.command(getDefaultConnectCommand());
         assertTrue("Expected connection to be established", (Boolean) workspace.report("sql:is-connected?"));
     }
 
@@ -73,10 +72,10 @@ public class ConnectTest extends HeadlessTest {
     @Test
     public void testConnect_MySQL() throws Exception {
         workspace.open("init-sql.nlogo");
-        ConnectionInformation instance = ConnectionInformation.getInstance();
-        String command = String.format("sql:connect [[\"brand\" \"MySQL\"] [\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
-                        instance.getHost(), instance.getPort(), instance.getUsername(), instance.getPassword(),
-                        instance.getSchema());
+        Database db = Database.MYSQL;
+        String command = String
+                .format("sql:connect [[\"brand\" \"MySQL\"] [\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
+                        db.getHost(), db.getPort(), db.getUsername(), db.getPassword(), db.getSchema());
         workspace.command(command);
         assertTrue("Expected connection to be established", (Boolean) workspace.report("sql:is-connected?"));
     }
@@ -110,9 +109,10 @@ public class ConnectTest extends HeadlessTest {
     @Test(expected = EngineException.class)
     public void testConnect_generic_missingJdbcURL() throws Exception {
         workspace.open("init-sql.nlogo");
-        ConnectionInformation instance = ConnectionInformation.getInstance();
-        String command = String.format("sql:connect [[\"brand\" \"generic\"] [\"driver\" \"com.mysql.jdbc.Driver\"] [\"user\" \"%s\"] [\"password\" \"%s\"]]",
-                        instance.getUsername(), instance.getPassword());
+        Database db = Database.MYSQL;
+        String command = String
+                .format("sql:connect [[\"brand\" \"generic\"] [\"driver\" \"com.mysql.jdbc.Driver\"] [\"user\" \"%s\"] [\"password\" \"%s\"]]",
+                        db.getUsername(), db.getPassword());
         workspace.command(command);
     }
 
@@ -128,9 +128,10 @@ public class ConnectTest extends HeadlessTest {
     @Test(expected = EngineException.class)
     public void testConnect_generic_missingDriver() throws Exception {
         workspace.open("init-sql.nlogo");
-        ConnectionInformation instance = ConnectionInformation.getInstance();
-        String command = String.format("sql:connect [[\"brand\" \"generic\"] [\"jdbc-url\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"]]",
-                getMySQLJdbcURL(), instance.getUsername(), instance.getPassword());
+        Database db = Database.MYSQL;
+        String command = String.format(
+                "sql:connect [[\"brand\" \"generic\"] [\"jdbc-url\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"]]",
+                db.getJdbcUrl(), db.getUsername(), db.getPassword());
         workspace.command(command);
     }
 
@@ -146,9 +147,10 @@ public class ConnectTest extends HeadlessTest {
     @Test(expected = EngineException.class)
     public void testConnect_generic_incorrectDriver() throws Exception {
         workspace.open("init-sql.nlogo");
-        ConnectionInformation instance = ConnectionInformation.getInstance();
-        String command = String.format("sql:connect [[\"brand\" \"generic\"] [\"jdbc-url\" \"%s\"] [\"driver\" \"com.mysql.jdbc.xxxDriver\"] [\"user\" \"%s\"] [\"password\" \"%s\"]]",
-                        getMySQLJdbcURL(), instance.getUsername(), instance.getPassword());
+        Database db = Database.MYSQL;
+        String command = String
+                .format("sql:connect [[\"brand\" \"generic\"] [\"jdbc-url\" \"%s\"] [\"driver\" \"com.mysql.jdbc.xxxDriver\"] [\"user\" \"%s\"] [\"password\" \"%s\"]]",
+                        db.getJdbcUrl(), db.getUsername(), db.getPassword());
         workspace.command(command);
     }
 
@@ -169,9 +171,10 @@ public class ConnectTest extends HeadlessTest {
     @Test(expected = EngineException.class)
     public void testConnect_generic_noDriverForURL() throws Exception {
         workspace.open("init-sql.nlogo");
-        ConnectionInformation instance = ConnectionInformation.getInstance();
-        String command = String.format("sql:connect [[\"brand\" \"generic\"] [\"jdbc-url\" \"jdbc:nodriver://localhost:3306/sqlwrappertest\"] [\"driver\" \"com.mysql.jdbc.Driver\"] [\"user\" \"%s\"] [\"password\" \"%s\"]]",
-                        instance.getUsername(), instance.getPassword());
+        Database db = Database.MYSQL;
+        String command = String
+                .format("sql:connect [[\"brand\" \"generic\"] [\"jdbc-url\" \"jdbc:nodriver://localhost:3306/sqlwrappertest\"] [\"driver\" \"com.mysql.jdbc.Driver\"] [\"user\" \"%s\"] [\"password\" \"%s\"]]",
+                        db.getUsername(), db.getPassword());
         workspace.command(command);
     }
 
@@ -192,7 +195,7 @@ public class ConnectTest extends HeadlessTest {
         Turtle turtle = workspace.world.createTurtle(breed);
         assertNotNull("Unable to create turtle", turtle);
 
-        workspace.evaluateCommands(getMySQLConnectCommand(), turtle, true);
+        workspace.evaluateCommands(getDefaultConnectCommand(), turtle, true);
         assertTrue("Expected connection to be established",
                 (Boolean) workspace.evaluateReporter("sql:is-connected?", turtle));
         assertFalse("Expected no connection for observer", (Boolean) workspace.report("sql:is-connected?"));
@@ -228,9 +231,9 @@ public class ConnectTest extends HeadlessTest {
     @Test
     public void testConnect_defaultHost() throws Exception {
         workspace.open("init-sql.nlogo");
-        ConnectionInformation ci = ConnectionInformation.getInstance();
+        Database db = Database.MYSQL;
         workspace.command(String.format("sql:connect [[\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
-                ci.getPort(), ci.getUsername(), ci.getPassword(), ci.getSchema()));
+                db.getPort(), db.getUsername(), db.getPassword(), db.getSchema()));
         assertTrue("Expected connection to be established", (Boolean) workspace.report("sql:is-connected?"));
     }
 
@@ -249,26 +252,26 @@ public class ConnectTest extends HeadlessTest {
     @Test
     public void testConnect_defaultPort() throws Exception {
         workspace.open("init-sql.nlogo");
-        ConnectionInformation ci = ConnectionInformation.getInstance();
+        Database db = Database.MYSQL;
         workspace.command(String.format("sql:connect [[\"host\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
-                ci.getHost(), ci.getUsername(), ci.getPassword(), ci.getSchema()));
+                db.getHost(), db.getUsername(), db.getPassword(), db.getSchema()));
         assertTrue("Expected connection to be established", (Boolean) workspace.report("sql:is-connected?"));
     }
-    
+
     /**
      * Test if sql:connect does not modify the stored (default) configuration.
      * <p>
-     * Expected: configuration details of explicit-connection are the same before and after
-     * call to sql:connect.
+     * Expected: configuration details of explicit-connection are the same
+     * before and after call to sql:connect.
      * </p>
      */
     @Test
     public void testConnect_noModificationSettings() throws Exception {
         workspace.open("init-sql.nlogo");
-        LogoList configBefore = (LogoList)workspace.evaluateReporter("sql:get-configuration \"explicit-connection\"");
+        LogoList configBefore = (LogoList) workspace.evaluateReporter("sql:get-configuration \"explicit-connection\"");
         workspace.command(getGenericConnectCommand());
-        LogoList configAfter = (LogoList)workspace.evaluateReporter("sql:get-configuration \"explicit-connection\"");
-        
+        LogoList configAfter = (LogoList) workspace.evaluateReporter("sql:get-configuration \"explicit-connection\"");
+
         assertEquals("Expected (default) configuration of explicit-connection to be unchanged", configBefore, configAfter);
     }
 }

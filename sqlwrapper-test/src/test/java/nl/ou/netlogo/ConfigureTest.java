@@ -29,7 +29,7 @@ import org.nlogo.api.CompilerException;
 import org.nlogo.api.LogoException;
 import org.nlogo.nvm.EngineException;
 
-import nl.ou.netlogo.testsupport.ConnectionInformation;
+import nl.ou.netlogo.testsupport.Database;
 import nl.ou.netlogo.testsupport.HeadlessTest;
 
 /**
@@ -56,13 +56,13 @@ public class ConfigureTest extends HeadlessTest {
 	public void testConfigure_MySQL_defaultconnection_allParameters() throws Exception {
 		workspace.open("init-sql.nlogo");
 		
-		ConnectionInformation ci = ConnectionInformation.getInstance();
+		Database db = Database.MYSQL;
 		workspace.command(
 				String.format("sql:configure \"defaultconnection\" [[\"brand\" \"MySQL\"] [\"host\" \"%s\"] [\"port\" %s] [\"user\" \"%s\"] " +
 						"[\"password\" \"%s\"] [\"database\" \"%s\"] [\"autodisconnect\" \"on\"]]",
-				ci.getHost(), ci.getPort(), ci.getUsername(), ci.getPassword(), ci.getSchema()));
+				db.getHost(), db.getPort(), db.getUsername(), db.getPassword(), db.getSchema()));
 		String observerDB = (String)workspace.report("sql:current-database");
-		assertEquals("Unexpected connection database", ci.getSchema(), observerDB);
+		assertEquals("Unexpected connection database", db.getSchema(), observerDB);
 	}
 	
 	/**
@@ -80,12 +80,12 @@ public class ConfigureTest extends HeadlessTest {
 	public void testConfigure_MySQL_defaultconnection_minusPort() throws IOException, CompilerException, LogoException {
 		workspace.open("init-sql.nlogo");
 		
-		ConnectionInformation ci = ConnectionInformation.getInstance();
+		Database db = Database.MYSQL;
 		workspace.command(
 				String.format("sql:configure \"defaultconnection\" [[\"host\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
-				ci.getHost(), ci.getUsername(), ci.getPassword(), ci.getSchema()));
+				db.getHost(), db.getUsername(), db.getPassword(), db.getSchema()));
 		String observerDB = (String)workspace.report("sql:current-database");
-		assertEquals("Unexpected connection database", ci.getSchema(), observerDB);
+		assertEquals("Unexpected connection database", db.getSchema(), observerDB);
 	}
 	
 	/**
@@ -103,13 +103,13 @@ public class ConfigureTest extends HeadlessTest {
 	public void testConfigure_MySQL_defaultconnection_minusHost() throws Exception {
 		workspace.open("init-sql.nlogo");
 		
-		ConnectionInformation ci = ConnectionInformation.getInstance();
+		Database db = Database.MYSQL;
 		workspace.command(
 				String.format("sql:configure \"defaultconnection\" [[\"port\" %s] [\"user\" \"%s\"] [\"password\" \"%s\"] " +
 						"[\"database\" \"%s\"]]",
-				ci.getPort(), ci.getUsername(), ci.getPassword(), ci.getSchema()));
+				db.getPort(), db.getUsername(), db.getPassword(), db.getSchema()));
 		String observerDB = (String)workspace.report("sql:current-database");
-		assertEquals("Unexpected connection database", ci.getSchema(), observerDB);
+		assertEquals("Unexpected connection database", db.getSchema(), observerDB);
 	}
 	
 	/**
@@ -138,10 +138,10 @@ public class ConfigureTest extends HeadlessTest {
 	@Test(expected=EngineException.class)
 	public void testConfigure_unknownParameter() throws Exception {
 		workspace.open("init-sql.nlogo");
-		ConnectionInformation ci = ConnectionInformation.getInstance();
+		Database db = Database.MYSQL;;
 		workspace.command(
 				String.format("sql:configure \"defaultconnection\" [[\"unknownsetting\" \"value\"] [\"port\" %s] [\"user\" \"%s\"] " +
 						"[\"password\" \"%s\"] [\"database\" \"%s\"]]",
-				ci.getPort(), ci.getUsername(), ci.getPassword(), ci.getSchema()));
+				db.getPort(), db.getUsername(), db.getPassword(), db.getSchema()));
 	}
 }

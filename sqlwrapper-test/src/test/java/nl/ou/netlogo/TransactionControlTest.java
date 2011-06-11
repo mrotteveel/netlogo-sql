@@ -20,8 +20,8 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getMySQLConnectCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
+import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultConnectCommand;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -90,7 +90,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_StartTransaction_isolated() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLConnectCommand());
+        workspace.command(getDefaultConnectCommand());
         boolean isAutoCommit = (Boolean) workspace.report("sql:autocommit-enabled?");
         assertTrue("AutoCommit should be true before sql:start-transaction", isAutoCommit);
 
@@ -113,7 +113,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_CommitTransaction() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLConnectCommand());
+        workspace.command(getDefaultConnectCommand());
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-update \"INSERT INTO " + tableName + "(ID, CHAR_FIELD, INT_FIELD, VARCHAR_FIELD) VALUES (?, ?, ?, ?)\"" +
@@ -137,7 +137,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_RollbackTransaction() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLConnectCommand());
+        workspace.command(getDefaultConnectCommand());
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-update \"INSERT INTO " + tableName + "(ID, CHAR_FIELD, INT_FIELD, VARCHAR_FIELD) VALUES (?, ?, ?, ?)\"" +
@@ -161,7 +161,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_TransactionVisibility_external() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLConnectCommand());
+        workspace.command(getDefaultConnectCommand());
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-update \"UPDATE " + tableName + " SET CHAR_FIELD = ? WHERE ID = ?\" [\"text\" 1]");
@@ -186,7 +186,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_TransactionVisibility_internal() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLConnectCommand());
+        workspace.command(getDefaultConnectCommand());
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-update \"UPDATE " + tableName + " SET CHAR_FIELD = ? WHERE ID = ?\" [\"text\" 1]");
@@ -213,7 +213,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_NoStartTransaction_autocommitOff() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLConnectCommand());
+        workspace.command(getDefaultConnectCommand());
 
         workspace.command("sql:autocommit-off");
         workspace.command("sql:exec-update \"INSERT INTO " + tableName + "(ID, CHAR_FIELD, INT_FIELD, VARCHAR_FIELD) VALUES (?, ?, ?, ?)\"" +
@@ -239,7 +239,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test(expected = EngineException.class)
     public void test_NoStartTransaction_commit_autocommitOn() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLConnectCommand());
+        workspace.command(getDefaultConnectCommand());
 
         workspace.command("sql:commit-transaction");
     }
@@ -259,7 +259,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test(expected = EngineException.class)
     public void test_NoStartTransaction_rollback_autocommitOn() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLConnectCommand());
+        workspace.command(getDefaultConnectCommand());
 
         workspace.command("sql:rollback-transaction");
     }
@@ -277,7 +277,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_Autodisconnect_inTransaction_fetchRow() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLPoolConfigurationCommand(true));
+        workspace.command(getDefaultPoolConfigurationCommand(true));
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " LIMIT 1\"");
@@ -300,7 +300,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_Autodisconnect_inTransaction_fetchResultset() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLPoolConfigurationCommand(true));
+        workspace.command(getDefaultPoolConfigurationCommand(true));
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " LIMIT 1\"");
@@ -324,7 +324,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_Autodisconnect_inTransaction_update() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLPoolConfigurationCommand(true));
+        workspace.command(getDefaultPoolConfigurationCommand(true));
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-direct \"DELETE FROM " + tableName + "\"");
@@ -345,7 +345,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_Autodisconnect_commit() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLPoolConfigurationCommand(true));
+        workspace.command(getDefaultPoolConfigurationCommand(true));
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-direct \"DELETE FROM " + tableName + "\"");
@@ -368,7 +368,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_Autodisconnect_rollback() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLPoolConfigurationCommand(true));
+        workspace.command(getDefaultPoolConfigurationCommand(true));
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-direct \"DELETE FROM " + tableName + "\"");
@@ -391,7 +391,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_Autodisconnect_autocommitOn() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getMySQLPoolConfigurationCommand(true));
+        workspace.command(getDefaultPoolConfigurationCommand(true));
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-direct \"DELETE FROM " + tableName + "\"");
