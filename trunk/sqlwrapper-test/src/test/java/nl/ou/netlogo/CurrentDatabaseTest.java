@@ -170,7 +170,7 @@ public class CurrentDatabaseTest extends HeadlessTest {
     }
 
     /**
-     * Test if sql:current-database returns <code>default</code> on a brand
+     * Test if sql:current-database returns the right database name on a brand
      * generic connection.
      * <p>
      * Expected: returns <code>default</code> for a brand generic connection.
@@ -186,7 +186,7 @@ public class CurrentDatabaseTest extends HeadlessTest {
 
         String currentDB = (String) workspace.report("sql:current-database");
 
-        assertEquals("Unexpected value for sql:current-database on generic connection", "default", currentDB);
+        assertEquals("Unexpected value for sql:current-database on generic connection", Database.MYSQL.getSchema(), currentDB);
     }
 
 }

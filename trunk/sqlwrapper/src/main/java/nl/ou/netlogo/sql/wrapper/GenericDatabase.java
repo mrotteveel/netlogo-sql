@@ -20,6 +20,8 @@
  */
 package nl.ou.netlogo.sql.wrapper;
 
+import java.sql.SQLException;
+
 import org.nlogo.api.ExtensionException;
 
 /**
@@ -106,13 +108,23 @@ public class GenericDatabase implements DatabaseInfo {
 
     /**
      * {@inheritDoc}
+     * <p>
+     * Attempts to retrieve the catalog name reported by {@link java.sql.Connection}, will return "default" if this
+     * throws an SQLException.
+     * </p>
      * 
-     * @return Implementation in GenericDatabase returns <code>default</code>
-     *         always.
+     * @return Catalog name as reported by the connection. 
      */
     @Override
     public String getCurrentDatabase(SqlConnection conn) throws DatabaseFeatureNotImplementedException {
-        return "default";
+        try {
+            return conn.getConnection().getCatalog();
+        } catch (SQLException ex) {
+            return "default";
+        } finally {
+            // Ensure autodisconnect behavior:
+            conn.autodisconnectCoordinator.endOfResultSet();
+        }
     }
 
     /**
