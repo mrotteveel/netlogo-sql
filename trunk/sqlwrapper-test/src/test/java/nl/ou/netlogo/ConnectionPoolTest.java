@@ -110,8 +110,10 @@ public class ConnectionPoolTest extends HeadlessTest {
 
         workspace.command(getDefaultPoolConfigurationCommand());
         Database db = Database.MYSQL;
-        workspace.command(String.format("sql:connect [[\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]", 
-        		db.getHost(), db.getPort(), db.getUsername(), db.getPassword(), "information_schema"));
+        workspace
+                .command(String
+                        .format("sql:connect [[\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
+                                db.getHost(), db.getPort(), db.getUsername(), db.getPassword(), "information_schema"));
         String observerDB = (String) workspace.report("sql:current-database");
         assertEquals("Observer does not have expected database", "information_schema", observerDB);
     }
@@ -135,8 +137,10 @@ public class ConnectionPoolTest extends HeadlessTest {
 
         workspace.command(getDefaultPoolConfigurationCommand());
         Database db = Database.MYSQL;
-        workspace.command(String.format("sql:connect [[\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]", 
-        		db.getHost(), db.getPort(), db.getUsername(), db.getPassword(), "information_schema"));
+        workspace
+                .command(String
+                        .format("sql:connect [[\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
+                                db.getHost(), db.getPort(), db.getUsername(), db.getPassword(), "information_schema"));
         String observerDB = (String) workspace.report("sql:current-database");
         assertEquals("Observer does not have expected database", "information_schema", observerDB);
 
@@ -427,7 +431,8 @@ public class ConnectionPoolTest extends HeadlessTest {
         workspace.open("init-sql.nlogo");
         int testMax = 9;
         int partitons = 2;
-        workspace.command(String.format("sql:configure \"connectionpool\" [[\"max-connections\" %d] [\"partitions\" %d]]", testMax, partitons));
+        workspace.command(String.format(
+                "sql:configure \"connectionpool\" [[\"max-connections\" %d] [\"partitions\" %d]]", testMax, partitons));
         workspace.command(getDefaultPoolConfigurationCommand());
     }
 
@@ -480,7 +485,8 @@ public class ConnectionPoolTest extends HeadlessTest {
                 Object result = future.get(10, TimeUnit.SECONDS);
                 System.out.println(result);
                 assertEquals("Expected EngineException result", EngineException.class, result.getClass());
-                assertEquals("Unexpected exception message", "Extension exception: connectionPool.createConnectionFromPool() timed out",
+                assertEquals("Unexpected exception message",
+                        "Extension exception: connectionPool.createConnectionFromPool() timed out",
                         ((Exception) result).getMessage());
                 System.out.println(result);
             } catch (Exception e) {
@@ -508,6 +514,21 @@ public class ConnectionPoolTest extends HeadlessTest {
     public void testConnectionPool_generic() throws Exception {
         workspace.open("init-sql.nlogo");
         workspace.command(getGenericPoolConfigurationCommand());
+        workspace.command("sql:exec-direct \"SELECT 1\"");
+        boolean hasResultSet = (Boolean) workspace.report("sql:resultset-available?");
+        assertTrue("Expect exec-direct on brand generic connectionpool to produce a resultset", hasResultSet);
+    }
+
+    /**
+     * Test if configuring connectionpool with PostgreSQL brand works.
+     * 
+     * @throws Exception
+     *             for any exceptions during testing
+     */
+    @Test
+    public void testConnectionPool_PostgreSQL() throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(Database.POSTGRESQL.getPoolConfigurationCommand());
         workspace.command("sql:exec-direct \"SELECT 1\"");
         boolean hasResultSet = (Boolean) workspace.report("sql:resultset-available?");
         assertTrue("Expect exec-direct on brand generic connectionpool to produce a resultset", hasResultSet);

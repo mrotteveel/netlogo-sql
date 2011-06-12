@@ -40,9 +40,18 @@ import org.nlogo.nvm.EngineException;
  */
 public class CurrentDatabaseTest extends HeadlessTest {
 
+    private void currentDatabaseCheck(String connectCommand, String expectedDatabase) throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(connectCommand);
+
+        String currentDB = (String) workspace.report("sql:current-database");
+
+        assertEquals(expectedDatabase, currentDB);
+    }
+
     /**
      * Test if sql:current-database will return schema name used in the connect
-     * command.
+     * command to the default (MySQL).
      * <p>
      * Expected: returned schema name is equal to schema name used in connect.
      * </p>
@@ -56,12 +65,41 @@ public class CurrentDatabaseTest extends HeadlessTest {
      */
     @Test
     public void testCurrentDatabase_afterConnect() throws Exception {
-        workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        currentDatabaseCheck(getDefaultConnectCommand(), Database.MYSQL.getSchema());
+    }
 
-        String currentDB = (String) workspace.report("sql:current-database");
+    /**
+     * Test if sql:current-database will return schema name used in the connect
+     * command to PostgreSQL.
+     * <p>
+     * Expected: returned schema name is equal to schema name used in connect.
+     * </p>
+     * <p>
+     * Assumption: schema name used in test has same casing as schema name on
+     * database.
+     * </p>
+     * 
+     * @throws Exception
+     *             For any exceptions during testing
+     */
+    @Test
+    public void testCurrentDatabase_PostgreSQL() throws Exception {
+        currentDatabaseCheck(Database.POSTGRESQL.getConnectCommand(), Database.POSTGRESQL.getSchema());
+    }
 
-        assertEquals(Database.MYSQL.getSchema(), currentDB);
+    /**
+     * Test if sql:current-database returns the right database name on a brand
+     * generic connection.
+     * <p>
+     * Expected: returns <code>default</code> for a brand generic connection.
+     * </p>
+     * 
+     * @throws Exception
+     *             For any exceptions during testing
+     */
+    @Test
+    public void testCurrentDatabase_generic() throws Exception {
+        currentDatabaseCheck(getGenericConnectCommand(), Database.MYSQL.getSchema());
     }
 
     // TODO Use advanced junit features to check exception message
@@ -168,25 +206,4 @@ public class CurrentDatabaseTest extends HeadlessTest {
         boolean isConnected = (Boolean) workspace.report("sql:debug-is-connected?");
         assertFalse("Autodisconnect was expected", isConnected);
     }
-
-    /**
-     * Test if sql:current-database returns the right database name on a brand
-     * generic connection.
-     * <p>
-     * Expected: returns <code>default</code> for a brand generic connection.
-     * </p>
-     * 
-     * @throws Exception
-     *             For any exceptions during testing
-     */
-    @Test
-    public void testCurrentDatabase_generic() throws Exception {
-        workspace.open("init-sql.nlogo");
-        workspace.command(getGenericConnectCommand());
-
-        String currentDB = (String) workspace.report("sql:current-database");
-
-        assertEquals("Unexpected value for sql:current-database on generic connection", Database.MYSQL.getSchema(), currentDB);
-    }
-
 }
