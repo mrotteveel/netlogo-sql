@@ -37,8 +37,6 @@ public class ConnectionInformation {
 	public static final String SCHEMA_PROPERTY = ".db.schema";
 	public static final String USERNAME_PROPERTY = ".db.username";
 	public static final String PASSWORD_PROPERTY = ".db.password";
-	public static final String AUTODISCONNECT_PROPERTY = ".db.autodisconnect";
-	public static final String MAXCONNECTIONS_PROPERTY = ".db.maxconnections";
 	public static final String MYSQL_PREFIX = "mysql";
 	public static final String POSTGRESQL_PREFIX = "postgresql";
 

@@ -44,8 +44,14 @@ public class ConnectTest extends HeadlessTest {
 
     // TODO use JUnits advanced features to check exception messages
 
+    private void connectCheck(String connectCommand) throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(connectCommand);
+        assertTrue("Expected connection to be established", (Boolean) workspace.report("sql:is-connected?"));
+    }
+
     /**
-     * Test if the sql:connect command works for MySQL brandname (default).
+     * Test if the sql:connect command works for the default (MySQL brandname).
      * <p>
      * Expected: connection established.
      * </p>
@@ -55,9 +61,7 @@ public class ConnectTest extends HeadlessTest {
      */
     @Test
     public void testConnect_MySQL_default() throws Exception {
-        workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
-        assertTrue("Expected connection to be established", (Boolean) workspace.report("sql:is-connected?"));
+        connectCheck(getDefaultConnectCommand());
     }
 
     /**
@@ -71,13 +75,21 @@ public class ConnectTest extends HeadlessTest {
      */
     @Test
     public void testConnect_MySQL() throws Exception {
-        workspace.open("init-sql.nlogo");
-        Database db = Database.MYSQL;
-        String command = String
-                .format("sql:connect [[\"brand\" \"MySQL\"] [\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
-                        db.getHost(), db.getPort(), db.getUsername(), db.getPassword(), db.getSchema());
-        workspace.command(command);
-        assertTrue("Expected connection to be established", (Boolean) workspace.report("sql:is-connected?"));
+        connectCheck(Database.MYSQL.getConnectCommand());
+    }
+
+    /**
+     * Test if the sql:connect command works for PostgreSQL brandname.
+     * <p>
+     * Expected: connection established.
+     * </p>
+     * 
+     * @throws Exception
+     *             For any exceptions during testing
+     */
+    @Test
+    public void testConnect_PostgreSQL() throws Exception {
+        connectCheck(Database.POSTGRESQL.getConnectCommand());
     }
 
     /**
@@ -92,9 +104,7 @@ public class ConnectTest extends HeadlessTest {
      */
     @Test
     public void testConnect_generic() throws Exception {
-        workspace.open("init-sql.nlogo");
-        workspace.command(getGenericConnectCommand());
-        assertTrue("Expected connection to be established", (Boolean) workspace.report("sql:is-connected?"));
+        connectCheck(getGenericConnectCommand());
     }
 
     /**
@@ -213,7 +223,8 @@ public class ConnectTest extends HeadlessTest {
     @Test(expected = EngineException.class)
     public void testConnect_incorrectHost() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command("sql:connect [[\"host\" \"non-existent\"][\"port\" \"3306\"] [\"user\" \"test\"] [\"password\" \"test\"] [\"database\" \"test\"]]");
+        workspace
+                .command("sql:connect [[\"host\" \"non-existent\"][\"port\" \"3306\"] [\"user\" \"test\"] [\"password\" \"test\"] [\"database\" \"test\"]]");
     }
 
     /**
@@ -232,13 +243,14 @@ public class ConnectTest extends HeadlessTest {
     public void testConnect_defaultHost() throws Exception {
         workspace.open("init-sql.nlogo");
         Database db = Database.MYSQL;
-        workspace.command(String.format("sql:connect [[\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
+        workspace.command(String.format(
+                "sql:connect [[\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
                 db.getPort(), db.getUsername(), db.getPassword(), db.getSchema()));
         assertTrue("Expected connection to be established", (Boolean) workspace.report("sql:is-connected?"));
     }
 
     /**
-     * Test if not specifying the port will assume default port 3306.
+     * Test if not specifying the port will assume default port 3306 for MySQL.
      * <p>
      * Expected: connection to port 3306 is established.
      * </p>
@@ -253,7 +265,8 @@ public class ConnectTest extends HeadlessTest {
     public void testConnect_defaultPort() throws Exception {
         workspace.open("init-sql.nlogo");
         Database db = Database.MYSQL;
-        workspace.command(String.format("sql:connect [[\"host\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
+        workspace.command(String.format(
+                "sql:connect [[\"host\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
                 db.getHost(), db.getUsername(), db.getPassword(), db.getSchema()));
         assertTrue("Expected connection to be established", (Boolean) workspace.report("sql:is-connected?"));
     }
@@ -262,7 +275,8 @@ public class ConnectTest extends HeadlessTest {
      * Test if sql:connect does not modify the stored (default) configuration.
      * <p>
      * Expected: configuration details of explicit-connection are the same
-     * before and after call to sql:connect.
+     * before and after call to sql:connect (as this setting contains the
+     * defaults).
      * </p>
      */
     @Test
@@ -272,6 +286,7 @@ public class ConnectTest extends HeadlessTest {
         workspace.command(getGenericConnectCommand());
         LogoList configAfter = (LogoList) workspace.evaluateReporter("sql:get-configuration \"explicit-connection\"");
 
-        assertEquals("Expected (default) configuration of explicit-connection to be unchanged", configBefore, configAfter);
+        assertEquals("Expected (default) configuration of explicit-connection to be unchanged", configBefore,
+                configAfter);
     }
 }
