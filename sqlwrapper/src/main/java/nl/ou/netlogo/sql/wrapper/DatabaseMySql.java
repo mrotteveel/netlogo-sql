@@ -56,31 +56,6 @@ public class DatabaseMySql extends GenericDatabase {
     }
 
     @Override
-    public String getCurrentDatabase(SqlConnection sqlc) {
-        if (sqlc == null) {
-            return ("");
-        }
-
-        try {
-            String DBName = "";
-            SqlStatement statement = sqlc.createStatement("select database()");
-
-            if (statement.executeDirect()) {
-                // We have a result, process it.
-                SqlResultSet rs = sqlc.getResultSet();
-                LogoList result = rs.fetchRow();
-                DBName = (String) result.first();
-            }
-
-            return (DBName);
-        }
-        // TODO: more meaningful exception handling
-        catch (Exception ex) {
-            return "";
-        }
-    }
-
-    @Override
     public boolean findDatabase(SqlConnection sqlc, String schemaName) {
         if (sqlc != null) {
             try {
