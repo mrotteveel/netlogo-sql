@@ -127,6 +127,48 @@ public class FindDatabaseTest extends HeadlessTest {
         workspace.open("init-sql.nlogo");
         workspace.report("sql:find-database \"" + Database.MYSQL.getSchema() + "\"");
     }
+    
+    /**
+     * Test if sql:find-database returns <code>false</code> if used on a PostgreSQL
+     * connection for a schema known to exist
+     * <p>
+     * Expected: sql:find-database on generic database returns
+     * <code>false</code> always
+     * </p>
+     * 
+     * @throws Exception
+     *             For any exceptions during testing
+     */
+    @Test
+    public void testFindDatabase_PostgreSQL_existingSchema() throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(Database.POSTGRESQL.getConnectCommand());
+        
+        Boolean dbFound = (Boolean) workspace.report("sql:find-database \"" + Database.POSTGRESQL.getSchema() + "\"");
+        
+        assertFalse("sql:find-database on a PostgreSQL connection should return false", dbFound);
+    }
+
+    /**
+     * Test if sql:find-database return false if used on a PostgreSQL
+     * connection for a schema that is know to not exist.
+     * <p>
+     * Expected: sql:find-database on generic database returns
+     * <code>false</code> always
+     * </p>
+     * 
+     * @throws Exception
+     *             For any exceptions during testing
+     */
+    @Test
+    public void testFindDatabase_PostgreSQL_notExists() throws Exception {
+        workspace.open("init-sql.nlogo");
+        workspace.command(Database.POSTGRESQL.getConnectCommand());
+
+        Boolean dbFound = (Boolean) workspace.report("sql:find-database \"DOESNOTEXIST\"");
+
+        assertFalse("sql:find-database on a generic connection should return false", dbFound);
+    }
 
     /**
      * Test if sql:find-database returns <code>false</code> if used on a brand
@@ -143,7 +185,9 @@ public class FindDatabaseTest extends HeadlessTest {
     public void testFindDatabase_generic_existingSchema() throws Exception {
         workspace.open("init-sql.nlogo");
         workspace.command(getGenericConnectCommand());
+        
         Boolean dbFound = (Boolean) workspace.report("sql:find-database \"" + Database.MYSQL.getSchema() + "\"");
+        
         assertFalse("sql:find-database on a generic connection should return false", dbFound);
     }
 
