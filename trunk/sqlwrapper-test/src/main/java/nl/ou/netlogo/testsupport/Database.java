@@ -1,5 +1,7 @@
 package nl.ou.netlogo.testsupport;
 
+import org.apache.commons.lang.StringUtils;
+
 public enum Database {
     MYSQL(ConnectionInformation.MYSQL_PREFIX) {
         @Override
@@ -10,6 +12,12 @@ public enum Database {
         @Override
         public String getJdbcUrl() {
             return String.format("jdbc:mysql://%s:%s/%s", getHost(), getPort(), getSchema());
+        }
+        
+        @Override
+        public String charValue(String value, int fieldLength) {
+            // MySQL returns CHAR unpadded, contrary to SQL standards
+            return value;
         }
     },
     POSTGRESQL(ConnectionInformation.POSTGRESQL_PREFIX){
@@ -97,7 +105,23 @@ public enum Database {
      * @return the full sql:configure "defaultconnection" command
      */
     public String getPoolConfigurationCommand(boolean autodisconnect) {
-        return String.format("sql:configure \"defaultconnection\" [[\"brand\" \"%s\"] [\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"]]",
+        return String.format("sql:configure \"defaultconnection\" [[\"brand\" \"%s\"] [\"host\" \"%s\"] [\"port\" \"%s\"] [\"user\" \"%s\"] [\"password\" \"%s\"] [\"database\" \"%s\"] [\"autodisconnect\" \"%s\"]]",
                         getBrand(), getHost(), getPort(), getUsername(), getPassword(), getSchema(), autodisconnect ? "on" : "off");
+    }
+    
+    /**
+     * Returns value as the database would retrieve for a CHAR field.
+     * <p>
+     * Rationale: SQL standards dictates that CHAR fields should be right padded with spaces,
+     * unfortunately not all databases (read: MySQL) behave correctly. This method can be used to get the
+     * right value for comparison tests.
+     * </p>
+     * 
+     * @param value Value
+     * @param fieldLength Length of the CHAR field
+     * @return Value as it would be returned from the database
+     */
+    public String charValue(String value, int fieldLength) {
+        return StringUtils.rightPad(value, fieldLength);
     }
 }

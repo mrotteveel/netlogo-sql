@@ -20,28 +20,30 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultConnectCommand;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.nlogo.api.LogoList;
 
+import nl.ou.netlogo.testsupport.Database;
 import nl.ou.netlogo.testsupport.DatabaseHelper;
 import nl.ou.netlogo.testsupport.HeadlessTest;
 
 /**
- * Tests for the sql:fetch-resultset reporter.
+ * Tests for the sql:fetch-resultset reporter for all {@link Database} values.
  * <p>
  * Because of the structure of the tests some parts of sql:fetch-resultset are
  * tested in {@link ExecDirectTest} and {@link ExecQueryTest}.
@@ -49,39 +51,54 @@ import nl.ou.netlogo.testsupport.HeadlessTest;
  * 
  * @author Mark Rotteveel
  */
+@RunWith(Parameterized.class)
 public class FetchResultSetTest extends HeadlessTest {
 
     private static final String TABLE_PREFIX = "TEST";
-    protected static String tableName;
+    protected String tableName;
 
-    @BeforeClass
-    public static void createTable() throws ClassNotFoundException {
+    private Database db;
+
+    public FetchResultSetTest(Database db) {
+        this.db = db;
+    }
+
+    @Parameterized.Parameters
+    public static Collection<Object[]> getParameters() {
+        List<Object[]> parameters = new ArrayList<Object[]>();
+
+        for (Database db : Database.values()) {
+            parameters.add(new Object[] { db });
+        }
+
+        return parameters;
+    }
+
+    @Before
+    public void createTable() throws ClassNotFoundException {
         tableName = TABLE_PREFIX + Calendar.getInstance().getTimeInMillis();
 
         try {
-            DatabaseHelper.executeUpdate("CREATE TABLE " + tableName + "( "
+            DatabaseHelper.executeUpdate(db, "CREATE TABLE " + tableName + "( "
             		+ "ID INTEGER PRIMARY KEY, "
                     + "CHAR_FIELD CHAR(25), "
                     + "INT_FIELD INTEGER, "
                     + "VARCHAR_FIELD VARCHAR(200) "
                     + ")");
         } catch (SQLException e) {
-            throw new IllegalStateException("Unable to setup database", e);
+            throw new IllegalStateException(msg("Unable to setup database"), e);
         }
-    }
-
-    @Before
-    public void setupData() {
         String query = "INSERT INTO " + tableName + "(ID, CHAR_FIELD, INT_FIELD, VARCHAR_FIELD) VALUES (%d, '%s', %d, '%s')";
         try {
             DatabaseHelper.executeUpdate(
+            		db, 
             		String.format(query, 1, "CHAR-content", 1234, "VARCHAR-content"),
                     String.format(query, 2, "CHAR-content", 1234, "VARCHAR-content"),
                     String.format(query, 3, "CHAR-content", 1234, "VARCHAR-content"),
                     String.format(query, 4, "CHAR-content", 1234, "VARCHAR-content")
             );
         } catch (SQLException e) {
-            throw new IllegalStateException("Unable to setup data", e);
+            throw new IllegalStateException(msg("Unable to setup data"), e);
         }
     }
 
@@ -98,15 +115,15 @@ public class FetchResultSetTest extends HeadlessTest {
     @Test
     public void testFetchResultSet() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 
         LogoList rows = (LogoList) workspace.report("sql:fetch-resultset");
-        assertEquals("Unexpected resultset size", 4, rows.size());
+        assertEquals(msg("Unexpected resultset size"), 4, rows.size());
         for (int i = 1; i <= 4; i++) {
             LogoList row = (LogoList) rows.get(i - 1);
             assertEquals(Double.valueOf(i), row.get(0));
-            assertEquals("CHAR-content", row.get(1));
+            assertEquals(db.charValue("CHAR-content", 25), row.get(1));
             assertEquals(Double.valueOf(1234), row.get(2));
             assertEquals("VARCHAR-content", row.get(3));
         }
@@ -124,11 +141,11 @@ public class FetchResultSetTest extends HeadlessTest {
     @Test
     public void testFetchResultSet_emptyResult() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " WHERE 1 = 0\"");
 
         LogoList rows = (LogoList) workspace.report("sql:fetch-resultset");
-        assertEquals("Expected empty list for empty resultset", 0, rows.size());
+        assertEquals(msg("Expected empty list for empty resultset"), 0, rows.size());
     }
 
     /**
@@ -144,13 +161,13 @@ public class FetchResultSetTest extends HeadlessTest {
     @Test
     public void testFetchResultset_connect_noAutodisconnect() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 
         workspace.report("sql:fetch-resultset");
 
         boolean isConnected = (Boolean) workspace.report("sql:debug-is-connected?");
-        assertTrue("Should stay connected after fetch-resultset", isConnected);
+        assertTrue(msg("Should stay connected after fetch-resultset"), isConnected);
     }
 
     /**
@@ -166,13 +183,13 @@ public class FetchResultSetTest extends HeadlessTest {
     @Test
     public void testFetchResultset_connectionPool_noAutodisconnect() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultPoolConfigurationCommand(false));
+        workspace.command(db.getPoolConfigurationCommand(false));
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 
         workspace.report("sql:fetch-resultset");
 
         boolean isConnected = (Boolean) workspace.report("sql:debug-is-connected?");
-        assertTrue("Should stay connected after fetch-resultset", isConnected);
+        assertTrue(msg("Should stay connected after fetch-resultset"), isConnected);
     }
 
     /**
@@ -188,16 +205,16 @@ public class FetchResultSetTest extends HeadlessTest {
     @Test
     public void testFetchResultset_connectionPool_autodisconnect() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultPoolConfigurationCommand());
+        workspace.command(db.getPoolConfigurationCommand());
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 
         boolean isConnected = (Boolean) workspace.report("sql:debug-is-connected?");
-        assertTrue("Should stay connected after select", isConnected);
+        assertTrue(msg("Should stay connected after select"), isConnected);
 
         workspace.report("sql:fetch-resultset");
 
         isConnected = (Boolean) workspace.report("sql:debug-is-connected?");
-        assertFalse("Should be auto-disconnected after fetch-resultset", isConnected);
+        assertFalse(msg("Should be auto-disconnected after fetch-resultset"), isConnected);
     }
 
     /**
@@ -216,8 +233,8 @@ public class FetchResultSetTest extends HeadlessTest {
 
         Object resultset = workspace.report("sql:fetch-resultset");
 
-        assertTrue("Expected resultset of type LogoList", resultset instanceof LogoList);
-        assertEquals("Expected emptylist as a result", Collections.EMPTY_LIST, resultset);
+        assertTrue(msg("Expected resultset of type LogoList"), resultset instanceof LogoList);
+        assertEquals(msg("Expected emptylist as a result"), Collections.EMPTY_LIST, resultset);
     }
 
     /**
@@ -233,12 +250,12 @@ public class FetchResultSetTest extends HeadlessTest {
     @Test
     public void testFetchResultSet_connect_noStatement() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
 
         Object resultset = workspace.report("sql:fetch-resultset");
 
-        assertTrue("Expected resultset of type LogoList", resultset instanceof LogoList);
-        assertEquals("Expected emptylist as a result", Collections.EMPTY_LIST, resultset);
+        assertTrue(msg("Expected resultset of type LogoList"), resultset instanceof LogoList);
+        assertEquals(msg("Expected emptylist as a result"), Collections.EMPTY_LIST, resultset);
     }
 
     /**
@@ -254,12 +271,12 @@ public class FetchResultSetTest extends HeadlessTest {
     @Test
     public void testFetchResultSet_connectionpool_noStatement() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultPoolConfigurationCommand());
+        workspace.command(db.getPoolConfigurationCommand());
 
         Object resultset = workspace.report("sql:fetch-resultset");
 
-        assertTrue("Expected resultset of type LogoList", resultset instanceof LogoList);
-        assertEquals("Expected emptylist as a result", Collections.EMPTY_LIST, resultset);
+        assertTrue(msg("Expected resultset of type LogoList"), resultset instanceof LogoList);
+        assertEquals(msg("Expected emptylist as a result"), Collections.EMPTY_LIST, resultset);
     }
 
     /**
@@ -275,13 +292,13 @@ public class FetchResultSetTest extends HeadlessTest {
     @Test
     public void testFetchResultSet_updateQuery() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
         workspace.command("sql:exec-direct \"UPDATE " + tableName + "  SET INT_FIELD = 5\"");
 
         Object resultset = workspace.report("sql:fetch-resultset");
 
-        assertTrue("Expected resultset of type LogoList", resultset instanceof LogoList);
-        assertEquals("Expected emptylist as a result", Collections.EMPTY_LIST, resultset);
+        assertTrue(msg("Expected resultset of type LogoList"), resultset instanceof LogoList);
+        assertEquals(msg("Expected emptylist as a result"), Collections.EMPTY_LIST, resultset);
     }
 
     /**
@@ -302,13 +319,13 @@ public class FetchResultSetTest extends HeadlessTest {
     @Test
     public void testFetchResultSet_afterFetchRow() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
         workspace.report("sql:fetch-row");
 
         LogoList rows = (LogoList) workspace.report("sql:fetch-resultset");
 
-        assertEquals("Expected emptylist as a result", Collections.EMPTY_LIST, rows);
+        assertEquals(msg("Expected emptylist as a result"), Collections.EMPTY_LIST, rows);
     }
 
     /**
@@ -324,32 +341,28 @@ public class FetchResultSetTest extends HeadlessTest {
     @Test
     public void testFetchResultSet_secondCall() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
         workspace.report("sql:fetch-resultset");
 
         LogoList rows = (LogoList) workspace.report("sql:fetch-resultset");
 
-        assertEquals("Expected emptylist as a result", Collections.EMPTY_LIST, rows);
+        assertEquals(msg("Expected emptylist as a result"), Collections.EMPTY_LIST, rows);
     }
 
     // TODO cover more datatypes
 
     @After
-    public void teardownData() {
+    public void dropTable() {
         try {
-            DatabaseHelper.executeUpdate("TRUNCATE TABLE " + tableName);
+            DatabaseHelper.executeUpdate(db, "DROP TABLE " + tableName);
         } catch (SQLException e) {
-            throw new IllegalStateException("Unable to delete data", e);
+            throw new IllegalStateException(msg("Unable to drop table " + tableName), e);
         }
     }
 
-    @AfterClass
-    public static void dropTable() {
-        try {
-            DatabaseHelper.executeUpdate("DROP TABLE " + tableName);
-        } catch (SQLException e) {
-            throw new IllegalStateException("Unable to drop table " + tableName, e);
-        }
+    private String msg(String message) {
+        return message + " (" + db.name() + ")";
     }
+
 }

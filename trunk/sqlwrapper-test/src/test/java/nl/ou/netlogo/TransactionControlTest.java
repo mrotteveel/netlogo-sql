@@ -20,61 +20,78 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultConnectCommand;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.nlogo.api.LogoList;
 import org.nlogo.nvm.EngineException;
 
+import nl.ou.netlogo.testsupport.Database;
 import nl.ou.netlogo.testsupport.DatabaseHelper;
 import nl.ou.netlogo.testsupport.HeadlessTest;
 
 /**
  * Tests for transaction control statements: sql:start-transaction,
- * sql:commit-transaction, sql:rollback-transaction.
+ * sql:commit-transaction, sql:rollback-transaction for all {@link Database}
+ * values.
  * 
  * @author Mark
  */
+@RunWith(Parameterized.class)
 public class TransactionControlTest extends HeadlessTest {
 
     private static final String TABLE_PREFIX = "TEST";
-    protected static String tableName;
+    protected String tableName;
 
-    @BeforeClass
-    public static void createTable() throws ClassNotFoundException {
-        tableName = TABLE_PREFIX + Calendar.getInstance().getTimeInMillis();
+    private Database db;
 
-        try {
-            DatabaseHelper.executeUpdate("CREATE TABLE " + tableName + "( "
-            		+ "ID INTEGER PRIMARY KEY, "
-                    + "CHAR_FIELD CHAR(25), "
-                    + "INT_FIELD INTEGER, "
-                    + "VARCHAR_FIELD VARCHAR(200) "
-                    + ") engine = InnoDB");
-        } catch (SQLException e) {
-            throw new IllegalStateException("Unable to setup database", e);
+    public TransactionControlTest(Database db) {
+        this.db = db;
+    }
+
+    @Parameterized.Parameters
+    public static Collection<Object[]> getParameters() {
+        List<Object[]> parameters = new ArrayList<Object[]>();
+
+        for (Database db : Database.values()) {
+            parameters.add(new Object[] { db });
         }
+
+        return parameters;
     }
 
     @Before
-    public void setupData() {
+    public void createTable() throws ClassNotFoundException {
+        tableName = TABLE_PREFIX + Calendar.getInstance().getTimeInMillis();
+
+        try {
+            DatabaseHelper.executeUpdate(db, "CREATE TABLE " + tableName + "( "
+            		+ "ID INTEGER PRIMARY KEY, "
+            		+ "CHAR_FIELD CHAR(25), "
+                    + "INT_FIELD INTEGER, "
+                    + "VARCHAR_FIELD VARCHAR(200) "
+                    + ")"
+                    + (db.equals(Database.MYSQL) ? " engine = InnoDB" : ""));
+        } catch (SQLException e) {
+            throw new IllegalStateException(msg("Unable to setup database"), e);
+        }
         String query = "INSERT INTO " + tableName + "(ID, CHAR_FIELD, INT_FIELD, VARCHAR_FIELD) VALUES (%d, '%s', %d, '%s')";
         try {
-            DatabaseHelper.executeUpdate(String.format(query, 1, "CHAR-content", 1234, "VARCHAR-content"));
+            DatabaseHelper.executeUpdate(db, String.format(query, 1, "CHAR-content", 1234, "VARCHAR-content"));
         } catch (SQLException e) {
-            throw new IllegalStateException("Unable to setup data", e);
+            throw new IllegalStateException(msg("Unable to setup data"), e);
         }
     }
 
@@ -90,14 +107,14 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_StartTransaction_isolated() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
         boolean isAutoCommit = (Boolean) workspace.report("sql:autocommit-enabled?");
-        assertTrue("AutoCommit should be true before sql:start-transaction", isAutoCommit);
+        assertTrue(msg("AutoCommit should be true before sql:start-transaction"), isAutoCommit);
 
         workspace.command("sql:start-transaction");
 
         isAutoCommit = (Boolean) workspace.report("sql:autocommit-enabled?");
-        assertFalse("AutoCommit should be false after sql:start-transaction", isAutoCommit);
+        assertFalse(msg("AutoCommit should be false after sql:start-transaction"), isAutoCommit);
     }
 
     /**
@@ -113,15 +130,15 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_CommitTransaction() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
 
         workspace.command("sql:start-transaction");
-        workspace.command("sql:exec-update \"INSERT INTO " + tableName + "(ID, CHAR_FIELD, INT_FIELD, VARCHAR_FIELD) VALUES (?, ?, ?, ?)\"" +
+        workspace.command("sql:exec-update \"INSERT INTO " + tableName + "(ID, CHAR_FIELD, INT_FIELD, VARCHAR_FIELD) VALUES (?, ?, ?, ?)\"" + 
         		" [2 \"text\" 567 \"text\"]");
         workspace.command("sql:commit-transaction");
 
-        List<String> row = DatabaseHelper.executeSingletonQuery("SELECT COUNT(*) FROM " + tableName);
-        assertEquals("Unexpected rowcount", "2", row.get(0));
+        List<String> row = DatabaseHelper.executeSingletonQuery(db, "SELECT COUNT(*) FROM " + tableName);
+        assertEquals(msg("Unexpected rowcount"), "2", row.get(0));
     }
 
     /**
@@ -137,15 +154,15 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_RollbackTransaction() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
 
         workspace.command("sql:start-transaction");
-        workspace.command("sql:exec-update \"INSERT INTO " + tableName + "(ID, CHAR_FIELD, INT_FIELD, VARCHAR_FIELD) VALUES (?, ?, ?, ?)\"" +
+        workspace.command("sql:exec-update \"INSERT INTO " + tableName + "(ID, CHAR_FIELD, INT_FIELD, VARCHAR_FIELD) VALUES (?, ?, ?, ?)\"" + 
         		" [2 \"text\" 567 \"text\"]");
         workspace.command("sql:rollback-transaction");
 
-        List<String> row = DatabaseHelper.executeSingletonQuery("SELECT COUNT(*) FROM " + tableName);
-        assertEquals("Unexpected rowcount", "1", row.get(0));
+        List<String> row = DatabaseHelper.executeSingletonQuery(db, "SELECT COUNT(*) FROM " + tableName);
+        assertEquals(msg("Unexpected rowcount"), "1", row.get(0));
     }
 
     /**
@@ -161,16 +178,16 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_TransactionVisibility_external() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-update \"UPDATE " + tableName + " SET CHAR_FIELD = ? WHERE ID = ?\" [\"text\" 1]");
-        List<String> row = DatabaseHelper.executeSingletonQuery("SELECT CHAR_FIELD FROM " + tableName + " WHERE ID = 1");
-        assertEquals("Unexpected field value before commit", "CHAR-content", row.get(0));
+        List<String> row = DatabaseHelper.executeSingletonQuery(db, "SELECT CHAR_FIELD FROM " + tableName + " WHERE ID = 1");
+        assertEquals(msg("Unexpected field value before commit"), db.charValue("CHAR-content", 25), row.get(0));
         workspace.command("sql:commit-transaction");
 
-        row = DatabaseHelper.executeSingletonQuery("SELECT CHAR_FIELD FROM " + tableName + " WHERE ID = 1");
-        assertEquals("Unexpected field value after commit", "text", row.get(0));
+        row = DatabaseHelper.executeSingletonQuery(db, "SELECT CHAR_FIELD FROM " + tableName + " WHERE ID = 1");
+        assertEquals(msg("Unexpected field value after commit"), db.charValue("text", 25), row.get(0));
     }
 
     /**
@@ -186,18 +203,18 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_TransactionVisibility_internal() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-update \"UPDATE " + tableName + " SET CHAR_FIELD = ? WHERE ID = ?\" [\"text\" 1]");
         workspace.command("sql:exec-query \"SELECT CHAR_FIELD FROM " + tableName + " WHERE ID = ?\" [1]");
         LogoList row = (LogoList) workspace.report("sql:fetch-row");
-        assertEquals("Unexpected field value before commit", "text", row.get(0));
+        assertEquals(msg("Unexpected field value before commit"), db.charValue("text", 25), row.get(0));
         workspace.command("sql:rollback-transaction");
 
         workspace.command("sql:exec-query \"SELECT CHAR_FIELD FROM " + tableName + " WHERE ID = ?\" [1]");
         row = (LogoList) workspace.report("sql:fetch-row");
-        assertEquals("Unexpected field value after commit", "CHAR-content", row.get(0));
+        assertEquals(msg("Unexpected field value after commit"), db.charValue("CHAR-content", 25), row.get(0));
     }
 
     /**
@@ -213,15 +230,15 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_NoStartTransaction_autocommitOff() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
 
         workspace.command("sql:autocommit-off");
-        workspace.command("sql:exec-update \"INSERT INTO " + tableName + "(ID, CHAR_FIELD, INT_FIELD, VARCHAR_FIELD) VALUES (?, ?, ?, ?)\"" +
+        workspace.command("sql:exec-update \"INSERT INTO " + tableName + "(ID, CHAR_FIELD, INT_FIELD, VARCHAR_FIELD) VALUES (?, ?, ?, ?)\"" + 
         		" [2 \"text\" 567 \"text\"]");
         workspace.command("sql:rollback-transaction");
 
-        List<String> row = DatabaseHelper.executeSingletonQuery("SELECT COUNT(*) FROM " + tableName);
-        assertEquals("Unexpected rowcount", "1", row.get(0));
+        List<String> row = DatabaseHelper.executeSingletonQuery(db, "SELECT COUNT(*) FROM " + tableName);
+        assertEquals(msg("Unexpected rowcount"), "1", row.get(0));
     }
 
     /**
@@ -239,7 +256,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test(expected = EngineException.class)
     public void test_NoStartTransaction_commit_autocommitOn() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
 
         workspace.command("sql:commit-transaction");
     }
@@ -259,7 +276,7 @@ public class TransactionControlTest extends HeadlessTest {
     @Test(expected = EngineException.class)
     public void test_NoStartTransaction_rollback_autocommitOn() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
 
         workspace.command("sql:rollback-transaction");
     }
@@ -277,14 +294,14 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_Autodisconnect_inTransaction_fetchRow() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultPoolConfigurationCommand(true));
+        workspace.command(db.getPoolConfigurationCommand(true));
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " LIMIT 1\"");
 
         workspace.report("sql:fetch-row");
 
-        assertTrue("Last fetch-row should not autodisconnect while in transaction", (Boolean) workspace.report("sql:debug-is-connected?"));
+        assertTrue(msg("Last fetch-row should not autodisconnect while in transaction"), (Boolean) workspace.report("sql:debug-is-connected?"));
     }
 
     /**
@@ -300,14 +317,14 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_Autodisconnect_inTransaction_fetchResultset() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultPoolConfigurationCommand(true));
+        workspace.command(db.getPoolConfigurationCommand(true));
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " LIMIT 1\"");
 
         workspace.report("sql:fetch-resultset");
 
-        assertTrue("Last fetch-resultset should not autodisconnect while in transaction", (Boolean) workspace.report("sql:debug-is-connected?"));
+        assertTrue(msg("Last fetch-resultset should not autodisconnect while in transaction"), (Boolean) workspace.report("sql:debug-is-connected?"));
     }
 
     /**
@@ -324,12 +341,12 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_Autodisconnect_inTransaction_update() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultPoolConfigurationCommand(true));
+        workspace.command(db.getPoolConfigurationCommand(true));
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-direct \"DELETE FROM " + tableName + "\"");
 
-        assertTrue("Update statements should not autodisconnect while in transaction", (Boolean) workspace.report("sql:debug-is-connected?"));
+        assertTrue(msg("Update statements should not autodisconnect while in transaction"), (Boolean) workspace.report("sql:debug-is-connected?"));
     }
 
     /**
@@ -345,14 +362,14 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_Autodisconnect_commit() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultPoolConfigurationCommand(true));
+        workspace.command(db.getPoolConfigurationCommand(true));
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-direct \"DELETE FROM " + tableName + "\"");
 
-        assertTrue("Update statements should not autodisconnect while in transaction", (Boolean) workspace.report("sql:debug-is-connected?"));
+        assertTrue(msg("Update statements should not autodisconnect while in transaction"), (Boolean) workspace.report("sql:debug-is-connected?"));
         workspace.command("sql:commit-transaction");
-        assertFalse("sql:commit-transaction should autodisconnect", (Boolean) workspace.report("sql:debug-is-connected?"));
+        assertFalse(msg("sql:commit-transaction should autodisconnect"), (Boolean) workspace.report("sql:debug-is-connected?"));
     }
 
     /**
@@ -368,14 +385,14 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_Autodisconnect_rollback() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultPoolConfigurationCommand(true));
+        workspace.command(db.getPoolConfigurationCommand(true));
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-direct \"DELETE FROM " + tableName + "\"");
 
-        assertTrue("Update statements should not autodisconnect while in transaction", (Boolean) workspace.report("sql:debug-is-connected?"));
+        assertTrue(msg("Update statements should not autodisconnect while in transaction"), (Boolean) workspace.report("sql:debug-is-connected?"));
         workspace.command("sql:rollback-transaction");
-        assertFalse("sql:rollback-transaction should autodisconnect", (Boolean) workspace.report("sql:debug-is-connected?"));
+        assertFalse(msg("sql:rollback-transaction should autodisconnect"), (Boolean) workspace.report("sql:debug-is-connected?"));
     }
 
     /**
@@ -391,37 +408,32 @@ public class TransactionControlTest extends HeadlessTest {
     @Test
     public void test_Autodisconnect_autocommitOn() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultPoolConfigurationCommand(true));
+        workspace.command(db.getPoolConfigurationCommand(true));
 
         workspace.command("sql:start-transaction");
         workspace.command("sql:exec-direct \"DELETE FROM " + tableName + "\"");
 
-        assertTrue("Update statements should not autodisconnect while in transaction", (Boolean) workspace.report("sql:debug-is-connected?"));
+        assertTrue(msg("Update statements should not autodisconnect while in transaction"), (Boolean) workspace.report("sql:debug-is-connected?"));
         workspace.command("sql:autocommit-on");
-        assertFalse("sql:autocommit-on should autodisconnect", (Boolean) workspace.report("sql:debug-is-connected?"));
+        assertFalse(msg("sql:autocommit-on should autodisconnect"), (Boolean) workspace.report("sql:debug-is-connected?"));
     }
 
     @After
-    public void teardownData() {
+    public void dropTable() {
         try {
             workspace.command("sql:rollback-transaction");
         } catch (Exception ex) {
             // ignore, just ensuring no transaction is running
         }
         try {
-            DatabaseHelper.executeUpdate("TRUNCATE TABLE " + tableName);
+            DatabaseHelper.executeUpdate(db, "DROP TABLE " + tableName);
         } catch (SQLException e) {
-            throw new IllegalStateException("Unable to delete data", e);
+            throw new IllegalStateException(msg("Unable to drop table " + tableName), e);
         }
     }
 
-    @AfterClass
-    public static void dropTable() {
-        try {
-            DatabaseHelper.executeUpdate(new String[] { "DROP TABLE " + tableName });
-        } catch (SQLException e) {
-            throw new IllegalStateException("Unable to drop table " + tableName, e);
-        }
+    private String msg(String message) {
+        return message + " (" + db.name() + ")";
     }
 
 }
