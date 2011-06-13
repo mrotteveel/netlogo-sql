@@ -20,65 +20,82 @@
  */
 package nl.ou.netlogo;
 
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultPoolConfigurationCommand;
-import static nl.ou.netlogo.testsupport.DatabaseHelper.getDefaultConnectCommand;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
+import nl.ou.netlogo.testsupport.Database;
 import nl.ou.netlogo.testsupport.DatabaseHelper;
 import nl.ou.netlogo.testsupport.HeadlessTest;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.nlogo.api.LogoList;
 
 /**
- * Tests for the sql:fetch-row reporter.
+ * Tests for the sql:fetch-row reporter for all {@link Database} values.
  * 
  * @author Mark Rotteveel
  */
+@RunWith(Parameterized.class)
 public class FetchRowTest extends HeadlessTest {
 
     private static final String TABLE_PREFIX = "TEST";
-    protected static String tableName;
+    protected String tableName;
+    
+    private Database db;
+    
+    public FetchRowTest(Database db) {
+        this.db = db;
+    }
+    
+    @Parameterized.Parameters
+    public static Collection<Object[]> getParameters() {
+        List<Object[]> parameters = new ArrayList<Object[]>();
 
-    @BeforeClass
-    public static void createTable() throws ClassNotFoundException {
+        for (Database db : Database.values()) {
+            parameters.add(new Object[] { db });
+        }
+
+        return parameters;
+    }
+
+    @Before
+    public void createTable() throws ClassNotFoundException {
         tableName = TABLE_PREFIX + Calendar.getInstance().getTimeInMillis();
 
         try {
-            DatabaseHelper.executeUpdate("CREATE TABLE " + tableName + "( "
+            DatabaseHelper.executeUpdate(db, "CREATE TABLE " + tableName + "( "
             		+ "ID INTEGER PRIMARY KEY, "
                     + "CHAR_FIELD CHAR(25), "
                     + "INT_FIELD INTEGER, "
                     + "VARCHAR_FIELD VARCHAR(200) "
                     + ")");
         } catch (SQLException e) {
-            throw new IllegalStateException("Unable to setup database", e);
+            throw new IllegalStateException(msg("Unable to setup database"), e);
         }
-    }
-
-    @Before
-    public void setupData() {
         String query = "INSERT INTO " + tableName + "(ID, CHAR_FIELD, INT_FIELD, VARCHAR_FIELD) VALUES (%d, '%s', %d, '%s')";
         try {
             DatabaseHelper.executeUpdate(
-            		String.format(query, 1, "CHAR-content", 1234, "VARCHAR-content"),
+                    db,
+                    String.format(query, 1, "CHAR-content", 1234, "VARCHAR-content"),
                     String.format(query, 2, "CHAR-content", 1234, "VARCHAR-content"),
                     String.format(query, 3, "CHAR-content", 1234, "VARCHAR-content"),
                     String.format(query, 4, "CHAR-content", 1234, "VARCHAR-content")
             );
         } catch (SQLException e) {
-            throw new IllegalStateException("Unable to setup data", e);
+            throw new IllegalStateException(msg("Unable to setup data"), e);
         }
     }
 
@@ -95,24 +112,24 @@ public class FetchRowTest extends HeadlessTest {
     @Test
     public void testFetchRow() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 
         boolean isConnected = (Boolean) workspace.report("sql:debug-is-connected?");
-        assertTrue("Should stay connected after select", isConnected);
+        assertTrue(msg("Should stay connected after select"), isConnected);
 
         for (int i = 1; i <= 4; i++) {
             LogoList row = (LogoList) workspace.report("sql:fetch-row");
-            assertNotNull("sql:fetch-row should have returned a row", row);
-            assertEquals("Unexpected number of values in row", 4, row.size());
+            assertNotNull(msg("sql:fetch-row should have returned a row"), row);
+            assertEquals(msg("Unexpected number of values in row"), 4, row.size());
             assertEquals(Double.valueOf(i), row.get(0));
-            assertEquals("CHAR-content", row.get(1));
+            assertEquals(db.charValue("CHAR-content", 25), row.get(1));
             assertEquals(Double.valueOf(1234), row.get(2));
             assertEquals("VARCHAR-content", row.get(3));
         }
         LogoList row = (LogoList) workspace.report("sql:fetch-row");
-        assertNotNull("sql:fetch-row should have returned a row", row);
-        assertEquals("Expected fetch after last row to return empty result", 0, row.size());
+        assertNotNull(msg("sql:fetch-row should have returned a row"), row);
+        assertEquals(msg("Expected fetch after last row to return empty result"), 0, row.size());
     }
 
     /**
@@ -127,12 +144,12 @@ public class FetchRowTest extends HeadlessTest {
     @Test
     public void testFetchRow_emptyResult() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " WHERE 1 = 0\"");
 
         LogoList row = (LogoList) workspace.report("sql:fetch-row");
-        assertNotNull("sql:fetch-row should have returned a row", row);
-        assertEquals("Expected fetch of empty resultset to return empty result", 0, row.size());
+        assertNotNull(msg("sql:fetch-row should have returned a row"), row);
+        assertEquals(msg("Expected fetch of empty resultset to return empty result"), 0, row.size());
     }
 
     /**
@@ -148,19 +165,19 @@ public class FetchRowTest extends HeadlessTest {
     @Test
     public void testFetchRow_connect_noAutodisconnect() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 
         boolean isConnected = (Boolean) workspace.report("sql:debug-is-connected?");
-        assertTrue("Should stay connected after select", isConnected);
+        assertTrue(msg("Should stay connected after select"), isConnected);
 
         for (int i = 1; i <= 4; i++) {
             LogoList row = (LogoList) workspace.report("sql:fetch-row");
-            assertNotNull("sql:fetch-row should have returned a row", row);
-            assertEquals("Unexpected number of values in row", 4, row.size());
+            assertNotNull(msg("sql:fetch-row should have returned a row"), row);
+            assertEquals(msg("Unexpected number of values in row"), 4, row.size());
 
             isConnected = (Boolean) workspace.report("sql:debug-is-connected?");
-            assertTrue("Should stay connected after each fetch-row", isConnected);
+            assertTrue(msg("Should stay connected after each fetch-row"), isConnected);
         }
     }
 
@@ -177,19 +194,19 @@ public class FetchRowTest extends HeadlessTest {
     @Test
     public void testFetchRow_connectionPool_noAutodisconnect() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultPoolConfigurationCommand(false));
+        workspace.command(db.getPoolConfigurationCommand(false));
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 
         boolean isConnected = (Boolean) workspace.report("sql:debug-is-connected?");
-        assertTrue("Should stay connected after select", isConnected);
+        assertTrue(msg("Should stay connected after select"), isConnected);
 
         for (int i = 1; i <= 4; i++) {
             LogoList row = (LogoList) workspace.report("sql:fetch-row");
-            assertNotNull("sql:fetch-row should have returned a row", row);
-            assertEquals("Unexpected number of values in row", 4, row.size());
+            assertNotNull(msg("sql:fetch-row should have returned a row"), row);
+            assertEquals(msg("Unexpected number of values in row"), 4, row.size());
 
             isConnected = (Boolean) workspace.report("sql:debug-is-connected?");
-            assertTrue("Should stay connected after each fetch-row", isConnected);
+            assertTrue(msg("Should stay connected after each fetch-row"), isConnected);
         }
     }
 
@@ -207,27 +224,27 @@ public class FetchRowTest extends HeadlessTest {
     @Test
     public void testFetchRow_connectionPool_autodisconnect() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultPoolConfigurationCommand());
+        workspace.command(db.getPoolConfigurationCommand());
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
 
         boolean isConnected = (Boolean) workspace.report("sql:debug-is-connected?");
-        assertTrue("Should stay connected after select", isConnected);
+        assertTrue(msg("Should stay connected after select"), isConnected);
 
         for (int i = 1; i <= 4; i++) {
             LogoList row = (LogoList) workspace.report("sql:fetch-row");
-            assertNotNull("sql:fetch-row should have returned a row", row);
-            assertEquals("Unexpected number of values in row", 4, row.size());
+            assertNotNull(msg("sql:fetch-row should have returned a row"), row);
+            assertEquals(msg("Unexpected number of values in row"), 4, row.size());
 
             isConnected = (Boolean) workspace.report("sql:debug-is-connected?");
             if (i < 4) {
-                assertTrue("Should stay connected after each fetch-row", isConnected);
+                assertTrue(msg("Should stay connected after each fetch-row"), isConnected);
             } else {
-                assertFalse("Should be auto-disconnected after last fetch-row", isConnected);
+                assertFalse(msg("Should be auto-disconnected after last fetch-row"), isConnected);
             }
         }
         LogoList row = (LogoList) workspace.report("sql:fetch-row");
-        assertNotNull("sql:fetch-row should have returned a row", row);
-        assertEquals("Expected fetch after last row to return empty result", 0, row.size());
+        assertNotNull(msg("sql:fetch-row should have returned a row"), row);
+        assertEquals(msg("Expected fetch after last row to return empty result"), 0, row.size());
     }
 
     /**
@@ -245,8 +262,8 @@ public class FetchRowTest extends HeadlessTest {
         workspace.open("init-sql.nlogo");
         Object row = workspace.report("sql:fetch-row");
 
-        assertTrue("Expected row of type LogoList", row instanceof LogoList);
-        assertEquals("Expected empty list", Collections.EMPTY_LIST, row);
+        assertTrue(msg("Expected row of type LogoList"), row instanceof LogoList);
+        assertEquals(msg("Expected empty list"), Collections.EMPTY_LIST, row);
     }
 
     /**
@@ -262,12 +279,12 @@ public class FetchRowTest extends HeadlessTest {
     @Test
     public void testFetchRow_connect_noStatement() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
 
         Object row = workspace.report("sql:fetch-row");
 
-        assertTrue("Expected row of type LogoList", row instanceof LogoList);
-        assertEquals("Expected empty list", Collections.EMPTY_LIST, row);
+        assertTrue(msg("Expected row of type LogoList"), row instanceof LogoList);
+        assertEquals(msg("Expected empty list"), Collections.EMPTY_LIST, row);
     }
 
     /**
@@ -283,12 +300,12 @@ public class FetchRowTest extends HeadlessTest {
     @Test
     public void testFetchRow_connectionpool_noStatement() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultPoolConfigurationCommand());
+        workspace.command(db.getPoolConfigurationCommand());
 
         Object row = workspace.report("sql:fetch-row");
 
-        assertTrue("Expected row of type LogoList", row instanceof LogoList);
-        assertEquals("Expected empty list", Collections.EMPTY_LIST, row);
+        assertTrue(msg("Expected row of type LogoList"), row instanceof LogoList);
+        assertEquals(msg("Expected empty list"), Collections.EMPTY_LIST, row);
     }
 
     /**
@@ -304,13 +321,13 @@ public class FetchRowTest extends HeadlessTest {
     @Test
     public void testFetchRow_updateQuery() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
         workspace.command("sql:exec-direct \"UPDATE " + tableName + "  SET INT_FIELD = 5\"");
 
         Object row = workspace.report("sql:fetch-row");
 
-        assertTrue("Expected row of type LogoList", row instanceof LogoList);
-        assertEquals("Expected empty list", Collections.EMPTY_LIST, row);
+        assertTrue(msg("Expected row of type LogoList"), row instanceof LogoList);
+        assertEquals(msg("Expected empty list"), Collections.EMPTY_LIST, row);
     }
 
     /**
@@ -326,32 +343,28 @@ public class FetchRowTest extends HeadlessTest {
     @Test
     public void testFetchRow_afterFetchResultSet() throws Exception {
         workspace.open("init-sql.nlogo");
-        workspace.command(getDefaultConnectCommand());
+        workspace.command(db.getConnectCommand());
         workspace.command("sql:exec-direct \"SELECT * FROM " + tableName + " ORDER BY ID\"");
         workspace.report("sql:fetch-resultset");
 
         LogoList row = (LogoList) workspace.report("sql:fetch-row");
-        assertNotNull("sql:fetch-row should have returned a row", row);
-        assertEquals("Expected fetch of empty resultset to return empty result", 0, row.size());
+        assertNotNull(msg("sql:fetch-row should have returned a row"), row);
+        assertEquals(msg("Expected fetch of empty resultset to return empty result"), 0, row.size());
     }
 
     // TODO cover more datatypes
 
     @After
-    public void teardownData() {
+    public void dropTable() {
         try {
-            DatabaseHelper.executeUpdate("TRUNCATE TABLE " + tableName);
+            DatabaseHelper.executeUpdate(db, "DROP TABLE " + tableName);
         } catch (SQLException e) {
-            throw new IllegalStateException("Unable to delete data", e);
+            throw new IllegalStateException(msg("Unable to drop table " + tableName), e);
         }
     }
-
-    @AfterClass
-    public static void dropTable() {
-        try {
-            DatabaseHelper.executeUpdate("DROP TABLE " + tableName);
-        } catch (SQLException e) {
-            throw new IllegalStateException("Unable to drop table " + tableName, e);
-        }
+    
+    private String msg(String message) {
+        return message + " (" + db.name() + ")";
     }
+    
 }
