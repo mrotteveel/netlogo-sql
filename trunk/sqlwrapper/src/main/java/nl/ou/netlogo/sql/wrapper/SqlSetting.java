@@ -60,12 +60,11 @@ public class SqlSetting implements Cloneable {
      * @throws ExtensionException For errors assigning values (eg setting-key not available in settingConstraint)
      */
     public void assignSettings(Map<String, String> keyValuePairs, SqlSetting settingConstraint) throws ExtensionException {
-        for (String key : keyValuePairs.keySet()) {
-            if (settingConstraint == null || settingConstraint.containsKey(key)) {
-                String value = keyValuePairs.get(key);
-                settings.put(key, value);
+        for (Map.Entry<String, String> entry : keyValuePairs.entrySet()) {
+            if (settingConstraint == null || settingConstraint.containsKey(entry.getKey())) {
+                settings.put(entry.getKey(), entry.getValue());
             } else {
-                String message = "Attempt to configure unknown key '" + key;
+                String message = "Attempt to configure unknown key '" + entry.getKey();
                 SqlLogger.getLogger().severe(message);
                 throw new ExtensionException(message);
             }

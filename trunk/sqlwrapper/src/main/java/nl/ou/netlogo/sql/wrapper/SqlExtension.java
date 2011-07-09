@@ -164,7 +164,7 @@ public class SqlExtension extends DefaultClassManager {
      * 
      * @return sql environment handle
      */
-    public static SqlEnvironment getSqlEnvironment() {
+    public synchronized static SqlEnvironment getSqlEnvironment() {
         if (sqlenv == null) {
             sqlenv = new SqlEnvironment();
 

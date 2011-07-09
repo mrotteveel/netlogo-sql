@@ -20,7 +20,6 @@
  */
 package nl.ou.netlogo.sql.extension;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import nl.ou.netlogo.sql.wrapper.SqlConfiguration;
@@ -67,9 +66,8 @@ public class Configure extends DefaultCommand {
      * @throws org.nlogo.api.LogoException
      */
     public void perform(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
-        Map<String, String> kvPairs = new HashMap<String, String>();
         String name = args[0].getString();
-        kvPairs = SqlConfiguration.parseSettingList(name, args[1].getList());
+        Map<String, String> kvPairs = SqlConfiguration.parseSettingList(name, args[1].getList());
         sqlenv.getConfiguration().setConfiguration(name, kvPairs, context);
     }
 }
