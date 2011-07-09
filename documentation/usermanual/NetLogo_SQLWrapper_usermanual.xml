@@ -1457,8 +1457,8 @@
         autodisconnect, the connection will be closed.</para>
       </section>
 
-      <section>
-        <title xml:id="rollback-transaction">sql:rollback-transaction</title>
+      <section xml:id="rollback-transaction">
+        <title>sql:rollback-transaction</title>
 
         <para>Performs a rollback of the current transaction.</para>
 
