@@ -196,7 +196,7 @@
         and have <methodname>SELECT</methodname> rights to a table containing
         one or more rows of data. For the rest of this section we will assume
         your MySQL connection details are: server <code>localhost</code>, port
-        <code>3306</code>, schema <code>default</code>, user
+        <code>3306</code>, catalog (database) <code>default</code>, user
         <code>root</code>, password <code>testpassword</code>, table
         <code>testtable</code>.</para>
 
@@ -428,8 +428,8 @@
           <parameter>"connectionpool"</parameter> aspects is not configured
           explicitly. Be aware that these settings will only be applied at the
           next configuration of <xref linkend="aspect-defaultconnection"
-          xrefstyle="select: title" />, including validation of pool
-          configuration.</para>
+          xrefstyle="select: title" /> and the settings are not validated
+          until that time.</para>
         </section>
 
         <section xml:id="aspect-logging">
@@ -579,7 +579,7 @@
         the database connection information for the connection pool and
         (re)initializes the connection pool.</para>
 
-        <synopsis><command>sql:configure</command> <literal>"defaultconnection"</literal> [[<literal>"brand"</literal> <parameter>brandname</parameter>] [<literal>"host"</literal> <parameter>hostname</parameter>] [<literal>"port"</literal> <parameter>port</parameter>] [<literal>"database"</literal> <parameter>schema</parameter>] [<literal>"jdbc-url"</literal> <parameter>jdbc-url</parameter>] [<literal>"driver"</literal> <parameter>driver-class</parameter>] [<literal>"user"</literal> <parameter>username</parameter>] [<literal>"password"</literal> <parameter>password</parameter>] [<literal>"autodisconnect"</literal> <parameter>autodisconnect</parameter>]]</synopsis>
+        <synopsis><command>sql:configure</command> <literal>"defaultconnection"</literal> [[<literal>"brand"</literal> <parameter>brandname</parameter>] [<literal>"host"</literal> <parameter>hostname</parameter>] [<literal>"port"</literal> <parameter>port</parameter>] [<literal>"database"</literal> <parameter>catalog</parameter>] [<literal>"jdbc-url"</literal> <parameter>jdbc-url</parameter>] [<literal>"driver"</literal> <parameter>driver-class</parameter>] [<literal>"user"</literal> <parameter>username</parameter>] [<literal>"password"</literal> <parameter>password</parameter>] [<literal>"autodisconnect"</literal> <parameter>autodisconnect</parameter>]]</synopsis>
 
         <variablelist>
           <varlistentry>
@@ -625,10 +625,10 @@
           </varlistentry>
 
           <varlistentry>
-            <term>schema</term>
+            <term>catalog</term>
 
             <listitem>
-              <para>name of the database schema (type: string)</para>
+              <para>name of the database catalog (type: string)</para>
 
               <para>Applies to: <literal>MySQL</literal>,
               <literal>PostgreSQL</literal></para>
@@ -697,15 +697,17 @@
               linkend="fetch-resultset"><command>fetch-resultset</command></link>)
               or the last row of a resultset (<link
               linkend="fetch-row"><command>fetch-row</command></link>) of a
-              <command>SELECT</command>. Use of autodisconnect is strongly
-              recommended for models using a large number of agents, because
-              otherwise the number of required connections will be high as
-              well (and could exceed the maximum number of connections
-              supported by the database). Autodisconnect is only applied to
-              connections obtained from the connection pool, connections
-              created using <link
+              <command>SELECT</command> when in autocommit mode, or after
+              performing a commit or rollback when using transactions.</para>
+
+              <para>Use of autodisconnect is strongly recommended for models
+              using a large number of agents, because otherwise the number of
+              required connections will be high (and could exceed the maximum
+              number of connections supported by the database). Autodisconnect
+              is only applied to connections obtained from the connection
+              pool. Connections created using <link
               linkend="connect"><command>sql:connect</command></link> will not
-              be automatically disconnected.</para>
+              be disconnected automatically.</para>
             </listitem>
           </varlistentry>
         </variablelist>
@@ -730,7 +732,7 @@
 
         <para>Create a connection to a database for the current agent.</para>
 
-        <synopsis><command>sql:connect</command> [[<literal>"brand"</literal> <parameter>brandname</parameter>] [<literal>"host"</literal> <parameter>hostname</parameter>] [<literal>"port"</literal> <parameter>port</parameter>] [<literal>"database"</literal> <parameter>schema</parameter>] [<literal>"jdbc-url"</literal> <parameter>jdbc-url</parameter>] [<literal>"driver"</literal> <parameter>driver-class</parameter>] [<literal>"user"</literal> <parameter>username</parameter>] [<literal>"password"</literal> <parameter>password</parameter>]]</synopsis>
+        <synopsis><command>sql:connect</command> [[<literal>"brand"</literal> <parameter>brandname</parameter>] [<literal>"host"</literal> <parameter>hostname</parameter>] [<literal>"port"</literal> <parameter>port</parameter>] [<literal>"database"</literal> <parameter>catalog</parameter>] [<literal>"jdbc-url"</literal> <parameter>jdbc-url</parameter>] [<literal>"driver"</literal> <parameter>driver-class</parameter>] [<literal>"user"</literal> <parameter>username</parameter>] [<literal>"password"</literal> <parameter>password</parameter>]]</synopsis>
 
         <para>The parameters of <command>sql:connect</command> are a subset of
         the parameters of <xref linkend="aspect-defaultconnection"
@@ -774,10 +776,11 @@
         <synopsis><command>sql:is-connected?</command></synopsis>
 
         <para>This reporter returns true if a connection is established, false
-        otherwise. When using connection pooling it will always return true.
-        The command <link
+        otherwise. When connection pooling has been configured it will always
+        return true. The command <link
         linkend="debug-is-connected"><command>sql:debug-is-connected?</command></link>
-        can be used to check the actual connection status.</para>
+        can be used to check the actual connection status for pooled
+        connections.</para>
 
         <para>This reporter does not autodisconnect.</para>
       </section>
@@ -802,39 +805,56 @@
 
         <para>This command can only be used on connections created using <link
         linkend="connect"><command>sql:connect</command></link>; it will
-        result in an error when executed a connection from the connection
+        result in an error when executed on a connection from the connection
         pool.</para>
+
+        <note>
+          <para><command>sql:use-database</command> currently only works on
+          <literal>MySQL</literal> connections, not for
+          <literal>generic</literal> or <literal>PostgreSQL</literal>.</para>
+        </note>
       </section>
 
       <section>
         <title>sql:current-database</title>
 
-        <para>Returns the name of the current database schema.</para>
+        <para>Returns the name of the current database catalog name.</para>
 
         <synopsis><command>sql:current-database</command></synopsis>
 
         <para>This reporter does not autodisconnect.</para>
+
+        <note>
+          <para>If sql-wrapper is unable to get the database catalog name,
+          <literal>default</literal> is returned.</para>
+        </note>
       </section>
 
       <section>
         <title>sql:find-database</title>
 
-        <para>Checks if the specified database schema exists on the database
+        <para>Checks if the specified database catalog exists on the database
         server.</para>
 
-        <synopsis><command>sql:find-database</command> <parameter>schema</parameter></synopsis>
+        <synopsis><command>sql:find-database</command> <parameter>catalog</parameter></synopsis>
 
         <variablelist>
           <varlistentry>
-            <term>schema</term>
+            <term>catalog</term>
 
             <listitem>
-              <para>name of the database schema (type:string)</para>
+              <para>name of the database catalog (type:string)</para>
             </listitem>
           </varlistentry>
         </variablelist>
 
         <para>This reporter does not autodisconnect.</para>
+
+        <note>
+          <para><command>sql:find-database</command> currently only works on
+          <literal>MySQL</literal> connections, not for
+          <literal>generic</literal> or <literal>PostgreSQL</literal>.</para>
+        </note>
       </section>
 
       <section>
@@ -920,7 +940,7 @@
 
             <td>yes</td>
 
-            <td>yes (0 / 1 for MySQL)</td>
+            <td>database dependent</td>
           </tr>
 
           <tr>
@@ -928,9 +948,9 @@
 
             <td>yes</td>
 
-            <td>yes, only for valid numbers</td>
+            <td>not supported</td>
 
-            <td>yes (0 / 1 for MySQL)</td>
+            <td>not supported</td>
           </tr>
 
           <tr>
@@ -938,9 +958,9 @@
 
             <td>yes</td>
 
-            <td>yes, only for valid numbers</td>
+            <td>not supported</td>
 
-            <td>yes (0 / 1 for MySQL)</td>
+            <td>not supported</td>
           </tr>
 
           <tr>
@@ -948,9 +968,9 @@
 
             <td>yes</td>
 
-            <td>yes, only for valid numbers</td>
+            <td>not supported</td>
 
-            <td>yes (0 / 1 for MySQL)</td>
+            <td>not supported</td>
           </tr>
 
           <tr>
@@ -960,7 +980,7 @@
 
             <td>not supported</td>
 
-            <td>yes (0 / 1 for MySQL)</td>
+            <td>yes</td>
           </tr>
 
           <tr>
@@ -970,15 +990,15 @@
 
             <td>not supported</td>
 
-            <td>yes (0 / 1 for MySQL)</td>
+            <td>not supported</td>
           </tr>
 
           <tr>
             <th>TIME</th>
 
-            <td>database dependent</td>
+            <td>not supported</td>
 
-            <td>database dependent</td>
+            <td>not supported</td>
 
             <td>not supported</td>
           </tr>
@@ -986,9 +1006,9 @@
           <tr>
             <th>DATE</th>
 
-            <td>database dependent</td>
+            <td>not supported</td>
 
-            <td>database dependent</td>
+            <td>not supported</td>
 
             <td>not supported</td>
           </tr>
@@ -996,9 +1016,9 @@
           <tr>
             <th>TIMESTAMP</th>
 
-            <td>database dependent</td>
+            <td>not supported</td>
 
-            <td>database dependent</td>
+            <td>not supported</td>
 
             <td>not supported</td>
           </tr>
@@ -1036,15 +1056,19 @@
 
         <para>For conversions marked as <emphasis>database
         dependent</emphasis>, it is best to consult the manual of your
-        database. For example MySQL will allow the number
-        <literal>105400</literal> for <type>TIME</type> and convert it to
-        <literal>10:54:00</literal>, but <literal>106300</literal> is not
-        allowed as the minutes should be lower than 60. Similar rules are
-        available for <type>DATE</type> and <type>TIMESTAMP</type>, and for
-        the conversion from string. Conversions marked as <emphasis>not
-        supported </emphasis>are formally not supported by the plugin, but
-        they might work depending on the value and/or database specific
-        conversion rules.</para>
+        database. An example: for he conversion of a NetLogo boolean value
+        into a SQL CHARACTER type, MySQL uses <literal>0</literal> and
+        <literal>1</literal>, and PostgreSQL uses <literal>false</literal> and
+        <literal>true</literal>. Conversions marked as <emphasis>not supported
+        </emphasis>are formally not supported by the plugin, but they might
+        work depending on the value and/or database specific conversion rules.
+        For example MySQL will allow the number <literal>105400</literal> for
+        <type>TIME</type> and convert it to <literal>10:54:00</literal>, but
+        <literal>106300</literal> is not allowed as the minutes should be
+        lower than 60, on the other hand PostgreSQL refuses these conversion.
+        Similar rules are available for <type>DATE</type> and
+        <type>TIMESTAMP</type>, and for the conversion from string. In general
+        it is advisable to use explicit SQL casts for these datatypes.</para>
 
         <para>Before statements can be executed, the connection-pool needs to
         be setup or a connection needs to be created using <link
@@ -1195,6 +1219,29 @@
 
         <synopsis><command>sql:fetch-row</command></synopsis>
 
+        <para>Calling <command>sql:fetch-row</command> again will return the
+        next row, when there are no more rows available an empty list will be
+        returned. If no connection is open, or if
+        <command>sql:fetch-row</command> is executed when no resultset is
+        available, an empty list will be returned as well.</para>
+
+        <note>
+          <para>A single resultset should be processed either with
+          <command>sql:fetch-row</command>, or <link
+          linkend="fetch-resultset"><command>sql:fetch-resultset</command></link>,
+          not a combination of both. Combining calls to these reporters for a
+          single resultset will return empty lists, even if there are more
+          rows to process.</para>
+
+          <para>For example: calling <command>sql:fetch-row</command> and then
+          <command>sql:fetch-resulset</command> will result in
+          sql:fetch-resultset returning an empty list.</para>
+        </note>
+
+        <para>This command will autodisconnect if autodisconnect is enabled,
+        the connection was obtained from the connection pool, and the fetched
+        row is the last row of the resultset.</para>
+
         <para>The row is returned as a NetLogo list with the values of the
         row. The SQL datatypes are converted to their NetLogo
         equivalent:</para>
@@ -1284,16 +1331,6 @@
         able to store values that are not valid in Java (eg a MySQL
         <type>DATE</type> with value 0000-00-00 cannot be converted to a valid
         date in Java).</para>
-
-        <para>Calling <command>sql:fetch-row</command> again will return the
-        next row, when there are no more rows available an empty list will be
-        returned. If no connection is open, or if
-        <command>sql:fetch-row</command> is executed when no resultset is
-        available, an empty list will be returned as well.</para>
-
-        <para>This command will autodisconnect if autodisconnect is enabled,
-        the connection was obtained from the connection pool, and the fetched
-        row is the last row of the resultset.</para>
       </section>
 
       <section xml:id="fetch-resultset">
@@ -1308,9 +1345,11 @@
         as described in <link
         linkend="fetch-row"><command>sql:fetch-row</command></link>.</para>
 
-        <para>Calling <command>sql:fetch-resultset</command> again will return
-        an empty list. Calling this command if no connection is open, or no
-        resultset is available will return an empty list as well.</para>
+        <para>Calling <command>sql:fetch-resultset</command> after calling
+        <link linkend="fetch-row"><command>sql:fetch-row</command></link> (see
+        note), or calling for a second time will return an empty list. Calling
+        this command when the connection is closed, or when no resultset is
+        available will return an empty list as well.</para>
 
         <para>This command will autodisconnect if autodisconnect is enabled,
         and the connection was obtained from the connection pool.</para>
@@ -1346,11 +1385,13 @@
       transactions come in: transactions allow a group of queries and updates
       to be committed or rolled back as one.</para>
 
-      <para>For MySQL it is important to realise that transaction control only
-      works for tables maintained by the InnoDB engine. Tables in MyISAM
-      format are not subject to transaction control. If you want to use
-      transactions in MySQL, please make sure that all your tables are in
-      InnoDB format.</para>
+      <important>
+        <para>For MySQL it is important to realise that transaction control
+        only works for tables maintained by the InnoDB engine. Tables in
+        MyISAM format are not subject to transaction control. If you want to
+        use transactions in MySQL, please make sure that all your tables are
+        in InnoDB format.</para>
+      </important>
 
       <section>
         <title>sql:autocommit-on</title>
@@ -1396,8 +1437,7 @@
         <para>Indicates start of transaction, the actual transaction is
         started when the first query or update is executed on this connection.
         During a transaction on a pooled connection with autodisconnect, the
-        autodisconnect will not be performed for commands and reporters other
-        than <link
+        autodisconnect will only be performed for <link
         linkend="commit-transaction"><command>sql:commit-transaction</command></link>
         and <link
         linkend="rollback-transaction"><command>sql:rollback-transaction</command></link>.</para>
@@ -1725,13 +1765,14 @@ end
         <title>Connectionpooling and autodisconnect</title>
 
         <para>Connectionpooling simplifies database usage, because we only
-        need to configure the <literal>defaultconnection</literal> once, and a
-        connection is obtained when it is needed without the need for an
-        explicit <command>sql:connect</command>. This simplicity however also
-        introduces risk, because it is easy to forget that the connection
-        needs to be closed as well. For that reason the connectionpool by
-        default uses <literal>autodisconnect</literal>, this means that SQL
-        Wrapper itself will close the connection as soon as possible:</para>
+        need to configure the <literal>defaultconnection</literal> once. With
+        connectionpooling a connection is obtained when it is needed without
+        the need for an explicit <command>sql:connect</command>. This
+        simplicity however also introduces risk, because it is easy to forget
+        that the connection needs to be closed as well. For that reason the
+        connectionpool by default uses <literal>autodisconnect</literal>, this
+        means that SQL Wrapper itself will close the connection as soon as
+        possible:</para>
 
         <itemizedlist>
           <listitem>
@@ -1758,12 +1799,12 @@ ask/ask-concurrent &lt;agents&gt; [
 ]</programlisting>
 
         <para>Here SQL Wrapper will only obtain a connection when
-        sql:exec-update is executed, and with autodisconnect enabled it will
-        close that connection before the next command is executed. For this
-        example it does not matter if we use <command>ask</command> or
-        <command>ask-concurrent</command>, as we will use only
-        <emphasis>one</emphasis> connection at a time. However if
-        autodisconnect is disabled this example will open connections for
+        <command>sql:exec-update</command> is executed. With autodisconnect
+        enabled it will close that connection before the next command is
+        executed. In this example it does not matter if we use
+        <command>ask</command> or <command>ask-concurrent</command>, as we
+        will use only <emphasis>one</emphasis> connection at a time. However
+        if autodisconnect is disabled this example will open connections for
         every agent and those connections will not be closed! With
         autodisconnect off, we would need to add an explicit
         <command>sql:disconnect</command> to close the connection:</para>
@@ -2055,7 +2096,7 @@ ask &lt;agents&gt; [
       <programlisting>sql:connect [["brand" "generic"] ["driver" "<emphasis>&lt;name of your driver&gt;</emphasis>"] ["jdbc-url" "<emphasis>&lt;your JDBC-url&gt;</emphasis>"] ["user" "<emphasis>&lt;your username&gt;</emphasis>"] ["password" "<emphasis>&lt;your password&gt;</emphasis>"]]</programlisting>
 
       <para>In this way you can connect to a large number of database,
-      including Oracle, Microsoft SQL Server, PostgreSQL and Firebird.</para>
+      including Oracle, Microsoft SQL Server and Firebird.</para>
 
       <important>
         <para>The JDBC driver should be a JDBC Type-4 (or pure-Java) driver
