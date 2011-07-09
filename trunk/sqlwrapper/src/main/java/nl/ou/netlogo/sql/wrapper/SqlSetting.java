@@ -32,7 +32,13 @@ public class SqlSetting implements Cloneable {
     private String name;
     private boolean visible;
     private HashMap<String, String> settings = new HashMap<String, String>();
+    /**
+     * Marker String for a setting that by default has an invalid value (and is thus required to be configured)
+     */
     public static final String DEFAULT_INVALID = "<default, invalid>";
+    /**
+     * Marker String for a setting that by default is unset.
+     */
     public static final String DEFAULT_UNSET = "<default>";
 
     public static final Logger LOG = SqlLogger.getLogger();
