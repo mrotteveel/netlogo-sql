@@ -291,6 +291,7 @@ public class SqlConnectionManager implements SqlConfigurable, EventObserver<Conn
         } catch (InterruptedException intex) {
             String message = "connectionPool.createConnectionFromPool() interrupted: " + intex;
             LOG.severe(message);
+            Thread.currentThread().interrupt();
             throw new SQLException(message);
         }
         ConnectionGetter getterThread = new ConnectionGetter(binSem);
@@ -325,6 +326,7 @@ public class SqlConnectionManager implements SqlConfigurable, EventObserver<Conn
         } catch (InterruptedException intex) {
             String message = "connectionPool.createConnectionFromPool() was interrupted: " + intex;
             LOG.severe(message);
+            Thread.currentThread().interrupt();
             throw new SQLException(message);
         }
         if (conn != null) {
