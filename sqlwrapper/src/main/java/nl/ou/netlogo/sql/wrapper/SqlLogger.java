@@ -38,7 +38,7 @@ public class SqlLogger implements SqlConfigurable {
     /*
      * internal logger to intercept all logging
      */
-    private class MyLogger extends Logger {
+    private static class MyLogger extends Logger {
         private Logger realLogger = null;
         private boolean copy2StdErr = false;
 
@@ -73,11 +73,13 @@ public class SqlLogger implements SqlConfigurable {
         }
 
     }
-
+    
     public SqlLogger() {
-        if (logger == null) {
-            logger = new MyLogger(loggerName);
-        }
+    	synchronized(SqlLogger.class) {
+            if (logger == null) {
+                logger = new MyLogger(loggerName);
+            }
+    	}
     }
 
     public static Logger getLogger() {
@@ -122,29 +124,31 @@ public class SqlLogger implements SqlConfigurable {
                 LOG.finest("Starting to configure the logger");
                 boolean toggle = SqlSetting.toggleValue(settings.getString(SqlConfiguration.LOGGING_OPT_LOGGING));
                 if (toggle) {
-                    if (fileHandler == null) {
-                        /*
-                         * create a file handler
-                         */
-                        try {
-                            fileHandler = new FileHandler(parseLogPath(
-                                    settings.getString(SqlConfiguration.LOGGING_OPT_PATH), context)
-                                    + "/sqlwrapper.log");
-                            fileHandler.setFormatter(new SimpleFormatter());
-                            fileHandler.setLevel(Level.ALL);
-
-                            // add a shutdown hook to close down the file handler at program exit
-                            Runtime.getRuntime().addShutdownHook(new Thread() {
-                                public void run() {
-                                    if (fileHandler != null) {
-                                        fileHandler.close();
+                    synchronized(SqlLogger.class) {
+                        if (fileHandler == null) {
+                            /*
+                             * create a file handler
+                             */
+                            try {
+                                fileHandler = new FileHandler(parseLogPath(
+                                        settings.getString(SqlConfiguration.LOGGING_OPT_PATH), context)
+                                        + "/sqlwrapper.log");
+                                fileHandler.setFormatter(new SimpleFormatter());
+                                fileHandler.setLevel(Level.ALL);
+    
+                                // add a shutdown hook to close down the file handler at program exit
+                                Runtime.getRuntime().addShutdownHook(new Thread() {
+                                    public void run() {
+                                        if (fileHandler != null) {
+                                            fileHandler.close();
+                                        }
                                     }
-                                }
-                            });
-                        } catch (Exception ex) {
-                            String message = "Cannot configure logging file handler: " + ex;
-                            LOG.severe(message);
-                            throw new ExtensionException(message);
+                                });
+                            } catch (Exception ex) {
+                                String message = "Cannot configure logging file handler: " + ex;
+                                LOG.severe(message);
+                                throw new ExtensionException(message);
+                            }
                         }
                     }
                 }

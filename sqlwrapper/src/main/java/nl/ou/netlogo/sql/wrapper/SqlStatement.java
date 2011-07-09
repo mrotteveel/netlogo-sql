@@ -145,15 +145,17 @@ public class SqlStatement {
     protected void prepareStatement() throws SQLException, ExtensionException {
         ParameterMetaData parameterMetaData = statement.getParameterMetaData();
         int parameterCount = parameterMetaData.getParameterCount();
-        if ((parameters == null && parameterCount != 0) || parameterCount != parameters.size()) {
+        if ((parameters == null && parameterCount != 0) || (parameters != null && parameterCount != parameters.size())) {
             throw new ExtensionException(String.format(
                     "Incorrect number of query parameters passed, expected %d received %d", parameterCount,
                     parameters == null ? 0 : parameters.size()));
         }
-
-        for (int idx = 0; idx < parameters.size(); idx++) {
-            Object parameter = parameters.get(idx);
-            processParameter(parameter, idx);
+        
+        if (parameters != null) {
+            for (int idx = 0; idx < parameters.size(); idx++) {
+                Object parameter = parameters.get(idx);
+                processParameter(parameter, idx);
+            }
         }
     }
 

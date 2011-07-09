@@ -233,9 +233,9 @@ public class SqlConfiguration {
     public void setConfiguration(String name, Map<String, String> keyValuePairs, Context context)
             throws ExtensionException {
         SqlSetting availableSetting = available.get(name);
-        SqlSetting configuredSetting = null;
+        SqlSetting configuredSetting;
         if (availableSetting != null && availableSetting.isVisible()) {
-            if (!configured.containsKey(name)) {
+            if (configured.get(name) == null) {
                 // start with a copy of the available setting, this will set defaults
                 try {
                     availableSetting = available.get(name);
@@ -256,7 +256,7 @@ public class SqlConfiguration {
         }
 
         // push the new settings to any registered SqlConfigurable
-        if (configuredSetting != null && configurables.containsKey(name)) {
+        if (configurables.containsKey(name)) {
             for (SqlConfigurable configurable : configurables.get(name)) {
                 try {
                     configurable.configure(configuredSetting, context);

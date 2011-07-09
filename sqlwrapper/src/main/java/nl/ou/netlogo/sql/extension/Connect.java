@@ -87,7 +87,7 @@ public class Connect extends DefaultCommand {
                     SqlConfiguration.parseSettingList(SqlConfiguration.EXPLICITCONNECTION, args[0].getList()),
                     connectionSetting);
 
-            sqlc = sqlenv.createConnection(context, connectionSetting);
+            sqlenv.createConnection(context, connectionSetting);
         } catch (ExtensionException ex) {
             throw ex;
         } catch (Exception e) {
