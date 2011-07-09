@@ -9,8 +9,13 @@
 	<xsl:import href="docbook.xsl"/>
 
 	<xsl:attribute-set name="monospace.verbatim.properties" use-attribute-sets="verbatim.properties monospace.properties">
-	  <xsl:attribute name="text-align">start</xsl:attribute>
-	  <xsl:attribute name="wrap-option">wrap</xsl:attribute>
+		<xsl:attribute name="text-align">start</xsl:attribute>
+		<xsl:attribute name="wrap-option">wrap</xsl:attribute>
+	</xsl:attribute-set>
+	
+	<xsl:attribute-set name="xref.properties">
+		<xsl:attribute name="color">blue</xsl:attribute>
+		<xsl:attribute name="text-decoration">underline</xsl:attribute>
 	</xsl:attribute-set>
 
 </xsl:stylesheet>
