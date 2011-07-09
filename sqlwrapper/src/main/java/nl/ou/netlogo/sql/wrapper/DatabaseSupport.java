@@ -28,14 +28,17 @@ package nl.ou.netlogo.sql.wrapper;
 public enum DatabaseSupport {
 
     GENERIC {
+        @Override
         public String buildJdbcUrl(SqlSetting settings) throws Exception {
             return settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_JDBC_URL);
         }
-
-        public String getDriverClass(SqlSetting settings) throws Exception {
-            return settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME);
+        
+        @Override
+        protected String getDefaultDriverClass() {
+            return SqlSetting.DEFAULT_UNSET;
         }
 
+        @Override
         public boolean validateSettings(SqlSetting settings) throws Exception {
             if (!settings.isValid()) {
                 return false;
@@ -59,6 +62,7 @@ public enum DatabaseSupport {
         }
     },
     MYSQL {
+        @Override
         public String buildJdbcUrl(SqlSetting settings) throws Exception {
             final String jdbcPattern = "jdbc:mysql://%s:%d/%s";
             final int defaultPort = 3306;
@@ -69,16 +73,13 @@ public enum DatabaseSupport {
             port = port != 0 ? port : defaultPort;
             return String.format(jdbcPattern, host, port, database);
         }
-
-        public String getDriverClass(SqlSetting settings) throws Exception {
-            String driverClass = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME);
-            // Use default MySQL driver name when no drivername has been set
-            if (driverClass.equals(SqlSetting.DEFAULT_UNSET)) {
-                return "com.mysql.jdbc.Driver";
-            }
-            return driverClass;
+        
+        @Override
+        protected String getDefaultDriverClass() {
+            return "com.mysql.jdbc.Driver";
         }
 
+        @Override
         public boolean validateSettings(SqlSetting settings) throws Exception {
             if (!settings.isValid()) {
                 return false;
@@ -109,15 +110,10 @@ public enum DatabaseSupport {
             port = port != 0 ? port : defaultPort;
             return String.format(jdbcPattern, host, port, database);
         }
-
+        
         @Override
-        public String getDriverClass(SqlSetting settings) throws Exception {
-            String driverClass = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME);
-            // Use default PostgreSQL driver name when no drivername has been set
-            if (driverClass.equals(SqlSetting.DEFAULT_UNSET)) {
-                return "org.postgresql.Driver";
-            }
-            return driverClass;
+        protected String getDefaultDriverClass() {
+            return "org.postgresql.Driver";
         }
 
         @Override
@@ -158,7 +154,20 @@ public enum DatabaseSupport {
      * @return Name of the JDBC driver class
      * @throws Exception
      */
-    public abstract String getDriverClass(SqlSetting settings) throws Exception;
+    public final String getDriverClass(SqlSetting settings) throws Exception {
+        String driverClass = settings.getString(SqlConfiguration.DEFAULTCONNECTION_OPT_DRIVER_CLASSNAME);
+        if (driverClass.equals(SqlSetting.DEFAULT_UNSET)) {
+            return getDefaultDriverClass();
+        }
+        return driverClass;
+    }
+    
+    /**
+     * Returns the default driver class for this database.
+     * 
+     * @return Name of the default JDBC driver class, or {@link SqlSetting#DEFAULT_UNSET} if there is no default
+     */
+    protected abstract String getDefaultDriverClass();
 
     /**
      * Provides database specific validation of the settings object.
