@@ -2095,7 +2095,7 @@ ask &lt;agents&gt; [
 
       <programlisting>sql:connect [["brand" "generic"] ["driver" "<emphasis>&lt;name of your driver&gt;</emphasis>"] ["jdbc-url" "<emphasis>&lt;your JDBC-url&gt;</emphasis>"] ["user" "<emphasis>&lt;your username&gt;</emphasis>"] ["password" "<emphasis>&lt;your password&gt;</emphasis>"]]</programlisting>
 
-      <para>In this way you can connect to a large number of database,
+      <para>In this way you can connect to a large number of databases,
       including Oracle, Microsoft SQL Server and Firebird.</para>
 
       <important>
