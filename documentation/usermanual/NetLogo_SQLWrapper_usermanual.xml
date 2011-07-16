@@ -7,7 +7,7 @@
       xmlns:html="http://www.w3.org/1999/xhtml"
       xmlns:db="http://docbook.org/ns/docbook">
   <info>
-    <title>NetLogo SQL Wrapper Usermanual</title>
+    <title>NetLogo SQL Wrapper User manual</title>
 
     <authorgroup>
       <author>
@@ -23,18 +23,18 @@
       </author>
     </authorgroup>
 
-    <releaseinfo>Covers SQL Wrapper version 1.1-SNAPSHOT</releaseinfo>
+    <releaseinfo>Covers NetLogo SQL Wrapper version 1.1-SNAPSHOT</releaseinfo>
   </info>
 
   <preface>
     <title>Preface</title>
 
     <section>
-      <title>Introduction to SQL Wrapper</title>
+      <title>Introduction to NetLogo SQL Wrapper</title>
 
-      <para>SQL Wrapper is an extension to NetLogo which adds primitives to
-      the NetLogo modelling language to support access to databases using SQL
-      (Structured Query Language).</para>
+      <para>NetLogo SQL Wrapper is an extension to NetLogo which adds
+      primitives to the NetLogo modelling language to support access to
+      databases using SQL (Structured Query Language).</para>
 
       <para>The following features are supported:</para>
 
@@ -69,7 +69,7 @@
       </itemizedlist>
 
       <para>SQL Wrapper is released under the <link
-      linkend="lgpl">LGPL</link>. The sourcecode is available at <link
+      linkend="lgpl">LGPL</link>. The source code is available at <link
       xlink:href="http://code.google.com/p/netlogo-sql/">http://code.google.com/p/netlogo-sql/</link>.</para>
 
       <para>The extension was commissioned by Dr. Hendrik Drachsler, Assistant
@@ -231,7 +231,7 @@
 
         <para>The command above instructs SQL Wrapper to connect to schema
         <code>default</code> on <code>localhost</code>, port <code>3306</code>
-        using username <code>root</code> and password
+        using user name <code>root</code> and password
         <code>testpassword</code>. If the wrong database information was used,
         NetLogo will show a popup with the title <guilabel>Runtime
         Error</guilabel> containing the details of the error. The <link
@@ -324,7 +324,7 @@
         <title>sql:configure</title>
 
         <para>The <command>sql:configure</command> command is used to
-        configure aspects of the plugin.</para>
+        configure aspects of the plug in.</para>
 
         <synopsis><command>sql:configure</command> <parameter>aspect</parameter> [<parameter>parameters...</parameter>]</synopsis>
 
@@ -344,8 +344,8 @@
             <listitem>
               <para>List containing the configuration for the aspects (see
               sub-sections below). Every parameter is a list with
-              key-value-pairs (a list per pair). In general this wil look like
-              <literal>[["parametername" parametervalue] ...
+              key-value-pairs (a list per pair). In general this will look
+              like <literal>[["parametername" parametervalue] ...
               ]</literal>.</para>
             </listitem>
           </varlistentry>
@@ -379,9 +379,9 @@
               <term>timeout</term>
 
               <listitem>
-                <para>sets the the timeout for obtaining a connection in
-                seconds (type: integer). Defaults to <literal>5</literal>
-                seconds if the "timeout" list is not passed. Setting to
+                <para>sets the timeout for obtaining a connection in seconds
+                (type: integer). Defaults to <literal>5</literal> seconds if
+                the "timeout" list is not passed. Setting to
                 <literal>0</literal> disables timeout (this can freeze the
                 model if no connections are released).</para>
               </listitem>
@@ -396,7 +396,7 @@
                 Defaults to <literal>20</literal> if the "max-connections"
                 list is not passed.</para>
 
-                <para>It is advisable to make max-connections divisable by the
+                <para>It is advisable to make max-connections divisible by the
                 number of partitions (integer division will lead to a lower
                 number of maximum connections). The number of connections per
                 partition should be 2 or higher.</para>
@@ -436,7 +436,7 @@
           <title>Aspect: "logging"</title>
 
           <para>The aspect <parameter>"logging"</parameter> configures logging
-          that is done by the plugin, and throught the <link
+          that is done by the plug in, and through the <link
           linkend="log"><command>sql:log</command></link> command. The NetLogo
           sql extension handles its own logging, through the Java logging
           facility (java.util.logging). By default, all logging is switched
@@ -495,7 +495,7 @@
                 <literal>"INFO"</literal>, <literal>"FINE"</literal>,
                 <literal>"FINER"</literal> and <literal>"FINEST"</literal>, or
                 everything: <literal>"ALL"</literal>. The levels are
-                interpreted case-insenitive, so <literal>"SEVERE"</literal>,
+                interpreted case-insensitive, so <literal>"SEVERE"</literal>,
                 <literal>"severe"</literal> and <literal>"Severe"</literal>
                 are all valid. Default is <literal>"ALL"</literal>.</para>
 
@@ -531,7 +531,7 @@
         <title>sql:get-configuration</title>
 
         <para>The <command>sql:get-configuration</command> retrieves the
-        current configured values of an aspect of the plugin.</para>
+        current configured values of an aspect of the plug in.</para>
 
         <synopsis><command>sql:get-configuration</command> <parameter>aspect</parameter></synopsis>
 
@@ -554,7 +554,7 @@
         <title>sql:get-full-configuration</title>
 
         <para>The <command>sql:get-full-configuration</command> retrieves the
-        current configured values of all aspects of the plugin.</para>
+        current configured values of all aspects of the plug in.</para>
 
         <synopsis><command>sql:get-full-configuration</command></synopsis>
 
@@ -758,7 +758,7 @@
 
         <para>For connection pooling, the connection is returned to the
         connection-pool for re-use. When using connection pooling, it is
-        advisable to to use <emphasis>autodisconnect</emphasis> (default), or
+        advisable to use <emphasis>autodisconnect</emphasis> (default), or
         make sure connections are closed as soon as possible, so it can be
         re-used by another agent.</para>
 
@@ -860,12 +860,12 @@
       <section>
         <title>sql:show-version</title>
 
-        <para>Prints the version of the SQL Wrapper plugin.</para>
+        <para>Prints the version of the SQL Wrapper plug in.</para>
 
         <synopsis><command>sql:show-version</command></synopsis>
 
         <para>This reporter will return a list with version information of the
-        plugin.</para>
+        plug in.</para>
       </section>
     </chapter>
 
@@ -896,23 +896,23 @@
 
             <listitem>
               <para>List of parameters that should be substituted for the
-              <literal>?</literal> in the query. Every questionmark in the
+              <literal>?</literal> in the query. Every question mark in the
               parameterized query should have a corresponding parameter in the
               list.</para>
             </listitem>
           </varlistentry>
         </variablelist>
 
-        <para>A parameterized statement is a SQL statement with placeholders -
-        the questionmark (?) - to indicate parameters. These parameters will
-        be substituted with the values from the list of values in the second
-        argument. SQL Wrapper accepts parameters of type string, number and
-        boolean. Other NetLogo datatypes are not supported and will result in
-        an error. The substitution is positional, which means that the first
-        questionmark in the query is replaced with the first value in the
-        list. This also means that the number of parameters (question marks)
-        in the query, and the number of values in the parameter-list must be
-        the same.</para>
+        <para>A parameterized statement is a SQL statement with place holders
+        - the question mark (?) - to indicate parameters. These parameters
+        will be substituted with the values from the list of values in the
+        second argument. SQL Wrapper accepts parameters of type string, number
+        and boolean. Other NetLogo datatypes are not supported and will result
+        in an error. The substitution is positional, which means that the
+        first question mark in the query is replaced with the first value in
+        the list. This also means that the number of parameters (question
+        marks) in the query, and the number of values in the parameter-list
+        must be the same.</para>
 
         <para>The supported datatypes will be automatically converted to the
         equivalent type in the database and are escaped if necessary. Be aware
@@ -1060,7 +1060,7 @@
         into a SQL CHARACTER type, MySQL uses <literal>0</literal> and
         <literal>1</literal>, and PostgreSQL uses <literal>false</literal> and
         <literal>true</literal>. Conversions marked as <emphasis>not supported
-        </emphasis>are formally not supported by the plugin, but they might
+        </emphasis>are formally not supported by the plug in, but they might
         work depending on the value and/or database specific conversion rules.
         For example MySQL will allow the number <literal>105400</literal> for
         <type>TIME</type> and convert it to <literal>10:54:00</literal>, but
@@ -1109,7 +1109,7 @@
 
             <listitem>
               <para>List of parameters that should be substituted for the
-              <literal>?</literal> in the query. Every questionmark in the
+              <literal>?</literal> in the query. Every question mark in the
               parameterized query should have a corresponding parameter in the
               list.</para>
             </listitem>
@@ -1160,8 +1160,8 @@
         linkend="resultset-available"><command>sql:resultset-available?</command></link>
         can be used to check if the query produced a resultset. <xref
         linkend="retrieving-results" xrefstyle="select: title" /> discusses
-        discusses processing of resultsets. If no resultset is available, the
-        reporter <link
+        processing of resultsets. If no resultset is available, the reporter
+        <link
         linkend="get-rowcount"><command>sql:get-rowcount</command></link> can
         be used to see how many rows were modified.</para>
 
@@ -1362,11 +1362,11 @@
 
         <synopsis><command>sql:row-available?</command></synopsis>
 
-        <para>This reporter wil return <code>true</code> if the next call to
+        <para>This reporter will return <code>true</code> if the next call to
         <link linkend="fetch-row"><command>sql:fetch-row</command></link> will
         return a row, or <link
         linkend="fetch-resultset"><command>sql:fetch-resultset</command></link>
-        wil return at least one row. This reporter will return
+        will return at least one row. This reporter will return
         <code>false</code> if no connection is open, there is no resultset, or
         the last row of the resultset has been read. This reporter can be used
         as a loop-condition when reading a resultset, see <xref
@@ -1835,7 +1835,7 @@ ask/ask-concurrent &lt;agents&gt; [
         connection is only autodisconnected when the last result has been
         retrieved. This means that there are two potential causes for using
         too many connections: not reading all results (and not using an
-        explict <command>sql:disconnect</command>), or in
+        explicit <command>sql:disconnect</command>), or in
         <command>ask-concurrent</command> using commands or reporters that
         change the state of the model (and thus switch turn to the next
         agent).</para>
@@ -1873,7 +1873,7 @@ ask/ask-concurrent &lt;agents&gt; [
         transaction commit or rollback. For the purpose of this discussion we
         can ignore the case when autodisconnect is off, as the consumption of
         connections is similar to the cases already discussed. This section
-        focusses on the impact of transactions on connection usage, the next
+        focuses on the impact of transactions on connection usage, the next
         chapter, <xref linkend="using-transactions"
         xrefstyle="select: title" />, discusses the use of transactions
         itself.</para>
@@ -1955,13 +1955,13 @@ ask/ask-concurrent &lt;agents&gt; [
       <section>
         <title>Configuring connections</title>
 
-        <para>By default the connectionpool will create upto 20 connections.
+        <para>By default the connectionpool will create up to 20 connections.
         If SQL Wrapper tries to obtain a 21st connection, this will - by
         default - throw an error. If the timeout on the <xref
         linkend="aspect-connectionpool" /> is disabled it will block until a
-        connection is available. Unfortunately due to NetLogo's singlethreaded
-        approach a connection will never come available during this blocking
-        call so it is advisable to keep the timeout set!</para>
+        connection is available. Unfortunately due to NetLogo's single
+        threaded approach a connection will never come available during this
+        blocking call so it is advisable to keep the timeout set!</para>
 
         <para>If you follow the strategies described in the previous sections,
         you will usually only need 1 or 2 connections at a time, but for more
