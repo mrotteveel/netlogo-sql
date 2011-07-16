@@ -396,11 +396,6 @@
                 Defaults to <literal>20</literal> if the "max-connections"
                 list is not passed.</para>
 
-                <para>It is advisable to make max-connections divisible by the
-                number of partitions (integer division will lead to a lower
-                number of maximum connections). The number of connections per
-                partition should be 2 or higher.</para>
-
                 <para>Be aware that the database server could have additional
                 limits imposed (eg maximum number of connections per user, or
                 per IP): these limits are not taken into account. Please check
@@ -420,6 +415,12 @@
                 <para>This setting is for advanced configuration of the
                 connection pool. It is normally not needed (nor advisable) to
                 set this to anything other than 1.</para>
+
+                <para>It is advisable to make the value of max-connections
+                above divisible by the number of partitions (integer division
+                will lead to a lower number of maximum connections). The
+                number of connections per partition should be 2 or
+                higher.</para>
               </listitem>
             </varlistentry>
           </variablelist>
@@ -437,10 +438,10 @@
 
           <para>The aspect <parameter>"logging"</parameter> configures logging
           that is done by the plug in, and through the <link
-          linkend="log"><command>sql:log</command></link> command. The NetLogo
-          sql extension handles its own logging, through the Java logging
-          facility (java.util.logging). By default, all logging is switched
-          off. If logging is needed, it might be helpful to consult the Java
+          linkend="log"><command>sql:log</command></link> command. SQL Wrapper
+          handles its own logging, through the Java logging facility
+          (java.util.logging). By default, all logging is switched off. If
+          logging is needed, it might be helpful to consult the Java
           documentation for logging in addition to the information given
           here.</para>
 
@@ -1062,13 +1063,16 @@
         <literal>true</literal>. Conversions marked as <emphasis>not supported
         </emphasis>are formally not supported by the plug in, but they might
         work depending on the value and/or database specific conversion rules.
-        For example MySQL will allow the number <literal>105400</literal> for
-        <type>TIME</type> and convert it to <literal>10:54:00</literal>, but
-        <literal>106300</literal> is not allowed as the minutes should be
-        lower than 60, on the other hand PostgreSQL refuses these conversion.
-        Similar rules are available for <type>DATE</type> and
-        <type>TIMESTAMP</type>, and for the conversion from string. In general
-        it is advisable to use explicit SQL casts for these datatypes.</para>
+        </para>
+
+        <para>For example MySQL will allow the number
+        <literal>105400</literal> for <type>TIME</type> and convert it to
+        <literal>10:54:00</literal>, but <literal>106300</literal> is not
+        allowed as the minutes should be lower than 60, on the other hand
+        PostgreSQL refuses this conversion. Similar rules are available for
+        <type>DATE</type> and <type>TIMESTAMP</type>, and for the conversion
+        from string. In general it is advisable to use explicit SQL casts for
+        these datatypes.</para>
 
         <para>Before statements can be executed, the connection-pool needs to
         be setup or a connection needs to be created using <link
@@ -1234,8 +1238,8 @@
           rows to process.</para>
 
           <para>For example: calling <command>sql:fetch-row</command> and then
-          <command>sql:fetch-resulset</command> will result in
-          sql:fetch-resultset returning an empty list.</para>
+          <command>sql:fetch-resulset</command> will return an empty list even
+          though there might be more rows available.</para>
         </note>
 
         <para>This command will autodisconnect if autodisconnect is enabled,
