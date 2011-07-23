@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>nl.ou.netlogo</groupId>
   <artifactId>sql</artifactId>
-  <version>1.1</version>
+  <version>1.2-SNAPSHOT</version>
   <name>sql</name>
   <description>sql</description>
   
