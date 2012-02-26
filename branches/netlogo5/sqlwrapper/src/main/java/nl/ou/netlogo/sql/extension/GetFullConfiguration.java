@@ -30,7 +30,7 @@ import org.nlogo.api.Argument;
 import org.nlogo.api.Context;
 import org.nlogo.api.DefaultReporter;
 import org.nlogo.api.ExtensionException;
-import org.nlogo.api.LogoList;
+import org.nlogo.api.LogoListBuilder;
 import org.nlogo.api.Syntax;
 
 /**
@@ -49,7 +49,7 @@ public class GetFullConfiguration extends DefaultReporter {
      * @return syntax object handle
      */
     public Syntax getSyntax() {
-        return Syntax.reporterSyntax(new int[] {}, Syntax.TYPE_LIST);
+        return Syntax.reporterSyntax(new int[] {}, Syntax.ListType());
     }
 
     /**
@@ -62,12 +62,12 @@ public class GetFullConfiguration extends DefaultReporter {
      * @throws org.nlogo.api.LogoException
      */
     public Object report(Argument args[], Context context) throws ExtensionException, org.nlogo.api.LogoException {
-        LogoList confList = new LogoList();
+        LogoListBuilder confList = new LogoListBuilder();
         try {
             Iterator<String> it = sqlenv.getConfiguration().keySet().iterator();
             // loop over the configured entities by name
             while (it.hasNext()) {
-                LogoList conf = new LogoList();
+                LogoListBuilder conf = new LogoListBuilder();
                 String name = it.next();
                 conf.add(name);
                 SqlSetting setting = sqlenv.getConfiguration().getConfiguration(name);
@@ -75,13 +75,13 @@ public class GetFullConfiguration extends DefaultReporter {
                     Iterator<String> keys = setting.keySet().iterator();
                     // loop over the key-value pairs for a configured entity
                     while (keys.hasNext()) {
-                        LogoList kvpair = new LogoList();
+                        LogoListBuilder kvpair = new LogoListBuilder();
                         String key = keys.next();
                         kvpair.add(key);
                         kvpair.add(setting.getString(key));
-                        conf.add(kvpair);
+                        conf.add(kvpair.toLogoList());
                     }
-                    confList.add(conf);
+                    confList.add(conf.toLogoList());
                 }
             }
 
@@ -89,6 +89,6 @@ public class GetFullConfiguration extends DefaultReporter {
             throw new ExtensionException(e);
         }
 
-        return confList;
+        return confList.toLogoList();
     }
 }

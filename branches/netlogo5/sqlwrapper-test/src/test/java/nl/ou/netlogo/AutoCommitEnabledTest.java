@@ -143,17 +143,17 @@ public class AutoCommitEnabledTest extends HeadlessTest {
 		for (int i = 0; i < 10; i++) {
 			Turtle turtle = workspace.world.createTurtle(breed);
 			agents.add(turtle);
-			boolean isAutoCommit = (Boolean)workspace.evaluateReporter("sql:autocommit-enabled?", turtle);
+			boolean isAutoCommit = (Boolean)workspace.evaluateReporter(workspace.defaultOwner(), "sql:autocommit-enabled?", turtle);
 			assertTrue("AutoCommit should be true for freshly retrieved pooled connection", isAutoCommit);
-			workspace.evaluateCommands("sql:autocommit-off", turtle, true);
-			isAutoCommit = (Boolean)workspace.evaluateReporter("sql:autocommit-enabled?", turtle);
+			workspace.evaluateCommands(workspace.defaultOwner(), "sql:autocommit-off", turtle, true);
+			isAutoCommit = (Boolean)workspace.evaluateReporter(workspace.defaultOwner(), "sql:autocommit-enabled?", turtle);
 			assertFalse("AutoCommit should be false after sql:autocommit-off", isAutoCommit);
 		}
 		
 		// Phase 2: close 10 connections obtained previously, check for actual closure
 		for (Turtle turtle : agents) {
-			workspace.evaluateCommands("sql:disconnect", turtle, true);
-			assertFalse("Should no longer be connected", (Boolean)workspace.evaluateReporter("sql:debug-is-connected?", turtle));
+			workspace.evaluateCommands(workspace.defaultOwner(), "sql:disconnect", turtle, true);
+			assertFalse("Should no longer be connected", (Boolean)workspace.evaluateReporter(workspace.defaultOwner(), "sql:debug-is-connected?", turtle));
 		}
 		
 		agents.clear();
@@ -161,14 +161,14 @@ public class AutoCommitEnabledTest extends HeadlessTest {
 		for (int i = 0; i < 10; i++) {
 			Turtle turtle = workspace.world.createTurtle(breed);
 			agents.add(turtle);
-			boolean isAutoCommit = (Boolean)workspace.evaluateReporter("sql:autocommit-enabled?", turtle);
+			boolean isAutoCommit = (Boolean)workspace.evaluateReporter(workspace.defaultOwner(), "sql:autocommit-enabled?", turtle);
 			assertTrue("AutoCommit should be true for freshly retrieved pooled connection", isAutoCommit);
 		}
 		
 		// Phase 4: close 10 connections obtained previously, check for actual closure
 		for (Turtle turtle : agents) {
-			workspace.evaluateCommands("sql:disconnect", turtle, true);
-			assertFalse("Should no longer be connected", (Boolean)workspace.evaluateReporter("sql:debug-is-connected?", turtle));
+			workspace.evaluateCommands(workspace.defaultOwner(), "sql:disconnect", turtle, true);
+			assertFalse("Should no longer be connected", (Boolean)workspace.evaluateReporter(workspace.defaultOwner(), "sql:debug-is-connected?", turtle));
 		}
 	}
 }

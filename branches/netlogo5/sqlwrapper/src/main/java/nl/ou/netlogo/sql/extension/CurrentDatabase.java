@@ -48,7 +48,7 @@ public class CurrentDatabase extends DefaultReporter {
      * @return syntax object handle
      */
     public Syntax getSyntax() {
-        return Syntax.reporterSyntax(Syntax.TYPE_STRING);
+        return Syntax.reporterSyntax(Syntax.StringType());
     }
 
     /**

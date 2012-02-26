@@ -47,7 +47,7 @@ public class AutoCommitEnabled extends DefaultReporter {
      * @return syntax object handle
      */
     public Syntax getSyntax() {
-        return Syntax.reporterSyntax(Syntax.TYPE_BOOLEAN);
+        return Syntax.reporterSyntax(Syntax.BooleanType());
     }
 
     /**

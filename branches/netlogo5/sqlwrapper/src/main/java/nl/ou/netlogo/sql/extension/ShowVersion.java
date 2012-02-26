@@ -35,7 +35,7 @@ public class ShowVersion extends DefaultReporter {
      * @return syntax object handle
      */
     public Syntax getSyntax() {
-        return Syntax.reporterSyntax(new int[] {}, Syntax.TYPE_LIST);
+        return Syntax.reporterSyntax(new int[] {}, Syntax.ListType());
     }
 
     /**
@@ -46,8 +46,8 @@ public class ShowVersion extends DefaultReporter {
      * @throws ExtensionException
      */
     public Object report(Argument args[], Context context) throws ExtensionException {
-        LogoList list = new LogoList();
+        LogoListBuilder list = new LogoListBuilder();
         list.add(sqlenv.getVersion());
-        return list;
+        return list.toLogoList();
     }
 }

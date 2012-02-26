@@ -43,7 +43,7 @@ public class Log extends DefaultCommand {
      * @return syntax object handle
      */
     public Syntax getSyntax() {
-        int[] right = { Syntax.TYPE_STRING, Syntax.TYPE_STRING };
+        int[] right = { Syntax.StringType(), Syntax.StringType() };
         return Syntax.commandSyntax(right);
     }
 
