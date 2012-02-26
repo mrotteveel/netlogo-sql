@@ -51,6 +51,7 @@ import nl.ou.netlogo.sql.extension.UseDatabase;
 
 import org.nlogo.api.DefaultClassManager;
 import org.nlogo.api.ExtensionException;
+import org.nlogo.api.ExtensionManager;
 import org.nlogo.api.PrimitiveManager;
 
 /**
@@ -150,13 +151,13 @@ public class SqlExtension extends DefaultClassManager {
     }
 
     @Override
-    public void unload() throws ExtensionException {
+    public void unload(ExtensionManager em) throws ExtensionException {
         SqlLogger.getLogger().info("Call to SqlExtension.unload()");
         SqlConnectionManager conMan = getSqlEnvironment().getConnectionManager();
         conMan.closeAll();
         conMan.shutdownConnectionPool();
 
-        super.unload();
+        super.unload(em);
     }
 
     /**

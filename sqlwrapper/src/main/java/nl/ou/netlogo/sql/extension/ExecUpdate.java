@@ -52,7 +52,7 @@ public class ExecUpdate extends DefaultCommand {
      * @return syntax object handle
      */
     public Syntax getSyntax() {
-        int[] right = { Syntax.TYPE_STRING, Syntax.TYPE_LIST };
+        int[] right = { Syntax.StringType(), Syntax.ListType() };
         return Syntax.commandSyntax(right);
     }
 

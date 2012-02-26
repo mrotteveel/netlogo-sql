@@ -205,9 +205,9 @@ public class ConnectTest extends HeadlessTest {
         Turtle turtle = workspace.world.createTurtle(breed);
         assertNotNull("Unable to create turtle", turtle);
 
-        workspace.evaluateCommands(getDefaultConnectCommand(), turtle, true);
+        workspace.evaluateCommands(workspace.defaultOwner(), getDefaultConnectCommand(), turtle, true);
         assertTrue("Expected connection to be established",
-                (Boolean) workspace.evaluateReporter("sql:is-connected?", turtle));
+                (Boolean) workspace.evaluateReporter(workspace.defaultOwner(), "sql:is-connected?", turtle));
         assertFalse("Expected no connection for observer", (Boolean) workspace.report("sql:is-connected?"));
     }
 
@@ -282,9 +282,9 @@ public class ConnectTest extends HeadlessTest {
     @Test
     public void testConnect_noModificationSettings() throws Exception {
         workspace.open("init-sql.nlogo");
-        LogoList configBefore = (LogoList) workspace.evaluateReporter("sql:get-configuration \"explicit-connection\"");
+        LogoList configBefore = (LogoList) workspace.evaluateReporter(workspace.defaultOwner(), "sql:get-configuration \"explicit-connection\"");
         workspace.command(getGenericConnectCommand());
-        LogoList configAfter = (LogoList) workspace.evaluateReporter("sql:get-configuration \"explicit-connection\"");
+        LogoList configAfter = (LogoList) workspace.evaluateReporter(workspace.defaultOwner(), "sql:get-configuration \"explicit-connection\"");
 
         assertEquals("Expected (default) configuration of explicit-connection to be unchanged", configBefore,
                 configAfter);
