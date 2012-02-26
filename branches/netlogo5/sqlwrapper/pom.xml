@@ -36,13 +36,21 @@
     	<artifactId>postgresql</artifactId>
     	<version>9.0-801.jdbc4</version>
     </dependency>
-	
-	<dependency>
+    
+    <dependency>
     	<groupId>org.netlogo</groupId>
     	<artifactId>netlogo</artifactId>
-    	<version>4.1</version>
+    	<version>5.0</version>
     	<scope>system</scope>
-    	<systemPath>${netlogo.home}/NetLogo.jar</systemPath>
+    	<systemPath>${netlogo5.home}/NetLogo.jar</systemPath>
+    </dependency>
+    
+    <dependency>
+    	<groupId>org.netlogo</groupId>
+    	<artifactId>scala-library</artifactId>
+    	<version>5.0</version>
+    	<scope>system</scope>
+    	<systemPath>${netlogo5.home}/lib/scala-library.jar</systemPath>
     </dependency>
 	
 	<dependency>
