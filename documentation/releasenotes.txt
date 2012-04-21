@@ -1,6 +1,6 @@
 Releasenotes for NetLogo SQL Wrapper version 1.1
 
-Please consult the user manaul for detailed information on NetLogo SQL Wrapper.
+Please consult the user manual for detailed information on NetLogo SQL Wrapper.
 
 Changes for version 1.1:
 * Support for PostgreSQL
