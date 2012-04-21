@@ -83,8 +83,16 @@
     <section>
       <title>Extension Requirements</title>
 
-      <para>SQL Wrapper requires NetLogo 4.1 or 4.1.x in combination with Java
-      6.</para>
+      <para>SQL Wrapper requires NetLogo 4.1.x or 5.0.x in combination with
+      Java 6.</para>
+
+      <para>There is a separate download for each NetLogo version.</para>
+
+      <note>
+        <para>NetLogo SQL Wrapper 1.2-SNAPSHOT is only available for NetLogo 5
+        at this time, but its functionality is identical to version 1.1 for
+        NetLogo 4.1.x</para>
+      </note>
 
       <para>Currently SQL Wrapper supports the following databases:</para>
 
@@ -135,9 +143,10 @@
       to install SQL Wrapper.</para>
 
       <para>The SQL Wrapper is distributed as a single ZIP-file,
-      <filename>sql-bin-&lt;version&gt;.zip</filename>, and contains all files
-      necessary for normal extension usage. Installation is as simple as the
-      following three steps:</para>
+      <filename>sql-bin-&lt;version&gt;.zip</filename> (the zip-file is
+      NetLogo version specific), and contains all files necessary for normal
+      extension usage. Installation is as simple as the following three
+      steps:</para>
 
       <orderedlist>
         <listitem>
@@ -166,7 +175,7 @@
         <listitem>
           <para>(optional) Add the JDBC drivers for your database into the
           <filename>extensions/sql</filename> subdirectory, see <xref
-          linkend="brand-generic" xrefstyle="select: title" /></para>
+          linkend="brand-generic" xrefstyle="select: title"/></para>
 
           <note>
             <para>This step is only required for use with the generic database
@@ -218,7 +227,7 @@
         Procedures tab will remain open, displaying an error-message
         <computeroutput>Can't find extension: sql</computeroutput>, if this
         occurs, please check <xref linkend="installation"
-        xrefstyle="select: title" />. For syntactic errors, it will display a
+        xrefstyle="select: title"/>. For syntactic errors, it will display a
         message like <computeroutput>Expected &lt;syntactic
         element&gt;</computeroutput>.</para>
 
@@ -237,7 +246,7 @@
         Error</guilabel> containing the details of the error. The <link
         linkend="configure"><command>sql:configure</command></link> command
         with the <xref linkend="aspect-defaultconnection"
-        xrefstyle="select: title" /> enables automatic connection management,
+        xrefstyle="select: title"/> enables automatic connection management,
         which will allocate connections when needed.</para>
 
         <para>For this tutorial we also assume a table
@@ -362,7 +371,7 @@
           pool and (re)initializes the connection pool. The configuration
           options for this aspect are discussed in more detail in <xref
           linkend="connection-pool-connection"
-          xrefstyle="select: title" /></para>
+          xrefstyle="select: title"/></para>
         </section>
 
         <section xml:id="aspect-connectionpool">
@@ -429,8 +438,8 @@
           <parameter>"connectionpool"</parameter> aspects is not configured
           explicitly. Be aware that these settings will only be applied at the
           next configuration of <xref linkend="aspect-defaultconnection"
-          xrefstyle="select: title" /> and the settings are not validated
-          until that time.</para>
+          xrefstyle="select: title"/> and the settings are not validated until
+          that time.</para>
         </section>
 
         <section xml:id="aspect-logging">
@@ -572,7 +581,7 @@
         <title>Connection pool (or automatic connection management)</title>
 
         <para>It is advisable to use the connection pool provided by <xref
-        linkend="aspect-defaultconnection" xrefstyle="select: title" />. The
+        linkend="aspect-defaultconnection" xrefstyle="select: title"/>. The
         connection pool simplifies working with connections, especially when
         combined with the <emphasis>autodisconnect</emphasis> option.</para>
 
@@ -725,7 +734,7 @@
 
         <para>For more detailed information on the generic brand
         configuration, refer to <xref linkend="brand-generic"
-        xrefstyle="select: title" /></para>
+        xrefstyle="select: title"/></para>
       </section>
 
       <section xml:id="connect">
@@ -737,9 +746,9 @@
 
         <para>The parameters of <command>sql:connect</command> are a subset of
         the parameters of <xref linkend="aspect-defaultconnection"
-        xrefstyle="select: title" />. For a full description see <xref
+        xrefstyle="select: title"/>. For a full description see <xref
         linkend="connection-pool-connection"
-        xrefstyle="select: title" />.</para>
+        xrefstyle="select: title"/>.</para>
 
         <para>The <command>sql:connect</command> command can be used to create
         a connection for a specific agent (the agent in the current context).
@@ -1057,8 +1066,8 @@
 
         <para>For conversions marked as <emphasis>database
         dependent</emphasis>, it is best to consult the manual of your
-        database. An example: for he conversion of a NetLogo boolean value
-        into a SQL CHARACTER type, MySQL uses <literal>0</literal> and
+        database. An example: for the conversion of a NetLogo boolean value
+        into a SQL character type, MySQL uses <literal>0</literal> and
         <literal>1</literal>, and PostgreSQL uses <literal>false</literal> and
         <literal>true</literal>. Conversions marked as <emphasis>not supported
         </emphasis>are formally not supported by the plug in, but they might
@@ -1078,7 +1087,7 @@
         be setup or a connection needs to be created using <link
         linkend="connect"><command>sql:connect</command></link>. The command
         <command>sql:exec-query</command> always creates a resultset, <xref
-        linkend="retrieving-results" xrefstyle="select: title" /> discusses
+        linkend="retrieving-results" xrefstyle="select: title"/> discusses
         processing of resultsets.</para>
 
         <para>This command performs autodisconnect if the query has an empty
@@ -1163,7 +1172,7 @@
         <link
         linkend="resultset-available"><command>sql:resultset-available?</command></link>
         can be used to check if the query produced a resultset. <xref
-        linkend="retrieving-results" xrefstyle="select: title" /> discusses
+        linkend="retrieving-results" xrefstyle="select: title"/> discusses
         processing of resultsets. If no resultset is available, the reporter
         <link
         linkend="get-rowcount"><command>sql:get-rowcount</command></link> can
@@ -1374,8 +1383,8 @@
         <code>false</code> if no connection is open, there is no resultset, or
         the last row of the resultset has been read. This reporter can be used
         as a loop-condition when reading a resultset, see <xref
-        linkend="looping-resultset-example" xrefstyle="select: title" /> for
-        an example.</para>
+        linkend="looping-resultset-example" xrefstyle="select: title"/> for an
+        example.</para>
       </section>
     </chapter>
 
@@ -1483,7 +1492,7 @@
       <para>This chapter contains commands and reporters that can be used for
       logging or debugging purposes. Logging itself can be configured using
       the configure aspect described in <xref linkend="aspect-logging"
-      xrefstyle="select: title" />.</para>
+      xrefstyle="select: title"/>.</para>
 
       <section xml:id="debug-is-connected">
         <title>sql:debug-is-connected?</title>
@@ -1879,7 +1888,7 @@ ask/ask-concurrent &lt;agents&gt; [
         connections is similar to the cases already discussed. This section
         focuses on the impact of transactions on connection usage, the next
         chapter, <xref linkend="using-transactions"
-        xrefstyle="select: title" />, discusses the use of transactions
+        xrefstyle="select: title"/>, discusses the use of transactions
         itself.</para>
 
         <para>The basic flow of a transaction looks like this:</para>
@@ -1962,7 +1971,7 @@ ask/ask-concurrent &lt;agents&gt; [
         <para>By default the connectionpool will create up to 20 connections.
         If SQL Wrapper tries to obtain a 21st connection, this will - by
         default - throw an error. If the timeout on the <xref
-        linkend="aspect-connectionpool" /> is disabled it will block until a
+        linkend="aspect-connectionpool"/> is disabled it will block until a
         connection is available. Unfortunately due to NetLogo's single
         threaded approach a connection will never come available during this
         blocking call so it is advisable to keep the timeout set!</para>
@@ -1972,7 +1981,7 @@ ask/ask-concurrent &lt;agents&gt; [
         complex NetLogo models it may be necessary to keep multiple
         connections open at once. If this exceeds the limit of 20 connections,
         you will need to increase the <varname>maxconnections</varname> option
-        of <xref linkend="aspect-connectionpool" />. Configuring this option
+        of <xref linkend="aspect-connectionpool"/>. Configuring this option
         needs to happen before configuring the connection itself:</para>
 
         <programlisting>sql:configure "connectionpool" [["maxconnections" 30]]
@@ -2047,7 +2056,7 @@ ask &lt;agents&gt; [
 
       <para>The generic brand option in <link
       linkend="connect"><command>sql:connect</command></link> and <xref
-      linkend="connection-pool-connection" xrefstyle="select: title" /> enable
+      linkend="connection-pool-connection" xrefstyle="select: title"/> enable
       you to connect to databases not explicitly supported by SQL Wrapper, or
       to specify advanced connection properties not exposed for the supported
       databases. SQL Wrapper uses Java DataBase Connectivity (JDBC) to connect
