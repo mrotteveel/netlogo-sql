@@ -47,7 +47,7 @@
   	<dependency>
   		<groupId>junit</groupId>
   		<artifactId>junit</artifactId>
-  		<version>4.8.2</version>
+  		<version>4.11</version>
   		<type>jar</type>
   	</dependency>
   	
@@ -55,14 +55,14 @@
 	<dependency>
 		<groupId>mysql</groupId>
 		<artifactId>mysql-connector-java</artifactId>
-		<version>5.1.16</version>
+		<version>5.1.22</version>
 	</dependency>
 	
 	<!-- PostgreSQL driver -->
 	<dependency>
     	<groupId>postgresql</groupId>
     	<artifactId>postgresql</artifactId>
-    	<version>9.0-801.jdbc4</version>
+    	<version>9.1-901-1.jdbc4</version>
     </dependency>
     
 	<dependency>

@@ -10,31 +10,20 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
  
-  <repositories>
-	<repository>
-		<releases>
-			<enabled>true</enabled>
-		</releases>
-		<id>bonecp-repo</id>
-		<name>BoneCP Repository</name>
-		<url>http://jolbox.com/bonecp/downloads/maven</url>
-	</repository>
- </repositories>
-  
   <dependencies>
   
     <!-- MySQL database driver -->
 	<dependency>
 		<groupId>mysql</groupId>
 		<artifactId>mysql-connector-java</artifactId>
-		<version>5.1.19</version>
+		<version>5.1.22</version>
 	</dependency>
 	
 	<!-- PostgreSQL driver -->
 	<dependency>
     	<groupId>postgresql</groupId>
     	<artifactId>postgresql</artifactId>
-    	<version>9.1-901.jdbc4</version>
+    	<version>9.1-901-1.jdbc4</version>
     </dependency>
     
     <dependency>
@@ -56,7 +45,7 @@
 	<dependency>
 		<groupId>com.jolbox</groupId>
 		<artifactId>bonecp</artifactId>
-		<version>0.7.0</version>
+		<version>0.7.1.RELEASE</version>
 	</dependency>
 	
 	<dependency>
@@ -75,7 +64,7 @@
     <dependency>
     	<groupId>junit</groupId>
     	<artifactId>junit</artifactId>
-    	<version>4.8.2</version>
+    	<version>4.11</version>
     	<type>jar</type>
     	<scope>test</scope>
     </dependency>
@@ -167,9 +156,9 @@
           <aggregate>true</aggregate>
           <doclet>org.umlgraph.doclet.UmlGraphDoc</doclet>
           <docletArtifact>
-            <groupId>gr.spinellis</groupId>
-            <artifactId>UmlGraph</artifactId>
-            <version>5.3</version>
+            <groupId>org.umlgraph</groupId>
+            <artifactId>umlgraph</artifactId>
+            <version>5.6</version>
           </docletArtifact>
           <additionalparam>
             -inferrel -inferdep -quiet -hide java.*
