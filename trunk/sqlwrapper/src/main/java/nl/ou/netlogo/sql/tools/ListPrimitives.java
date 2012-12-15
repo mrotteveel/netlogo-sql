@@ -21,6 +21,9 @@
 package nl.ou.netlogo.sql.tools;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import nl.ou.netlogo.sql.wrapper.SqlExtension;
 
@@ -42,6 +45,17 @@ import org.nlogo.api.Syntax;
  */
 public class ListPrimitives implements PrimitiveManager {
 
+    private static final Map<Integer, String> TYPE_MAP;
+    static {
+        Map<Integer, String> tempMap = new HashMap<Integer, String>();
+        tempMap.put(Syntax.BooleanType(), "boolean");
+        tempMap.put(Syntax.NumberType(), "number");
+        tempMap.put(Syntax.ListType(), "list");
+        tempMap.put(Syntax.StringType(), "string");
+        tempMap.put(Syntax.VoidType(), "void");
+        TYPE_MAP = Collections.unmodifiableMap(tempMap);
+    }
+
     public static void main(String[] args) throws ExtensionException {
         ListPrimitives lp = new ListPrimitives();
         SqlExtension ext = new SqlExtension();
@@ -51,13 +65,13 @@ public class ListPrimitives implements PrimitiveManager {
     @Override
     public void addPrimitive(String name, Primitive primitive) {
         Syntax syntax = primitive.getSyntax();
-        int[] parameterIds = syntax.getRight();
+        int[] parameterIds = syntax.right();
         String[] parameterTypeNames = new String[parameterIds.length];
         for (int idx = 0; idx < parameterIds.length; idx++) {
             parameterTypeNames[idx] = getTypeName(parameterIds[idx]);
         }
         boolean isCommand = primitive instanceof Command;
-        String returnType = getTypeName(syntax.getRet());
+        String returnType = getTypeName(syntax.ret());
         System.out.printf("%-8s : %-7s %-20s %s%n", isCommand ? "command" : "reporter", returnType, name,
                 Arrays.toString(parameterTypeNames));
     }
@@ -70,20 +84,8 @@ public class ListPrimitives implements PrimitiveManager {
      * @return Type name
      */
     private String getTypeName(int id) {
-        switch (id) {
-        case Syntax.TYPE_BOOLEAN:
-            return "boolean";
-        case Syntax.TYPE_NUMBER:
-            return "number";
-        case Syntax.TYPE_LIST:
-            return "list";
-        case Syntax.TYPE_STRING:
-            return "string";
-        case Syntax.TYPE_VOID:
-            return "void";
-        default:
-            return "unknown/unsupported id: " + id;
-        }
+        String typeName = TYPE_MAP.get(id);
+        return typeName != null ? typeName : ("unknown/unsupported id: " + id);
     }
 
     @Override
@@ -92,7 +94,7 @@ public class ListPrimitives implements PrimitiveManager {
     }
 
     @Override
-    public void autoImportPrimitives(boolean arg0) {
-        // Stub: Not implemented
+    public void autoImportPrimitives_$eq(boolean arg0) {
+        // TODO Auto-generated method stub
     }
 }

@@ -49,7 +49,7 @@ public class Connect extends DefaultCommand {
      * @return syntax object handle
      */
     public Syntax getSyntax() {
-        return Syntax.commandSyntax(new int[] { Syntax.TYPE_LIST });
+        return Syntax.commandSyntax(new int[] { Syntax.ListType() });
     }
 
     /**

@@ -42,7 +42,7 @@ public class GetRowCount extends DefaultReporter {
      * @return syntax object handle
      */
     public Syntax getSyntax() {
-        return Syntax.reporterSyntax(new int[] {}, Syntax.TYPE_NUMBER);
+        return Syntax.reporterSyntax(new int[] {}, Syntax.NumberType());
     }
 
     /**
