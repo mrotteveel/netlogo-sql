@@ -87,8 +87,8 @@ public class ConnectionPoolTest extends HeadlessTest {
         LogoList observerRow = (LogoList) workspace.report("sql:fetch-row");
         String observerConnection = (String) observerRow.get(0);
 
-        workspace.evaluateCommands("sql:exec-direct \"SELECT CAST(connection_id() AS CHAR)\"", turtle, true);
-        LogoList agentRow = (LogoList) workspace.evaluateReporter("sql:fetch-row", turtle);
+        workspace.evaluateCommands(workspace.defaultOwner(), "sql:exec-direct \"SELECT CAST(connection_id() AS CHAR)\"", turtle, true);
+        LogoList agentRow = (LogoList) workspace.evaluateReporter(workspace.defaultOwner(), "sql:fetch-row", turtle);
         String agentConnection = (String) agentRow.get(0);
 
         assertFalse("Agent and observer should have different connections", observerConnection.equals(agentConnection));
@@ -148,7 +148,7 @@ public class ConnectionPoolTest extends HeadlessTest {
             System.out.println("Creating agent " + i);
             Turtle turtle = workspace.world.createTurtle(breed);
             assertNotNull("Unable to create turtle", turtle);
-            String agentDB = (String) workspace.evaluateReporter("sql:current-database", turtle);
+            String agentDB = (String) workspace.evaluateReporter(workspace.defaultOwner(), "sql:current-database", turtle);
             assertFalse("Observer and agent should have different database", observerDB.equals(agentDB));
             assertEquals("Schema should be default test schema", db.getSchema(), agentDB);
         }
@@ -560,7 +560,7 @@ public class ConnectionPoolTest extends HeadlessTest {
             System.out.println("Creating agent " + connectionCount);
             Turtle turtle = workspace.world.createTurtle(breed);
             try {
-                return workspace.evaluateReporter("sql:current-database", turtle);
+                return workspace.evaluateReporter(workspace.defaultOwner(), "sql:current-database", turtle);
             } catch (CompilerException e) {
                 return null;
             }

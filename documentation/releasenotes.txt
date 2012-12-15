@@ -1,6 +1,15 @@
-Releasenotes for NetLogo SQL Wrapper version 1.1
+Releasenotes for NetLogo SQL Wrapper for NetLogo 5.0.x version 1.2-SNAPSHOT
 
 Please consult the user manual for detailed information on NetLogo SQL Wrapper.
+
+This version only works in NetLogo 5.0.x. If you use NetLogo 4.1.x, please continue
+using NetLogo SQL Wrapper version 1.1
+
+Changes for version 1.2-SNAPSHOT:
+This is not a final release, but an intermediate release to provide
+support for NetLogo 5; its functionality is identical to version 1.1
+* Support for NetLogo 5.0.x
+* Updated JDBC drivers for PostgreSQL (to version 9.1.901.jdbc4) and MySQL (to 5.1.19)
 
 Changes for version 1.1:
 * Support for PostgreSQL

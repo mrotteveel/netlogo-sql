@@ -27,22 +27,30 @@
 	<dependency>
 		<groupId>mysql</groupId>
 		<artifactId>mysql-connector-java</artifactId>
-		<version>5.1.16</version>
+		<version>5.1.19</version>
 	</dependency>
 	
 	<!-- PostgreSQL driver -->
 	<dependency>
     	<groupId>postgresql</groupId>
     	<artifactId>postgresql</artifactId>
-    	<version>9.0-801.jdbc4</version>
+    	<version>9.1-901.jdbc4</version>
     </dependency>
-	
-	<dependency>
+    
+    <dependency>
     	<groupId>org.netlogo</groupId>
     	<artifactId>netlogo</artifactId>
-    	<version>4.1</version>
+    	<version>5.0</version>
     	<scope>system</scope>
-    	<systemPath>${netlogo.home}/NetLogo.jar</systemPath>
+    	<systemPath>${netlogo5.home}/NetLogo.jar</systemPath>
+    </dependency>
+    
+    <dependency>
+    	<groupId>org.netlogo</groupId>
+    	<artifactId>scala-library</artifactId>
+    	<version>5.0</version>
+    	<scope>system</scope>
+    	<systemPath>${netlogo5.home}/lib/scala-library.jar</systemPath>
     </dependency>
 	
 	<dependency>
@@ -107,7 +115,7 @@
                         <manifestEntries>
                             <Extension-Name>sql</Extension-Name>
                             <Class-Manager>nl.ou.netlogo.sql.wrapper.SqlExtension</Class-Manager>
-                            <NetLogo-Extension-API-Version>4.1</NetLogo-Extension-API-Version>
+                            <NetLogo-Extension-API-Version>5.0</NetLogo-Extension-API-Version>
                         </manifestEntries>
                     </archive>
                 </configuration>

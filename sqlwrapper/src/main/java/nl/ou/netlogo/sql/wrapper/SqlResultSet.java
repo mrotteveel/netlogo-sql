@@ -115,13 +115,13 @@ public class SqlResultSet {
         // Set fetching to true to indicate fetchRow() is called at least once:
         fetching = true;
         if (isEndOfResultSet()) {
-            return new LogoList();
+            return new LogoListBuilder().toLogoList();
         }
 
         try {
             // the metadata is used to do the convert datatypes from SQL to NetLogo
             LOG.log(Level.FINE, "SqlResultSet.fetchRow(): dataconversion");
-            LogoList cols = new LogoList();
+            LogoListBuilder cols = new LogoListBuilder();
 
             for (int i = 1; i <= metaData.getColumnCount(); ++i) {
                 switch (metaData.getColumnType(i)) {
@@ -138,12 +138,8 @@ public class SqlResultSet {
                     break;
                 case java.sql.Types.TINYINT:
                 case java.sql.Types.SMALLINT:
-                    // cols.add(this.resultSet.getInt(i));
-                    // break;
                 case java.sql.Types.INTEGER:
                 case java.sql.Types.BIGINT:
-                    // cols.add(this.resultSet.getLong(i));
-                    // break;
                 case java.sql.Types.NUMERIC:
                 case java.sql.Types.DECIMAL:
                 case java.sql.Types.REAL:
@@ -163,7 +159,7 @@ public class SqlResultSet {
                 autodisconnectCoordinator.endOfResultSet();
             }
 
-            return cols;
+            return cols.toLogoList();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -174,11 +170,11 @@ public class SqlResultSet {
      * @throws ExtensionException
      */
     public LogoList fetchResultSet() throws ExtensionException {
-        LogoList rows = new LogoList();
+        LogoListBuilder rows = new LogoListBuilder();
 
         // Return empty list if there is no row available, if something has already been fetched
         if (!isRowAvailable() || isFetching()) {
-            return rows;
+            return rows.toLogoList();
         }
 
         LogoList cols;
@@ -186,7 +182,7 @@ public class SqlResultSet {
             cols = fetchRow();
             rows.add(cols);
         }
-        return rows;
+        return rows.toLogoList();
     }
 
     /**

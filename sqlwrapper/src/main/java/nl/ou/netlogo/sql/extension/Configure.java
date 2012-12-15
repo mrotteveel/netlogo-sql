@@ -48,7 +48,7 @@ public class Configure extends DefaultCommand {
      * @return syntax object handle
      */
     public Syntax getSyntax() {
-        return Syntax.commandSyntax(new int[] { Syntax.TYPE_STRING, Syntax.TYPE_LIST });
+        return Syntax.commandSyntax(new int[] { Syntax.StringType(), Syntax.ListType() });
     }
 
     /**

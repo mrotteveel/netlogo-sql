@@ -43,7 +43,7 @@ public class ResultSetAvailable extends DefaultReporter {
      * @return syntax object handle
      */
     public Syntax getSyntax() {
-        return Syntax.reporterSyntax(new int[] {}, Syntax.TYPE_BOOLEAN);
+        return Syntax.reporterSyntax(new int[] {}, Syntax.BooleanType());
     }
 
     /**

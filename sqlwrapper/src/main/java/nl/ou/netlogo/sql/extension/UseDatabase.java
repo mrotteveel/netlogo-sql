@@ -48,7 +48,7 @@ public class UseDatabase extends DefaultCommand {
      * @return syntax object handle
      */
     public Syntax getSyntax() {
-        int[] right = { Syntax.TYPE_STRING };
+        int[] right = { Syntax.StringType() };
         return Syntax.commandSyntax(right);
     }
 

@@ -49,7 +49,7 @@ public class ExecDirect extends DefaultCommand {
      * @return syntax object handle
      */
     public Syntax getSyntax() {
-        return Syntax.commandSyntax(new int[] { Syntax.TYPE_STRING });
+        return Syntax.commandSyntax(new int[] { Syntax.StringType() });
     }
 
     /**

@@ -43,7 +43,7 @@ public class FetchResultSet extends DefaultReporter {
      * @return syntax object handle
      */
     public Syntax getSyntax() {
-        return Syntax.reporterSyntax(new int[] {}, Syntax.TYPE_LIST);
+        return Syntax.reporterSyntax(new int[] {}, Syntax.ListType());
     }
 
     /**
@@ -69,6 +69,6 @@ public class FetchResultSet extends DefaultReporter {
                 return resultSet.fetchResultSet();
             }
         }
-        return new LogoList();
+        return new LogoListBuilder().toLogoList();
     }
 }

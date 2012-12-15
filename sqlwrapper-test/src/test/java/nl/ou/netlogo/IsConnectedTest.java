@@ -127,9 +127,9 @@ public class IsConnectedTest extends HeadlessTest {
 		Turtle turtle1 = workspace.world.createTurtle(breed);
 		Turtle turtle2 = workspace.world.createTurtle(breed);
 		
-		workspace.evaluateCommands(getDefaultConnectCommand(), turtle2, true);
+		workspace.evaluateCommands(workspace.defaultOwner(), getDefaultConnectCommand(), turtle2, true);
 		
-		assertFalse("Expected turtle1 to not be connected", (Boolean)workspace.evaluateReporter("sql:is-connected?", turtle1));
-		assertTrue("Expected turtle2 to be connected", (Boolean)workspace.evaluateReporter("sql:is-connected?", turtle2));
+		assertFalse("Expected turtle1 to not be connected", (Boolean)workspace.evaluateReporter(workspace.defaultOwner(), "sql:is-connected?", turtle1));
+		assertTrue("Expected turtle2 to be connected", (Boolean)workspace.evaluateReporter(workspace.defaultOwner(), "sql:is-connected?", turtle2));
 	}
 }

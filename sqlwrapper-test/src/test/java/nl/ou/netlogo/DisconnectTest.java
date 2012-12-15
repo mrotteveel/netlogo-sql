@@ -93,15 +93,15 @@ public class DisconnectTest extends HeadlessTest {
 		assertNotNull("Unable to create turtle", turtle);
 		
 		workspace.command(getDefaultConnectCommand());
-		workspace.evaluateCommands(getDefaultConnectCommand(), turtle, true);
+		workspace.evaluateCommands(workspace.defaultOwner(), getDefaultConnectCommand(), turtle, true);
 		
 		assertTrue("Expected true for sql:is-connected? of observer", (Boolean)workspace.report("sql:is-connected?"));
-		assertTrue("Expected true for sql:is-connected? of agent", (Boolean)workspace.evaluateReporter("sql:is-connected?", turtle));
+		assertTrue("Expected true for sql:is-connected? of agent", (Boolean)workspace.evaluateReporter(workspace.defaultOwner(), "sql:is-connected?", turtle));
 		
-		workspace.evaluateCommands("sql:disconnect", turtle, true);
+		workspace.evaluateCommands(workspace.defaultOwner(), "sql:disconnect", turtle, true);
 		
 		assertTrue("Expected true for sql:is-connected? of observer", (Boolean)workspace.report("sql:is-connected?"));
-		assertFalse("Expected false for sql:is-connected? of agent", (Boolean)workspace.evaluateReporter("sql:is-connected?", turtle));
+		assertFalse("Expected false for sql:is-connected? of agent", (Boolean)workspace.evaluateReporter(workspace.defaultOwner(), "sql:is-connected?", turtle));
 	}
 	
 	/**

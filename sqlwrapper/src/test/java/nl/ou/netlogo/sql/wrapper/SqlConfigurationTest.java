@@ -29,6 +29,7 @@ import java.util.Map;
 import org.junit.Test;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoList;
+import org.nlogo.api.LogoListBuilder;
 
 public class SqlConfigurationTest {
 	
@@ -42,7 +43,7 @@ public class SqlConfigurationTest {
 	 */
 	@Test
 	public void testParseSettingsList_empty() throws Exception {
-		Map<String, String> settings = SqlConfiguration.parseSettingList("name", new LogoList());
+		Map<String, String> settings = SqlConfiguration.parseSettingList("name", new LogoListBuilder().toLogoList());
 		
 		assertEquals("Expected empty map as result", Collections.emptyMap(), settings);
 	}
@@ -54,13 +55,13 @@ public class SqlConfigurationTest {
 	 */
 	@Test
 	public void testParseSettingsList_singleNamedSetting() throws Exception {
-		LogoList list = new LogoList();
-		LogoList singleSetting = new LogoList();
+		LogoListBuilder list = new LogoListBuilder();
+		LogoListBuilder singleSetting = new LogoListBuilder();
 		singleSetting.add("single_setting_name");
 		singleSetting.add("single_setting_value");
-		list.add(singleSetting);
+		list.add(singleSetting.toLogoList());
 		
-		Map<String, String> settings = SqlConfiguration.parseSettingList("name", list);
+		Map<String, String> settings = SqlConfiguration.parseSettingList("name", list.toLogoList());
 		
 		Map<String, String> expectedMap = new HashMap<String, String>();
 		expectedMap.put("single_setting_name", "single_setting_value");
@@ -75,17 +76,17 @@ public class SqlConfigurationTest {
 	 */
 	@Test
 	public void testParseSettingsList_multipleNamedSettings() throws Exception {
-		LogoList list = new LogoList();
-		LogoList setting = new LogoList();
+		LogoListBuilder list = new LogoListBuilder();
+		LogoListBuilder setting = new LogoListBuilder();
 		setting.add("setting_name_1");
 		setting.add("setting_value_1");
-		list.add(setting);
-		setting = new LogoList();
+		list.add(setting.toLogoList());
+		setting = new LogoListBuilder();
 		setting.add("setting_name_2");
 		setting.add("setting_value_2");
-		list.add(setting);
+		list.add(setting.toLogoList());
 		
-		Map<String, String> settings = SqlConfiguration.parseSettingList("name", list);
+		Map<String, String> settings = SqlConfiguration.parseSettingList("name", list.toLogoList());
 		
 		Map<String, String> expectedMap = new HashMap<String, String>();
 		expectedMap.put("setting_name_1", "setting_value_1");
@@ -101,12 +102,12 @@ public class SqlConfigurationTest {
 	 */
 	@Test
 	public void testParseSettingsList_singleUnnamedSetting() throws Exception {
-		LogoList list = new LogoList();
-		LogoList singleSetting = new LogoList();
+		LogoListBuilder list = new LogoListBuilder();
+		LogoListBuilder singleSetting = new LogoListBuilder();
 		singleSetting.add("single_setting");
-		list.add(singleSetting);
+		list.add(singleSetting.toLogoList());
 		
-		Map<String, String> settings = SqlConfiguration.parseSettingList("name", list);
+		Map<String, String> settings = SqlConfiguration.parseSettingList("name", list.toLogoList());
 		
 		Map<String, String> expectedMap = new HashMap<String, String>();
 		expectedMap.put("", "single_setting");
@@ -121,14 +122,14 @@ public class SqlConfigurationTest {
 	 */
 	@Test(expected=ExtensionException.class)
 	public void testParseSettingsList_settingListTooBig() throws Exception {
-		LogoList list = new LogoList();
-		LogoList singleSetting = new LogoList();
+		LogoListBuilder list = new LogoListBuilder();
+		LogoListBuilder singleSetting = new LogoListBuilder();
 		singleSetting.add("single_setting_name");
 		singleSetting.add("single_setting_value");
 		singleSetting.add("extra_entry");
-		list.add(singleSetting);
+		list.add(singleSetting.toLogoList());
 		
-		SqlConfiguration.parseSettingList("name", list);
+		SqlConfiguration.parseSettingList("name", list.toLogoList());
 	}
 	
 	/**
@@ -138,16 +139,16 @@ public class SqlConfigurationTest {
 	 */
 	@Test(expected=ExtensionException.class)
 	public void testParseSettingsList_multipleSetting_settingListTooSmall() throws Exception {
-		LogoList list = new LogoList();
-		LogoList setting = new LogoList();
+		LogoListBuilder list = new LogoListBuilder();
+		LogoListBuilder setting = new LogoListBuilder();
 		setting.add("setting_name_1");
 		setting.add("setting_value_1");
-		list.add(setting);
-		setting = new LogoList();
+		list.add(setting.toLogoList());
+		setting = new LogoListBuilder();
 		setting.add("setting_name_no_value");
-		list.add(setting);
+		list.add(setting.toLogoList());
 		
-		SqlConfiguration.parseSettingList("name", list);
+		SqlConfiguration.parseSettingList("name", list.toLogoList());
 	}
 	
 	// TODO Consider case of an invalid settings list (eg list containing other objects than LogoList)
