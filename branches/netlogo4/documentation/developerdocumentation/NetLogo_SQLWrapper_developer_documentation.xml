@@ -1,0 +1,1901 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<book version="5.0" xmlns="http://docbook.org/ns/docbook"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:svg="http://www.w3.org/2000/svg"
+      xmlns:m="http://www.w3.org/1998/Math/MathML"
+      xmlns:html="http://www.w3.org/1999/xhtml"
+      xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <title>NetLogo SQL Wrapper developer documentation</title>
+
+    <authorgroup>
+      <author>
+        <personname><firstname>Jan</firstname><surname>Blom</surname></personname>
+      </author>
+
+      <author>
+        <personname><firstname>Rene</firstname><surname>Quakkelaar</surname></personname>
+      </author>
+
+      <author>
+        <personname><firstname>Mark</firstname><surname>Rotteveel</surname></personname>
+      </author>
+    </authorgroup>
+
+    <releaseinfo>Covers SQL Wrapper version 1.0</releaseinfo>
+  </info>
+
+  <preface>
+    <title>Preface</title>
+
+    <section>
+      <title>Introduction to SQLWrapper</title>
+
+      <para>SQLWrapper is an extension to NetLogo which adds primitives to the
+      NetLogo modelling language to support access to databases using SQL
+      (Structured Query Language).</para>
+
+      <para>The following features are supported:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Querying data from a database
+          (<command>SELECT</command>)</para>
+        </listitem>
+
+        <listitem>
+          <para>Storing data into a database
+          (<command>INSERT</command>)</para>
+        </listitem>
+
+        <listitem>
+          <para>Changing data in a database (<command>UPDATE</command>,
+          <command>DELETE</command>)</para>
+        </listitem>
+
+        <listitem>
+          <para>Database connection per agent (turtle, patch)</para>
+        </listitem>
+
+        <listitem>
+          <para>(optional) Automatic connection management (creates
+          connections when needed, and closes when possible)</para>
+        </listitem>
+
+        <listitem>
+          <para>(optional) Transaction control</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>SQLWrapper is released under the <link linkend="lgpl">LGPL</link>.
+      The sourcecode is available at <link
+      xlink:href="http://code.google.com/p/netlogo-sql/">http://code.google.com/p/netlogo-sql/</link>.</para>
+
+      <para>The extension was commissioned by Dr. Hendrik Drachsler, Assistant
+      Professor at the Centre for Learning Sciences and Technologies (CELSTEC)
+      of the Open University of the Netherlands (OUNL). Design and development
+      was done by Jan Blom, Rene Quakkelaar and Mark Rotteveel as part of the
+      final project of their Bachelor (BSc Computer Science) at the Open
+      University of the Netherlands (OUNL).</para>
+    </section>
+
+    <section>
+      <title>Plugin Requirements</title>
+
+      <para>SQL Wrapper requires NetLogo 4.1 or 4.1.x in combination with Java
+      6.</para>
+
+      <para>Currently SQLWrapper supports the following databases:</para>
+
+      <informaltable>
+        <tgroup cols="2">
+          <tbody>
+            <row>
+              <entry>MySQL</entry>
+
+              <entry>4.1, 5.0, 5.1, 5.4, 5.5</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </section>
+
+    <section>
+      <title>This manual</title>
+
+      <para>This manual is intended for developers of NetLogo SQL Wrapper. It
+      describes design and implementation considerations of SQL Wrapper, where
+      to get the code, how to extend functionality and the setup of the build
+      and tests, and writing documentation.</para>
+
+      <para>In general we assume the reader of this manual is already familiar
+      with Java 6 and the JDBC API, and has a basic understanding of the
+      NetLogo extension mechanism as documented in the <link
+      xlink:href="http://ccl.northwestern.edu/netlogo/docs/extensions.html">NetLogo
+      extensions guide</link>. For the chapter on the build it is advantageous
+      to have knowledge of Maven. Although not required, knowledge of JUnit
+      and some basic familiarity with testing techniques is helpful for the
+      chapter on testing.</para>
+    </section>
+
+    <section>
+      <title>Getting the code</title>
+
+      <para>The code can be download from <link
+      xlink:href="http://code.google.com/p/netlogo-sql/">http://code.google.com/p/netlogo-sql/</link></para>
+
+      <para>More details can be found in <xref linkend="build" />.</para>
+    </section>
+
+    <section>
+      <title>Contributing</title>
+
+      <para>The Netlogo SQL plug-in is a community based open source project,
+      and we welcome all who wish to contribute. There are several ways to get
+      involved:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Fix typos and improve the documentation</para>
+        </listitem>
+
+        <listitem>
+          <para>Fix a bug or implement a new feature request and communicate
+          this via the Netlogo developers/user community</para>
+        </listitem>
+
+        <listitem>
+          <para>Become a committer. If you'd like to contribute code to the
+          project beyond the occasional patch, you can request commit rights
+          for the project.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>You can contact the SQL Wrapper developers at <link
+      xlink:href="http://code.google.com/p/netlogo-sql/">http://code.google.com/p/netlogo-sql/</link>
+      or at <email>netlogo.sql@gmail.com</email></para>
+    </section>
+  </preface>
+
+  <chapter>
+    <title>Design</title>
+
+    <section>
+      <title>Architecture</title>
+
+      <para>The SQL plug-in consists of two major parts:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>the extension layer</para>
+        </listitem>
+
+        <listitem>
+          <para>the wrapper layer</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>The extension layer is used to implement the actual NetLogo
+      commands whereby each new NetLogo command is implemented using a
+      separate class. For example the command:</para>
+
+      <programlisting>sql:connect &lt;connection-list&gt;</programlisting>
+
+      <para>is implemented using a class <classname>Connect</classname>
+      [<filename>Connect.java</filename>]. The commands implemented via the
+      extension layer will call methods on classes defined in the wrapper
+      layer. For example the previous command <command>sql:connect</command>
+      will use methods from the wrapper class
+      <classname>SqlEnvironment</classname>
+      [<filename>SqlEnvironment.java</filename>] to setup a connection
+      (<classname>SqlConnection</classname>
+      [<filename>SqlConnection.java</filename>]) towards a database. The
+      wrapper layer is used to for the actual database interaction (connect /
+      sending statement / result handling etc).</para>
+
+      <para>The wrapper class <classname>SqlExtension</classname>
+      [<filename>SqlExtension.java</filename>] extends the NetLogo
+      <classname>DefaultClassManager</classname> and implements the
+      <command>load()</command> method to add the newly defined primitives(see
+      NetLogo extension API for more info).</para>
+
+      <para>The SQL extension can be pictured like <xref
+      linkend="figure-high-level" xrefstyle="select: label" /></para>
+
+      <figure xml:id="figure-high-level">
+        <title>SQL Wrapper high-level architecture</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata contentdepth="100%" fileref="extension_high_level.png"
+                       scalefit="1" width="100%"></imagedata>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>The SQL-extension layer can be pictured like <xref
+      linkend="figure-extension-high-level"
+      xrefstyle="select: label" /></para>
+
+      <figure xml:id="figure-extension-high-level">
+        <title>SQL Wrapper extension layer</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata contentdepth="100%"
+                       fileref="extension_layer_high_level.png" scalefit="1"
+                       width="100%"></imagedata>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>The NetLogo command executed will always need a valid connection
+      handle before any interaction with a relational database-engine is
+      possible. The extension methods are therefore always implemented on top
+      of the SQLConnection object, which represents a NetLogo connection
+      handle towards the relational database. The method invoke in this layer
+      will call a method in the wrapper layer which can be pictured in <xref
+      linkend="figure-wrapper-high-level" xrefstyle="select: label" />. The
+      wrapper layer will take care of the actual interaction with the
+      relational database by invoking the associated JDBC method.</para>
+
+      <figure xml:id="figure-wrapper-high-level">
+        <title>SQL Wrapper wrapper layer</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata contentdepth="100%"
+                       fileref="wrapper_layer_high_level.png" scalefit="1"
+                       width="100%"></imagedata>
+          </imageobject>
+        </mediaobject>
+      </figure>
+    </section>
+
+    <section>
+      <title>More reading</title>
+
+      <para>Additional information on design and ideas behind the extension
+      can be found in "Developing a NetLogo extension for accessing relational
+      databases" part 1: "Available standards/API's and software libraries to
+      access relational databases" and part 2: "Integrating new commands in
+      NetLogo to be able to access data stored in a relational database" by
+      Rene Quakkelaar (<emphasis>Add URL once published</emphasis>)</para>
+    </section>
+  </chapter>
+
+  <chapter>
+    <title>Implementation</title>
+
+    <section>
+      <title>Adding new commands</title>
+
+      <para>Adding a new extension command consists of:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Implement a NetLogo primitive in the extension package. The
+          class name should reflect the command-name to be implemented</para>
+        </listitem>
+
+        <listitem>
+          <para>If the new primitive is a command, implement
+          <classname>DefaultCommand</classname>, for a reporter
+          <classname>DefaultReporter</classname>.</para>
+        </listitem>
+
+        <listitem>
+          <para>Depending on the functionality implemented classes from the
+          wrapper layer have to be imported</para>
+        </listitem>
+
+        <listitem>
+          <para>The command syntax itself is implemented and any additional
+          logic is implemented via classes in the wrapper directory.</para>
+        </listitem>
+
+        <listitem>
+          <para>Add the primitive to the SQLExtension.load() method</para>
+        </listitem>
+      </orderedlist>
+
+      <para>As an example, we are going to add a command called connect to the
+      extension:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>A new class <classname>Connect</classname>
+          [<filename>Connect.java</filename>] is added in the extension
+          package</para>
+        </listitem>
+
+        <listitem>
+          <para>In this case <command>sql:connect</command> is a command so we
+          extend the class <classname>DefaultCommand</classname></para>
+        </listitem>
+
+        <listitem>
+          <para>The method <code>getSyntax()</code> is implemented reflecting
+          the syntax for the new command. The method <code>perform()</code> is
+          implemented to implement the logic for this command</para>
+        </listitem>
+
+        <listitem>
+          <para>The connect command uses the
+          <classname>SqlEnvironment</classname> class which is implemented in
+          the package wrapper. Any specific logic for a command is in the
+          wrapper layer</para>
+        </listitem>
+
+        <listitem>
+          <para>The
+          <classname>SqlExtension</classname>.<methodname>load()</methodname>
+          method is updated:</para>
+
+          <programlisting>primitiveManager.addPrimitive("connect", new Connect());</programlisting>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Database support</title>
+
+      <para>For the actual connection to a database, the JDBC architecture of
+      Java is used. As NetLogo is only capable of loading additional jar
+      files, it is only possible to use Type 4 (or pure Java) JDBC drivers.
+      The JDBC driver used isthe JDBC driver for MySQL and is packaged
+      together with the NetLogo extension. The MySQL driver version used is
+      5.1.14. [<filename>mysql-connector-java-5.1.14.jar</filename>].</para>
+
+      <para>The current version of SQL Wrapper only supports the MySQL
+      database 5.5.x. Lower versions should work but are not tested. The
+      database support is implemented using the classes :
+      <classname>AbstractDatabase</classname>;
+      <classname>DatabaseInfo</classname> and;
+      <classname>DatabaseMySQL</classname>.
+      <classname>DatabaseInfo</classname> is the interface that defines the
+      methods that need to be implemented to support a 'generic' relational
+      database. The <classname>AbstractDatabase</classname> class implements
+      the DatabaseInfo interface. For each new supported database one needs to
+      add a specific class that extends
+      <classname>AbstractDatabase</classname>. By default the MySQL database
+      support is added and hence the class
+      <classname>DatabaseMySQL</classname> is implemented using the procedure
+      as described above.</para>
+    </section>
+
+    <section>
+      <title>Connection pooling</title>
+
+      <para>SQL Wrapper pluging uses <link
+      xlink:href="http://jolbox.com">BoneCP</link> for connection pooling.
+      Version 0.7.0 is the latest available stable version that is used in the
+      SQL plug-in distribution. For BoneCP to work one also needs SLF4J and
+      Google Guava library as described in the <link
+      xlink:href="http://jolbox.com/requirements.html">requirements
+      page</link>. Connection pooling in the SQL Wrapper is configurable and
+      by default off [see user manual for configuration specifics].</para>
+    </section>
+
+    <section>
+      <title>SQL language support</title>
+
+      <para>SQL Wrapper basically supports all SQL. Even non-ISO SQL is
+      supported through the <command>sql:exec-direct</command> command which
+      can be used to execute any valid SQL-statement towards a relational
+      database. For a couple of commands like <command>sql:use-database
+      &lt;dbname&gt;</command> and <command>sql:find-database
+      &lt;dbname&gt;</command> the implementation is generic up to the level
+      of the class <classname>DatabaseMySQL</classname>. This class contaisn
+      the MySQL specific SQL that needs to be executed to support the
+      switching of database context using the NetLogo command :
+      <command>sql:use-database</command>.</para>
+
+      <para>There are no known restrictions on the SQL language/dialects for
+      the NetLogo SQL pug-in.</para>
+    </section>
+
+    <section>
+      <title>Code style</title>
+
+      <para>The initial versions of SQL Wrapper are developed using Eclipse
+      with basically the default settings with respect to code style. Please
+      stay in-line for readability and add meaningful comments to code to help
+      others out.</para>
+
+      <para>If you use Eclipse, you should do the following to make sure your
+      code is automatically formatted correctly:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Download the eclipse profile from <emphasis>&lt;url maken naar
+          eclipse profile&gt;</emphasis></para>
+        </listitem>
+
+        <listitem>
+          <para>Open the project Properties (right-click on the project
+          directory in Eclipse and select Properties or choose Project -&gt;
+          Properties)</para>
+        </listitem>
+
+        <listitem>
+          <para>Select Java, then Code Style, and finally Formatter.</para>
+        </listitem>
+
+        <listitem>
+          <para>Check the Enable project specific settings checkbox</para>
+        </listitem>
+
+        <listitem>
+          <para>Click Import..., select the formatter.xml file you downloaded
+          above, and click Open</para>
+        </listitem>
+
+        <listitem>
+          <para>Click OK to close the Properties window</para>
+        </listitem>
+      </orderedlist>
+    </section>
+  </chapter>
+
+  <chapter xml:id="build">
+    <title>Building the extension</title>
+
+    <para>SQL Wrapper is built using <link
+    xlink:href="http://maven.apache.org/">Maven</link>, version 2.2.1. This
+    chapter explains how to setup your system to be able to build and package
+    SQL Wrapper and generate the Javadoc.</para>
+
+    <para>Requirements to build SQL Wrapper are of course an installed Java 6
+    development kit, and install Maven (version 2.2.1, but version 3 should
+    work as well) according to the instructions on <link
+    xlink:href="http://maven.apache.org/download.html">http://maven.apache.org/download.html</link></para>
+
+    <section>
+      <title>Configuring Maven for the build</title>
+
+      <para>Maven is a so-called dependency management system which allows to
+      pull in dependencies (libraries) from central servers on the internet.
+      However in the case of SQL Wrapper we also need the NetLogo classes to
+      build the extension. These classes are not available from central Maven
+      repositories, so we need to setup Maven so it knows were to find the
+      NetLogo.jar file.</para>
+
+      <para>To obtain the NetLogo files, it is simplest to install NetLogo on
+      your system (as explained in the usermanual). Next edit (or create) your
+      Maven settings.xml in
+      <filename>&lt;user-home&gt;/.m2/settings.xml</filename> so it looks like
+      this:</para>
+
+      <programlisting>&lt;settings&gt;
+  &lt;profiles&gt;
+    &lt;profile&gt;
+      &lt;id&gt;inject-netlogo-location&lt;/id&gt;
+      &lt;properties&gt;
+        &lt;netlogo.home&gt;<emphasis>root-of-NetLogo-installation</emphasis>&lt;/netlogo.home&gt;
+      &lt;/properties&gt;
+    &lt;/profile&gt;
+  &lt;/profiles&gt;
+
+  &lt;activeProfiles&gt;
+    &lt;activeProfile&gt;inject-netlogo-location&lt;/activeProfile&gt;
+  &lt;/activeProfiles&gt;
+&lt;/settings&gt;</programlisting>
+
+      <para>Here <emphasis>root-of-NetLogo-installation</emphasis> is the
+      location of NetLogo (for example on Windows <filename>C:\Program
+      Files\NetLogo 4.1.2</filename>).</para>
+    </section>
+
+    <section>
+      <title>Building a packaged extension</title>
+
+      <para>After configuring Maven, creating a packaged extension is simply
+      executing the following in the sqlwrapper directory of the
+      sourcecode:</para>
+
+      <screen><command>mvn package</command></screen>
+
+      <para>This will build the plugin, download dependencies from the Maven
+      repositories, then execute the Unit tests in the sqlwrapper code.
+      Finally it generates a file <filename>target/sql-bin.zip</filename>
+      which contains the NetLogo extensions which can simply be unzipped into
+      the NetLogo <filename>extensions</filename> folder.</para>
+    </section>
+
+    <section>
+      <title>Performing a release</title>
+
+      <para>For the time being increasing the version number for a release
+      needs to be done manually. The steps to create a new release are:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Change version listed in the
+          <filename>sqlwrapper/pom.xml</filename> and
+          <filename>sqlwrapper-test/pom.xml</filename> from from
+          <emphasis>x.y-SNAPSHOT</emphasis> to <emphasis>x.y</emphasis></para>
+        </listitem>
+
+        <listitem>
+          <para>Create a package using <command>mvn package</command></para>
+        </listitem>
+
+        <listitem>
+          <para>Run the integration tests on the package as described in <xref
+          linkend="testing" xrefstyle="select: title" /></para>
+        </listitem>
+
+        <listitem>
+          <para>Commit the changes to trunk</para>
+        </listitem>
+
+        <listitem>
+          <para>Create a tag from the trunk for the new release (the tage is
+          usually called <filename>version-x.y</filename>)</para>
+        </listitem>
+
+        <listitem>
+          <para>Change version listed in the
+          <filename>sqlwrapper/pom.xml</filename> and
+          <filename>sqlwrapper-test/pom.xml</filename> from from
+          <emphasis>x.y</emphasis> to <emphasis>x.(y +
+          1)-SNAPSHOT</emphasis></para>
+        </listitem>
+
+        <listitem>
+          <para>Commit the changes to trunk</para>
+        </listitem>
+      </itemizedlist>
+
+      <important>
+        <para>In the future we might want to restructure the plugin so these
+        steps can be handled by Maven itself.</para>
+      </important>
+    </section>
+
+    <section>
+      <title>Building javadoc</title>
+
+      <para>The javadoc generated for the SQL Wrapper extension include UML
+      diagrams of the structure. These diagrams are generated with <link
+      xlink:href="http://www.umlgraph.org">UmlGraph</link> Doclet and <link
+      xlink:href="http://www.graphviz.org">GraphViz</link>. As these
+      dependencies are not provided by a Maven repository they will need to be
+      installed.</para>
+
+      <para>For UmlGraph, download <link
+      xlink:href="http://www.umlgraph.org/UMLGraph-5.3.tar.gz">UmlGraph
+      version 5.3</link> and install it into the local Maven repository with
+      the following command:</para>
+
+      <screen><command>mvn install:install-file -Dpackaging=jar -DartifactId=UmlGraph -Dversion=5.3 -Dfile=&lt;path to dir with&gt;/UmlGraph.jar -DgroupId=gr.spinellis -DgeneratePom=true</command></screen>
+
+      <para>For GraphViz, download and install the latest version from <link
+      xlink:href="http://www.graphviz.org">http://www.graphviz.org</link> and
+      make sure the <filename>&lt;graphviz&gt;/bin</filename> directory is on
+      the <envar>PATH</envar>.</para>
+
+      <para>The Javadoc can now be generated using <command>mvn
+      javadoc:jar</command> (and end up in <filename>target</filename>),
+      <command>mvn javadoc:javadoc</command> or <command>mvn site</command>
+      (and will end up in <filename>target/site/javadocs</filename>).</para>
+    </section>
+  </chapter>
+
+  <chapter>
+    <title xml:id="testing">Testing the plugin</title>
+
+    <para>SQL Wrapper has a separate project,
+    <filename>sqlwrapper-test</filename> with integration tests. These
+    integration tests run using the NetLogo embedded API and access a MySQL
+    database to test the SQL Wrapper functionality. Because of potential
+    classloading and dependency problems when running from within the NetLogo
+    embedded API, these tests are a separate project and not part of the
+    normal <filename>sqlwrapper</filename> project.</para>
+
+    <section>
+      <title>Running the integration tests</title>
+
+      <para>As the tests are run using the NetLogo embedded, the SQL Wrapper
+      extension will need to be installed as in a normal NetLogo installation.
+      For this purpose the <filename>sqlwrapper-test</filename> project
+      contains a folder <filename>extensions</filename> where the extension to
+      test must be unzipped. This is a manual step that needs to be done for
+      every new version you want to test.</para>
+
+      <para>The test also needs access to a MySQL database. The default
+      configuration is listed in
+      sqlwrapper-test/src/test/resources/test-connection.properties and it is
+      advisable to setup a local MySQL with the same names for database, port,
+      user:</para>
+
+      <programlisting>db.host=localhost
+db.port=3306
+db.schema=sqlwrappertest
+db.username=test
+db.password=testpassword
+db.autodisconnect=on</programlisting>
+
+      <para>Running the integration test is then as simple as executing
+      <command>mvn verify</command>.</para>
+
+      <para>If you need to use different settings, do not modify the
+      test-connection.properties, as this file is in subversion and is shared
+      by all developers. If you need to use alternative settings, you will
+      need to configure this on the maven commandline. For example to use
+      database server on mysql2 and username sqlwrapper:</para>
+
+      <screen><command>mvn verify -DargLine="-Ddb.host=mysql2 -Ddb.username=sqlwrapper"</command></screen>
+    </section>
+
+    <section>
+      <title>Writing tests</title>
+
+      <para>Although designing tests is not simple, some guidelines for
+      writing good tests (for integration and unit tests) are:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Test the happy path of a function</para>
+        </listitem>
+
+        <listitem>
+          <para>The conditions that trigger explicit errors or
+          exceptions</para>
+        </listitem>
+
+        <listitem>
+          <para>Test values or combinations that trigger different behaviour
+          (Equivalence Partitioning and combination testing (e.g. pair-wise or
+          N-wise testing))</para>
+        </listitem>
+
+        <listitem>
+          <para>Test edge conditions were behaviour changes (Boundary Value
+          Analysis)</para>
+        </listitem>
+
+        <listitem>
+          <para>Try to test only one condition or feature in a single test,
+          create separate tests even if they use the same initial setup
+          code</para>
+        </listitem>
+
+        <listitem>
+          <para>Do not depend on the result of another test (eg state of an
+          object or the content of a database)</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>The tests in <filename>sqlwrapper-test</filename> in general
+      derive from <classname>HeadlessTest</classname> which loads NetLogo and
+      creates a NetLogo workspace. Tests then need to load a basic
+      NetLogo-model which loads the extension. The functionality of the
+      extension is then tested by using the NetLogo embedded API to execute
+      commands and get the results from reporters. Values and results are then
+      checked using JUnit assertions. As it is best to learn by example, it is
+      best to look through the existing tests and learn from their
+      structure.</para>
+    </section>
+
+    <section>
+      <title>More reading</title>
+
+      <para>The document "Testing NetLogo SQL Wrapper" by Mark Rotteveel
+      (<emphasis>provide URL once published</emphasis>) is a good starting
+      point for more information on testing the extension.</para>
+    </section>
+  </chapter>
+
+  <chapter>
+    <title>Documentation</title>
+
+    <para>The documentation of NetLogo SQL Wrapper consists of the developer
+    documentation and the usermanual. Both documents are authored in <link
+    xlink:href="http://www.docbook.org/">DocBook 5</link>. The developer
+    documentation consists of this document, and the Javadoc (including UML
+    diagrams).</para>
+
+    <section>
+      <title>Writing documentation</title>
+
+      <para>The Javadoc should be kept upto date during development and we
+      follow the established standards for code documentation in the Java
+      development community (which in short is: document at least all public
+      and protected methods and classes using intent-revealing descriptions of
+      the method, parameters and/or class). We expect that this document
+      itself won't change much, except to clarify subjects or to change
+      documentation based on fundamental changes to the extension.</para>
+
+      <para>The usermanual should evolve together with changes to the
+      extension. It is therefor important that a developer of a change informs
+      the manual author(s) of the changes so they can update the
+      manual.</para>
+
+      <para>Writing documentation well is hard, and not something that is
+      simple to explain. The document "Documentation for NetLogo SQL Wrapper"
+      by Mark Rotteveel (<emphasis>add URL once published</emphasis>) provides
+      a good starting point for writing documentation for this project and has
+      a number of reference that might help in writing documentation.</para>
+
+      <para>For authoring the documentation, the project is using <link
+      xlink:href="http://www.xmlmind.com/xmleditor/persoedition.html">XMLmind
+      XML Editor Personal Edition</link>. This editor was chosen as it is
+      relatively easy to use, has sufficient features and is free to use for
+      Open Source projects.</para>
+
+      <para>When writing documentation it is advisable to use the right
+      docbook elements for a consistent look to the documentation, important
+      docbook elements in this are:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>chapter</term>
+
+          <listitem>
+            <para>For chapters</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>para</term>
+
+          <listitem>
+            <para>For paragraphs</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>emphasis</term>
+
+          <listitem>
+            <para>For adding emphasis to text (usually rendered in
+            italic)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>command</term>
+
+          <listitem>
+            <para>For commands (eg the language elements added by the
+            extensions)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>literal</term>
+
+          <listitem>
+            <para>For literal text input (eg in synopsis or inside a
+            paragraph)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>parameter</term>
+
+          <listitem>
+            <para>For parameter names (eg in synopsis)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>synopsis</term>
+
+          <listitem>
+            <para>For syntax description of NetLogo commands (see above for
+            additional elements to use)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>variablelist (and varlistentry)</term>
+
+          <listitem>
+            <para>For parameters and their descriptions (or lists such as this
+            one)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>screen</term>
+
+          <listitem>
+            <para>For screen input and output (optionally combined with
+            elements like command)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>programlisting</term>
+
+          <listitem>
+            <para>For displaying (parts of) sourcecode or configuration
+            files</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>link</term>
+
+          <listitem>
+            <para>For linking to other parts of the document (see also xref)
+            or for external URLs (external links in XMLmind XML Editor require
+            the use of the menu icon <guiicon>Convert to link</guiicon> and
+            then option <guimenuitem>link[xlink:href]</guimenuitem>). Both
+            <classname>link</classname> and <classname>xref</classname> use
+            the <varname>xml:id</varname> attribute for referencing parts of
+            the document.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>xref</term>
+
+          <listitem>
+            <para>Add a cross reference to another part of the document, the
+            attribute xrefstyle can be used to modify the output in the final
+            document (eg for pictures use <literal>select: label</literal> to
+            display only the figure number, for chapters use <literal>select:
+            title</literal> to only display the chapter name). Use
+            <classname>xref</classname> if you want to refer to the chapter or
+            figure by its actual name in the output, use link only if you want
+            to use a specific name or specific intent in the reference (eg in
+            the usermanual a reference to command is based on the literal text
+            of the command name, wrapped in the <classname>command</classname>
+            element, and then wrapped in a <classname>link</classname>.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <para>Use of other docbook elements is not discouraged, as long as they
+      add meaning or are reasonable in the context of the text (eg using
+      <classname>classname</classname> when talking about classes, or
+      <classname>filename</classname> for directories or filenames).</para>
+    </section>
+
+    <section>
+      <title>Building documentation</title>
+
+      <para>The documentation has a slightly modified DocBook 5 stylesheet,
+      and is build using <link
+      xlink:href="http://www.xmlmind.com/foconverter/">XMLmind XSL Utility
+      Personal Edition</link>. This convertor works easy and is free for use
+      in Open Source projects.</para>
+
+      <para>Currently the build is not setup for automatic builds and needs to
+      be manually configured. The steps to setup a build are:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Copy <filename>sqlwrapper_docbook.xsl</filename> to
+          <filename>&lt;XMLmind XSL
+          Utility&gt;/addon/config/docbook5/xsl/fo</filename></para>
+        </listitem>
+
+        <listitem>
+          <para>Add the following XML to the <filename>&lt;XMLmind XSL
+          Utility&gt;/addon/xslutil.conversions</filename> (or in the user
+          profile, eg for Windows 7:
+          <filename>C:\Users\&lt;username&gt;\AppData\Roaming\XMLmind\FOConverter\xsutil.conversions</filename>):</para>
+
+          <programlisting xml:space="preserve">&lt;conversion name="db5SqlWrapperToPDF"
+  description="DocBook 5 to PDF for SQLWrapper"
+  icon="icon:acroread"
+  category="DocBook 5"
+  categoryIcon="icon:docbook"
+  outputExtension="pdf"&gt;
+  &lt;transform styleSheet="xslutil-config:docbook5/xsl/fo/sqlwrapper_docbook.xsl"&gt;
+    &lt;parameter name="callout.graphics"&gt;0&lt;/parameter&gt;
+    &lt;parameter name="generate.toc"&gt;part nop
+/book toc&lt;/parameter&gt;
+    &lt;parameter name="graphicsize.extension"&gt;0&lt;/parameter&gt;
+    &lt;parameter name="paper.type"&gt;A4&lt;/parameter&gt;
+    &lt;parameter name="section.autolabel"&gt;1&lt;/parameter&gt;
+    &lt;parameter name="shade.verbatim"&gt;1&lt;/parameter&gt;
+    &lt;parameter name="toc.section.depth"&gt;3&lt;/parameter&gt;
+    &lt;parameter name="ulink.show"&gt;0&lt;/parameter&gt;
+    &lt;parameter name="use.extensions"&gt;1&lt;/parameter&gt;
+    &lt;parameter name="variablelist.as.blocks"&gt;1&lt;/parameter&gt;
+  &lt;/transform&gt;
+  &lt;processFO processor="FOP"&gt;
+    &lt;parameter name="renderer"&gt;pdf&lt;/parameter&gt;
+    &lt;parameter name="strict-validation"&gt;false&lt;/parameter&gt;
+  &lt;/processFO&gt;
+&lt;/conversion&gt;</programlisting>
+        </listitem>
+
+        <listitem>
+          <para>Open XMLmind XSL Utility</para>
+        </listitem>
+
+        <listitem>
+          <para>Under <guilabel>Input file</guilabel> select the document you
+          want to build</para>
+        </listitem>
+
+        <listitem>
+          <para>Under <guilabel>Conversion specification</guilabel> select
+          <guimenuitem>db5SqlWrapperToPDF</guimenuitem> (under
+          <guimenuitem>DocBook 5</guimenuitem>)</para>
+        </listitem>
+
+        <listitem>
+          <para>Under <guilabel>Output file</guilabel> select the location and
+          filename for the output</para>
+        </listitem>
+
+        <listitem>
+          <para>Click on <guibutton>Convert</guibutton> to generate the PDF
+          version of the document</para>
+        </listitem>
+      </orderedlist>
+    </section>
+  </chapter>
+
+  <appendix xml:id="lgpl">
+    <title><acronym>GNU</acronym> Lesser General Public License version
+    3</title>
+
+    <para>Version 3, 29 June 2007</para>
+
+    <para>Copyright © 2007 Free Software Foundation, Inc. <link
+    xlink:href="http://fsf.org/">http://fsf.org/</link></para>
+
+    <para>Everyone is permitted to copy and distribute verbatim copies of this
+    license document, but changing it is not allowed.</para>
+
+    <para>This version of the <acronym>GNU</acronym> Lesser General Public
+    License incorporates the terms and conditions of version 3 of the
+    <acronym>GNU</acronym> General Public License, supplemented by the
+    additional permissions listed below.</para>
+
+    <bridgehead renderas="sect1" xml:id="AdditionalDefinitions">0. Additional
+    Definitions.</bridgehead>
+
+    <para>As used herein, “this License” refers to version 3 of the
+    <acronym>GNU</acronym> Lesser General Public License, and the
+    “<acronym>GNU</acronym> <acronym>GPL</acronym>” refers to version 3 of the
+    <acronym>GNU</acronym> General Public License.</para>
+
+    <para>“The Library” refers to a covered work governed by this License,
+    other than an Application or a Combined Work as defined below.</para>
+
+    <para>An “Application” is any work that makes use of an interface provided
+    by the Library, but which is not otherwise based on the Library. Defining
+    a subclass of a class defined by the Library is deemed a mode of using an
+    interface provided by the Library.</para>
+
+    <para>A “Combined Work” is a work produced by combining or linking an
+    Application with the Library. The particular version of the Library with
+    which the Combined Work was made is also called the “Linked
+    Version”.</para>
+
+    <para>The “Minimal Corresponding Source” for a Combined Work means the
+    Corresponding Source for the Combined Work, excluding any source code for
+    portions of the Combined Work that, considered in isolation, are based on
+    the Application, and not on the Linked Version.</para>
+
+    <para>The “Corresponding Application Code” for a Combined Work means the
+    object code and/or source code for the Application, including any data and
+    utility programs needed for reproducing the Combined Work from the
+    Application, but excluding the System Libraries of the Combined
+    Work.</para>
+
+    <bridgehead renderas="sect1" xml:id="ExceptionSec3">1. Exception to
+    Section 3 of the <acronym>GNU</acronym>
+    <acronym>GPL</acronym>.</bridgehead>
+
+    <para>You may convey a covered work under sections 3 and 4 of this License
+    without being bound by section 3 of the <acronym>GNU</acronym>
+    <acronym>GPL</acronym>.</para>
+
+    <bridgehead renderas="sect1" xml:id="ConveyingModified">2. Conveying
+    Modified Versions.</bridgehead>
+
+    <para>If you modify a copy of the Library, and, in your modifications, a
+    facility refers to a function or data to be supplied by an Application
+    that uses the facility (other than as an argument passed when the facility
+    is invoked), then you may convey a copy of the modified version:</para>
+
+    <orderedlist numeration="loweralpha">
+      <listitem>
+        <para>under this License, provided that you make a good faith effort
+        to ensure that, in the event an Application does not supply the
+        function or data, the facility still operates, and performs whatever
+        part of its purpose remains meaningful, or</para>
+      </listitem>
+
+      <listitem>
+        <para>under the <acronym>GNU</acronym> <acronym>GPL</acronym>, with
+        none of the additional permissions of this License applicable to that
+        copy.</para>
+      </listitem>
+    </orderedlist>
+
+    <bridgehead renderas="sect1" xml:id="ObjectCodeIncorporating">3. Object
+    Code Incorporating Material from Library Header Files.</bridgehead>
+
+    <para>The object code form of an Application may incorporate material from
+    a header file that is part of the Library. You may convey such object code
+    under terms of your choice, provided that, if the incorporated material is
+    not limited to numerical parameters, data structure layouts and accessors,
+    or small macros, inline functions and templates (ten or fewer lines in
+    length), you do both of the following:</para>
+
+    <orderedlist numeration="loweralpha">
+      <listitem>
+        <para>Give prominent notice with each copy of the object code that the
+        Library is used in it and that the Library and its use are covered by
+        this License.</para>
+      </listitem>
+
+      <listitem>
+        <para>Accompany the object code with a copy of the
+        <acronym>GNU</acronym> <acronym>GPL</acronym> and this license
+        document.</para>
+      </listitem>
+    </orderedlist>
+
+    <bridgehead renderas="sect1" xml:id="CombinedWorks">4. Combined
+    Works.</bridgehead>
+
+    <para>You may convey a Combined Work under terms of your choice that,
+    taken together, effectively do not restrict modification of the portions
+    of the Library contained in the Combined Work and reverse engineering for
+    debugging such modifications, if you also do each of the following:</para>
+
+    <orderedlist numeration="loweralpha">
+      <listitem>
+        <para>Give prominent notice with each copy of the Combined Work that
+        the Library is used in it and that the Library and its use are covered
+        by this License.</para>
+      </listitem>
+
+      <listitem>
+        <para>Accompany the Combined Work with a copy of the
+        <acronym>GNU</acronym> <acronym>GPL</acronym> and this license
+        document.</para>
+      </listitem>
+
+      <listitem>
+        <para>For a Combined Work that displays copyright notices during
+        execution, include the copyright notice for the Library among these
+        notices, as well as a reference directing the user to the copies of
+        the <acronym>GNU</acronym> <acronym>GPL</acronym> and this license
+        document.</para>
+      </listitem>
+
+      <listitem>
+        <para>Do one of the following:</para>
+
+        <orderedlist numeration="arabic" role="0">
+          <listitem>
+            <para>Convey the Minimal Corresponding Source under the terms of
+            this License, and the Corresponding Application Code in a form
+            suitable for, and under terms that permit, the user to recombine
+            or relink the Application with a modified version of the Linked
+            Version to produce a modified Combined Work, in the manner
+            specified by section 6 of the <acronym>GNU</acronym>
+            <acronym>GPL</acronym> for conveying Corresponding Source.</para>
+          </listitem>
+
+          <listitem>
+            <para>Use a suitable shared library mechanism for linking with the
+            Library. A suitable mechanism is one that (a) uses at run time a
+            copy of the Library already present on the user’s computer system,
+            and (b) will operate properly with a modified version of the
+            Library that is interface-compatible with the Linked
+            Version.</para>
+          </listitem>
+        </orderedlist>
+      </listitem>
+
+      <listitem>
+        <para>Provide Installation Information, but only if you would
+        otherwise be required to provide such information under section 6 of
+        the <acronym>GNU</acronym> <acronym>GPL</acronym>, and only to the
+        extent that such information is necessary to install and execute a
+        modified version of the Combined Work produced by recombining or
+        relinking the Application with a modified version of the Linked
+        Version. (If you use option 4d0, the Installation Information must
+        accompany the Minimal Corresponding Source and Corresponding
+        Application Code. If you use option 4d1, you must provide the
+        Installation Information in the manner specified by section 6 of the
+        <acronym>GNU</acronym> <acronym>GPL</acronym> for conveying
+        Corresponding Source.)</para>
+      </listitem>
+    </orderedlist>
+
+    <bridgehead renderas="sect1" xml:id="CombinedLibraries">5. Combined
+    Libraries.</bridgehead>
+
+    <para>You may place library facilities that are a work based on the
+    Library side by side in a single library together with other library
+    facilities that are not Applications and are not covered by this License,
+    and convey such a combined library under terms of your choice, if you do
+    both of the following:</para>
+
+    <orderedlist numeration="loweralpha">
+      <listitem>
+        <para>Accompany the combined library with a copy of the same work
+        based on the Library, uncombined with any other library facilities,
+        conveyed under the terms of this License.</para>
+      </listitem>
+
+      <listitem>
+        <para>Give prominent notice with the combined library that part of it
+        is a work based on the Library, and explaining where to find the
+        accompanying uncombined form of the same work.</para>
+      </listitem>
+    </orderedlist>
+
+    <bridgehead renderas="sect1" xml:id="RevisedVersions">6. Revised Versions
+    of the <acronym>GNU</acronym> Lesser General Public License.</bridgehead>
+
+    <para>The Free Software Foundation may publish revised and/or new versions
+    of the <acronym>GNU</acronym> Lesser General Public License from time to
+    time. Such new versions will be similar in spirit to the present version,
+    but may differ in detail to address new problems or concerns.</para>
+
+    <para>Each version is given a distinguishing version number. If the
+    Library as you received it specifies that a certain numbered version of
+    the <acronym>GNU</acronym> Lesser General Public License “or any later
+    version” applies to it, you have the option of following the terms and
+    conditions either of that published version or of any later version
+    published by the Free Software Foundation. If the Library as you received
+    it does not specify a version number of the <acronym>GNU</acronym> Lesser
+    General Public License, you may choose any version of the
+    <acronym>GNU</acronym> Lesser General Public License ever published by the
+    Free Software Foundation.</para>
+
+    <para>If the Library as you received it specifies that a proxy can decide
+    whether future versions of the <acronym>GNU</acronym> Lesser General
+    Public License shall apply, that proxy’s public statement of acceptance of
+    any version is permanent authorization for you to choose that version for
+    the Library.</para>
+  </appendix>
+
+  <appendix xml:id="gpl">
+    <title><acronym>GNU</acronym> General Public License version 3</title>
+
+    <para>Version 3, 29 June 2007</para>
+
+    <para>Copyright © 2007 Free Software Foundation, Inc. <link
+    xlink:href="http://fsf.org/">http://fsf.org/</link></para>
+
+    <para>Everyone is permitted to copy and distribute verbatim copies of this
+    license document, but changing it is not allowed.</para>
+
+    <bridgehead renderas="sect1" xml:id="Preamble">Preamble</bridgehead>
+
+    <para>The <acronym>GNU</acronym> General Public License is a free,
+    copyleft license for software and other kinds of works.</para>
+
+    <para>The licenses for most software and other practical works are
+    designed to take away your freedom to share and change the works. By
+    contrast, the <acronym>GNU</acronym> General Public License is intended to
+    guarantee your freedom to share and change all versions of a program—to
+    make sure it remains free software for all its users. We, the Free
+    Software Foundation, use the <acronym>GNU</acronym> General Public License
+    for most of our software; it applies also to any other work released this
+    way by its authors. You can apply it to your programs, too.</para>
+
+    <para>When we speak of free software, we are referring to freedom, not
+    price. Our General Public Licenses are designed to make sure that you have
+    the freedom to distribute copies of free software (and charge for them if
+    you wish), that you receive source code or can get it if you want it, that
+    you can change the software or use pieces of it in new free programs, and
+    that you know you can do these things.</para>
+
+    <para>To protect your rights, we need to prevent others from denying you
+    these rights or asking you to surrender the rights. Therefore, you have
+    certain responsibilities if you distribute copies of the software, or if
+    you modify it: responsibilities to respect the freedom of others.</para>
+
+    <para>For example, if you distribute copies of such a program, whether
+    gratis or for a fee, you must pass on to the recipients the same freedoms
+    that you received. You must make sure that they, too, receive or can get
+    the source code. And you must show them these terms so they know their
+    rights.</para>
+
+    <para>Developers that use the <acronym>GNU</acronym>
+    <acronym>GPL</acronym> protect your rights with two steps: (1) assert
+    copyright on the software, and (2) offer you this License giving you legal
+    permission to copy, distribute and/or modify it.</para>
+
+    <para>For the developers’ and authors’ protection, the
+    <acronym>GPL</acronym> clearly explains that there is no warranty for this
+    free software. For both users’ and authors’ sake, the
+    <acronym>GPL</acronym> requires that modified versions be marked as
+    changed, so that their problems will not be attributed erroneously to
+    authors of previous versions.</para>
+
+    <para>Some devices are designed to deny users access to install or run
+    modified versions of the software inside them, although the manufacturer
+    can do so. This is fundamentally incompatible with the aim of protecting
+    users’ freedom to change the software. The systematic pattern of such
+    abuse occurs in the area of products for individuals to use, which is
+    precisely where it is most unacceptable. Therefore, we have designed this
+    version of the <acronym>GPL</acronym> to prohibit the practice for those
+    products. If such problems arise substantially in other domains, we stand
+    ready to extend this provision to those domains in future versions of the
+    <acronym>GPL</acronym>, as needed to protect the freedom of users.</para>
+
+    <para>Finally, every program is threatened constantly by software patents.
+    States should not allow patents to restrict development and use of
+    software on general-purpose computers, but in those that do, we wish to
+    avoid the special danger that patents applied to a free program could make
+    it effectively proprietary. To prevent this, the <acronym>GPL</acronym>
+    assures that patents cannot be used to render the program non-free.</para>
+
+    <para>The precise terms and conditions for copying, distribution and
+    modification follow.</para>
+
+    <bridgehead>TERMS AND CONDITIONS</bridgehead>
+
+    <bridgehead renderas="sect1" xml:id="Definitions">0.
+    Definitions.</bridgehead>
+
+    <para>“This License” refers to version 3 of the <acronym>GNU</acronym>
+    General Public License.</para>
+
+    <para>“Copyright” also means copyright-like laws that apply to other kinds
+    of works, such as semiconductor masks.</para>
+
+    <para>“The Program” refers to any copyrightable work licensed under this
+    License. Each licensee is addressed as “you”. “Licensees” and “recipients”
+    may be individuals or organizations.</para>
+
+    <para>To “modify” a work means to copy from or adapt all or part of the
+    work in a fashion requiring copyright permission, other than the making of
+    an exact copy. The resulting work is called a “modified version” of the
+    earlier work or a work “based on” the earlier work.</para>
+
+    <para>A “covered work” means either the unmodified Program or a work based
+    on the Program.</para>
+
+    <para>To “propagate” a work means to do anything with it that, without
+    permission, would make you directly or secondarily liable for infringement
+    under applicable copyright law, except executing it on a computer or
+    modifying a private copy. Propagation includes copying, distribution (with
+    or without modification), making available to the public, and in some
+    countries other activities as well.</para>
+
+    <para>To “convey” a work means any kind of propagation that enables other
+    parties to make or receive copies. Mere interaction with a user through a
+    computer network, with no transfer of a copy, is not conveying.</para>
+
+    <para>An interactive user interface displays “Appropriate Legal Notices”
+    to the extent that it includes a convenient and prominently visible
+    feature that (1) displays an appropriate copyright notice, and (2) tells
+    the user that there is no warranty for the work (except to the extent that
+    warranties are provided), that licensees may convey the work under this
+    License, and how to view a copy of this License. If the interface presents
+    a list of user commands or options, such as a menu, a prominent item in
+    the list meets this criterion.</para>
+
+    <bridgehead renderas="sect1" xml:id="SourceCode">1. Source
+    Code.</bridgehead>
+
+    <para>The “source code” for a work means the preferred form of the work
+    for making modifications to it. “Object code” means any non-source form of
+    a work.</para>
+
+    <para>A “Standard Interface” means an interface that either is an official
+    standard defined by a recognized standards body, or, in the case of
+    interfaces specified for a particular programming language, one that is
+    widely used among developers working in that language.</para>
+
+    <para>The “System Libraries” of an executable work include anything, other
+    than the work as a whole, that (a) is included in the normal form of
+    packaging a Major Component, but which is not part of that Major
+    Component, and (b) serves only to enable use of the work with that Major
+    Component, or to implement a Standard Interface for which an
+    implementation is available to the public in source code form. A “Major
+    Component”, in this context, means a major essential component (kernel,
+    window system, and so on) of the specific operating system (if any) on
+    which the executable work runs, or a compiler used to produce the work, or
+    an object code interpreter used to run it.</para>
+
+    <para>The “Corresponding Source” for a work in object code form means all
+    the source code needed to generate, install, and (for an executable work)
+    run the object code and to modify the work, including scripts to control
+    those activities. However, it does not include the work’s System
+    Libraries, or general-purpose tools or generally available free programs
+    which are used unmodified in performing those activities but which are not
+    part of the work. For example, Corresponding Source includes interface
+    definition files associated with source files for the work, and the source
+    code for shared libraries and dynamically linked subprograms that the work
+    is specifically designed to require, such as by intimate data
+    communication or control flow between those subprograms and other parts of
+    the work.</para>
+
+    <para>The Corresponding Source need not include anything that users can
+    regenerate automatically from other parts of the Corresponding
+    Source.</para>
+
+    <para>The Corresponding Source for a work in source code form is that same
+    work.</para>
+
+    <bridgehead renderas="sect1" xml:id="BasicPermissions">2. Basic
+    Permissions.</bridgehead>
+
+    <para>All rights granted under this License are granted for the term of
+    copyright on the Program, and are irrevocable provided the stated
+    conditions are met. This License explicitly affirms your unlimited
+    permission to run the unmodified Program. The output from running a
+    covered work is covered by this License only if the output, given its
+    content, constitutes a covered work. This License acknowledges your rights
+    of fair use or other equivalent, as provided by copyright law.</para>
+
+    <para>You may make, run and propagate covered works that you do not
+    convey, without conditions so long as your license otherwise remains in
+    force. You may convey covered works to others for the sole purpose of
+    having them make modifications exclusively for you, or provide you with
+    facilities for running those works, provided that you comply with the
+    terms of this License in conveying all material for which you do not
+    control copyright. Those thus making or running the covered works for you
+    must do so exclusively on your behalf, under your direction and control,
+    on terms that prohibit them from making any copies of your copyrighted
+    material outside their relationship with you.</para>
+
+    <para>Conveying under any other circumstances is permitted solely under
+    the conditions stated below. Sublicensing is not allowed; section 10 makes
+    it unnecessary.</para>
+
+    <bridgehead renderas="sect1" xml:id="Protecting">3. Protecting Users’
+    Legal Rights From Anti-Circumvention Law.</bridgehead>
+
+    <para>No covered work shall be deemed part of an effective technological
+    measure under any applicable law fulfilling obligations under article 11
+    of the WIPO copyright treaty adopted on 20 December 1996, or similar laws
+    prohibiting or restricting circumvention of such measures.</para>
+
+    <para>When you convey a covered work, you waive any legal power to forbid
+    circumvention of technological measures to the extent such circumvention
+    is effected by exercising rights under this License with respect to the
+    covered work, and you disclaim any intention to limit operation or
+    modification of the work as a means of enforcing, against the work’s
+    users, your or third parties’ legal rights to forbid circumvention of
+    technological measures.</para>
+
+    <bridgehead renderas="sect1" xml:id="ConveyingVerbatim">4. Conveying
+    Verbatim Copies.</bridgehead>
+
+    <para>You may convey verbatim copies of the Program’s source code as you
+    receive it, in any medium, provided that you conspicuously and
+    appropriately publish on each copy an appropriate copyright notice; keep
+    intact all notices stating that this License and any non-permissive terms
+    added in accord with section 7 apply to the code; keep intact all notices
+    of the absence of any warranty; and give all recipients a copy of this
+    License along with the Program.</para>
+
+    <para>You may charge any price or no price for each copy that you convey,
+    and you may offer support or warranty protection for a fee.</para>
+
+    <bridgehead renderas="sect1">5. Conveying Modified Source
+    Versions.</bridgehead>
+
+    <para>You may convey a work based on the Program, or the modifications to
+    produce it from the Program, in the form of source code under the terms of
+    section 4, provided that you also meet all of these conditions:</para>
+
+    <orderedlist numeration="loweralpha">
+      <listitem>
+        <para>The work must carry prominent notices stating that you modified
+        it, and giving a relevant date.</para>
+      </listitem>
+
+      <listitem>
+        <para>The work must carry prominent notices stating that it is
+        released under this License and any conditions added under section 7.
+        This requirement modifies the requirement in section 4 to “keep intact
+        all notices”.</para>
+      </listitem>
+
+      <listitem>
+        <para>You must license the entire work, as a whole, under this License
+        to anyone who comes into possession of a copy. This License will
+        therefore apply, along with any applicable section 7 additional terms,
+        to the whole of the work, and all its parts, regardless of how they
+        are packaged. This License gives no permission to license the work in
+        any other way, but it does not invalidate such permission if you have
+        separately received it.</para>
+      </listitem>
+
+      <listitem>
+        <para>If the work has interactive user interfaces, each must display
+        Appropriate Legal Notices; however, if the Program has interactive
+        interfaces that do not display Appropriate Legal Notices, your work
+        need not make them do so.</para>
+      </listitem>
+    </orderedlist>
+
+    <para>A compilation of a covered work with other separate and independent
+    works, which are not by their nature extensions of the covered work, and
+    which are not combined with it such as to form a larger program, in or on
+    a volume of a storage or distribution medium, is called an “aggregate” if
+    the compilation and its resulting copyright are not used to limit the
+    access or legal rights of the compilation’s users beyond what the
+    individual works permit. Inclusion of a covered work in an aggregate does
+    not cause this License to apply to the other parts of the
+    aggregate.</para>
+
+    <bridgehead renderas="sect1">6. Conveying Non-Source Forms.</bridgehead>
+
+    <para>You may convey a covered work in object code form under the terms of
+    sections 4 and 5, provided that you also convey the machine-readable
+    Corresponding Source under the terms of this License, in one of these
+    ways:</para>
+
+    <orderedlist numeration="loweralpha">
+      <listitem>
+        <para>Convey the object code in, or embodied in, a physical product
+        (including a physical distribution medium), accompanied by the
+        Corresponding Source fixed on a durable physical medium customarily
+        used for software interchange.</para>
+      </listitem>
+
+      <listitem>
+        <para>Convey the object code in, or embodied in, a physical product
+        (including a physical distribution medium), accompanied by a written
+        offer, valid for at least three years and valid for as long as you
+        offer spare parts or customer support for that product model, to give
+        anyone who possesses the object code either (1) a copy of the
+        Corresponding Source for all the software in the product that is
+        covered by this License, on a durable physical medium customarily used
+        for software interchange, for a price no more than your reasonable
+        cost of physically performing this conveying of source, or (2) access
+        to copy the Corresponding Source from a network server at no
+        charge.</para>
+      </listitem>
+
+      <listitem>
+        <para>Convey individual copies of the object code with a copy of the
+        written offer to provide the Corresponding Source. This alternative is
+        allowed only occasionally and noncommercially, and only if you
+        received the object code with such an offer, in accord with subsection
+        6b.</para>
+      </listitem>
+
+      <listitem>
+        <para>Convey the object code by offering access from a designated
+        place (gratis or for a charge), and offer equivalent access to the
+        Corresponding Source in the same way through the same place at no
+        further charge. You need not require recipients to copy the
+        Corresponding Source along with the object code. If the place to copy
+        the object code is a network server, the Corresponding Source may be
+        on a different server (operated by you or a third party) that supports
+        equivalent copying facilities, provided you maintain clear directions
+        next to the object code saying where to find the Corresponding Source.
+        Regardless of what server hosts the Corresponding Source, you remain
+        obligated to ensure that it is available for as long as needed to
+        satisfy these requirements.</para>
+      </listitem>
+
+      <listitem>
+        <para>Convey the object code using peer-to-peer transmission, provided
+        you inform other peers where the object code and Corresponding Source
+        of the work are being offered to the general public at no charge under
+        subsection 6d.</para>
+      </listitem>
+    </orderedlist>
+
+    <para>A separable portion of the object code, whose source code is
+    excluded from the Corresponding Source as a System Library, need not be
+    included in conveying the object code work.</para>
+
+    <para>A “User Product” is either (1) a “consumer product”, which means any
+    tangible personal property which is normally used for personal, family, or
+    household purposes, or (2) anything designed or sold for incorporation
+    into a dwelling. In determining whether a product is a consumer product,
+    doubtful cases shall be resolved in favor of coverage. For a particular
+    product received by a particular user, “normally used” refers to a typical
+    or common use of that class of product, regardless of the status of the
+    particular user or of the way in which the particular user actually uses,
+    or expects or is expected to use, the product. A product is a consumer
+    product regardless of whether the product has substantial commercial,
+    industrial or non-consumer uses, unless such uses represent the only
+    significant mode of use of the product.</para>
+
+    <para>“Installation Information” for a User Product means any methods,
+    procedures, authorization keys, or other information required to install
+    and execute modified versions of a covered work in that User Product from
+    a modified version of its Corresponding Source. The information must
+    suffice to ensure that the continued functioning of the modified object
+    code is in no case prevented or interfered with solely because
+    modification has been made.</para>
+
+    <para>If you convey an object code work under this section in, or with, or
+    specifically for use in, a User Product, and the conveying occurs as part
+    of a transaction in which the right of possession and use of the User
+    Product is transferred to the recipient in perpetuity or for a fixed term
+    (regardless of how the transaction is characterized), the Corresponding
+    Source conveyed under this section must be accompanied by the Installation
+    Information. But this requirement does not apply if neither you nor any
+    third party retains the ability to install modified object code on the
+    User Product (for example, the work has been installed in
+    <acronym>ROM</acronym>).</para>
+
+    <para>The requirement to provide Installation Information does not include
+    a requirement to continue to provide support service, warranty, or updates
+    for a work that has been modified or installed by the recipient, or for
+    the User Product in which it has been modified or installed. Access to a
+    network may be denied when the modification itself materially and
+    adversely affects the operation of the network or violates the rules and
+    protocols for communication across the network.</para>
+
+    <para>Corresponding Source conveyed, and Installation Information
+    provided, in accord with this section must be in a format that is publicly
+    documented (and with an implementation available to the public in source
+    code form), and must require no special password or key for unpacking,
+    reading or copying.</para>
+
+    <bridgehead renderas="sect1">7. Additional Terms.</bridgehead>
+
+    <para>“Additional permissions” are terms that supplement the terms of this
+    License by making exceptions from one or more of its conditions.
+    Additional permissions that are applicable to the entire Program shall be
+    treated as though they were included in this License, to the extent that
+    they are valid under applicable law. If additional permissions apply only
+    to part of the Program, that part may be used separately under those
+    permissions, but the entire Program remains governed by this License
+    without regard to the additional permissions.</para>
+
+    <para>When you convey a copy of a covered work, you may at your option
+    remove any additional permissions from that copy, or from any part of it.
+    (Additional permissions may be written to require their own removal in
+    certain cases when you modify the work.) You may place additional
+    permissions on material, added by you to a covered work, for which you
+    have or can give appropriate copyright permission.</para>
+
+    <para>Notwithstanding any other provision of this License, for material
+    you add to a covered work, you may (if authorized by the copyright holders
+    of that material) supplement the terms of this License with terms:</para>
+
+    <orderedlist numeration="loweralpha">
+      <listitem>
+        <para>Disclaiming warranty or limiting liability differently from the
+        terms of sections 15 and 16 of this License; or</para>
+      </listitem>
+
+      <listitem>
+        <para>Requiring preservation of specified reasonable legal notices or
+        author attributions in that material or in the Appropriate Legal
+        Notices displayed by works containing it; or</para>
+      </listitem>
+
+      <listitem>
+        <para>Prohibiting misrepresentation of the origin of that material, or
+        requiring that modified versions of such material be marked in
+        reasonable ways as different from the original version; or</para>
+      </listitem>
+
+      <listitem>
+        <para>Limiting the use for publicity purposes of names of licensors or
+        authors of the material; or</para>
+      </listitem>
+
+      <listitem>
+        <para>Declining to grant rights under trademark law for use of some
+        trade names, trademarks, or service marks; or</para>
+      </listitem>
+
+      <listitem>
+        <para>Requiring indemnification of licensors and authors of that
+        material by anyone who conveys the material (or modified versions of
+        it) with contractual assumptions of liability to the recipient, for
+        any liability that these contractual assumptions directly impose on
+        those licensors and authors.</para>
+      </listitem>
+    </orderedlist>
+
+    <para>All other non-permissive additional terms are considered “further
+    restrictions” within the meaning of section 10. If the Program as you
+    received it, or any part of it, contains a notice stating that it is
+    governed by this License along with a term that is a further restriction,
+    you may remove that term. If a license document contains a further
+    restriction but permits relicensing or conveying under this License, you
+    may add to a covered work material governed by the terms of that license
+    document, provided that the further restriction does not survive such
+    relicensing or conveying.</para>
+
+    <para>If you add terms to a covered work in accord with this section, you
+    must place, in the relevant source files, a statement of the additional
+    terms that apply to those files, or a notice indicating where to find the
+    applicable terms.</para>
+
+    <para>Additional terms, permissive or non-permissive, may be stated in the
+    form of a separately written license, or stated as exceptions; the above
+    requirements apply either way.</para>
+
+    <bridgehead renderas="sect1">8. Termination.</bridgehead>
+
+    <para>You may not propagate or modify a covered work except as expressly
+    provided under this License. Any attempt otherwise to propagate or modify
+    it is void, and will automatically terminate your rights under this
+    License (including any patent licenses granted under the third paragraph
+    of section 11).</para>
+
+    <para>However, if you cease all violation of this License, then your
+    license from a particular copyright holder is reinstated (a)
+    provisionally, unless and until the copyright holder explicitly and
+    finally terminates your license, and (b) permanently, if the copyright
+    holder fails to notify you of the violation by some reasonable means prior
+    to 60 days after the cessation.</para>
+
+    <para>Moreover, your license from a particular copyright holder is
+    reinstated permanently if the copyright holder notifies you of the
+    violation by some reasonable means, this is the first time you have
+    received notice of violation of this License (for any work) from that
+    copyright holder, and you cure the violation prior to 30 days after your
+    receipt of the notice.</para>
+
+    <para>Termination of your rights under this section does not terminate the
+    licenses of parties who have received copies or rights from you under this
+    License. If your rights have been terminated and not permanently
+    reinstated, you do not qualify to receive new licenses for the same
+    material under section 10.</para>
+
+    <bridgehead renderas="sect1">9. Acceptance Not Required for Having
+    Copies.</bridgehead>
+
+    <para>You are not required to accept this License in order to receive or
+    run a copy of the Program. Ancillary propagation of a covered work
+    occurring solely as a consequence of using peer-to-peer transmission to
+    receive a copy likewise does not require acceptance. However, nothing
+    other than this License grants you permission to propagate or modify any
+    covered work. These actions infringe copyright if you do not accept this
+    License. Therefore, by modifying or propagating a covered work, you
+    indicate your acceptance of this License to do so.</para>
+
+    <bridgehead renderas="sect1">10. Automatic Licensing of Downstream
+    Recipients.</bridgehead>
+
+    <para>Each time you convey a covered work, the recipient automatically
+    receives a license from the original licensors, to run, modify and
+    propagate that work, subject to this License. You are not responsible for
+    enforcing compliance by third parties with this License.</para>
+
+    <para>An “entity transaction” is a transaction transferring control of an
+    organization, or substantially all assets of one, or subdividing an
+    organization, or merging organizations. If propagation of a covered work
+    results from an entity transaction, each party to that transaction who
+    receives a copy of the work also receives whatever licenses to the work
+    the party’s predecessor in interest had or could give under the previous
+    paragraph, plus a right to possession of the Corresponding Source of the
+    work from the predecessor in interest, if the predecessor has it or can
+    get it with reasonable efforts.</para>
+
+    <para>You may not impose any further restrictions on the exercise of the
+    rights granted or affirmed under this License. For example, you may not
+    impose a license fee, royalty, or other charge for exercise of rights
+    granted under this License, and you may not initiate litigation (including
+    a cross-claim or counterclaim in a lawsuit) alleging that any patent claim
+    is infringed by making, using, selling, offering for sale, or importing
+    the Program or any portion of it.</para>
+
+    <bridgehead renderas="sect1">11. Patents.</bridgehead>
+
+    <para>A “contributor” is a copyright holder who authorizes use under this
+    License of the Program or a work on which the Program is based. The work
+    thus licensed is called the contributor’s “contributor version”.</para>
+
+    <para>A contributor’s “essential patent claims” are all patent claims
+    owned or controlled by the contributor, whether already acquired or
+    hereafter acquired, that would be infringed by some manner, permitted by
+    this License, of making, using, or selling its contributor version, but do
+    not include claims that would be infringed only as a consequence of
+    further modification of the contributor version. For purposes of this
+    definition, “control” includes the right to grant patent sublicenses in a
+    manner consistent with the requirements of this License.</para>
+
+    <para>Each contributor grants you a non-exclusive, worldwide, royalty-free
+    patent license under the contributor’s essential patent claims, to make,
+    use, sell, offer for sale, import and otherwise run, modify and propagate
+    the contents of its contributor version.</para>
+
+    <para>In the following three paragraphs, a “patent license” is any express
+    agreement or commitment, however denominated, not to enforce a patent
+    (such as an express permission to practice a patent or covenant not to sue
+    for patent infringement). To “grant” such a patent license to a party
+    means to make such an agreement or commitment not to enforce a patent
+    against the party.</para>
+
+    <para>If you convey a covered work, knowingly relying on a patent license,
+    and the Corresponding Source of the work is not available for anyone to
+    copy, free of charge and under the terms of this License, through a
+    publicly available network server or other readily accessible means, then
+    you must either (1) cause the Corresponding Source to be so available, or
+    (2) arrange to deprive yourself of the benefit of the patent license for
+    this particular work, or (3) arrange, in a manner consistent with the
+    requirements of this License, to extend the patent license to downstream
+    recipients. “Knowingly relying” means you have actual knowledge that, but
+    for the patent license, your conveying the covered work in a country, or
+    your recipient’s use of the covered work in a country, would infringe one
+    or more identifiable patents in that country that you have reason to
+    believe are valid.</para>
+
+    <para>If, pursuant to or in connection with a single transaction or
+    arrangement, you convey, or propagate by procuring conveyance of, a
+    covered work, and grant a patent license to some of the parties receiving
+    the covered work authorizing them to use, propagate, modify or convey a
+    specific copy of the covered work, then the patent license you grant is
+    automatically extended to all recipients of the covered work and works
+    based on it.</para>
+
+    <para>A patent license is “discriminatory” if it does not include within
+    the scope of its coverage, prohibits the exercise of, or is conditioned on
+    the non-exercise of one or more of the rights that are specifically
+    granted under this License. You may not convey a covered work if you are a
+    party to an arrangement with a third party that is in the business of
+    distributing software, under which you make payment to the third party
+    based on the extent of your activity of conveying the work, and under
+    which the third party grants, to any of the parties who would receive the
+    covered work from you, a discriminatory patent license (a) in connection
+    with copies of the covered work conveyed by you (or copies made from those
+    copies), or (b) primarily for and in connection with specific products or
+    compilations that contain the covered work, unless you entered into that
+    arrangement, or that patent license was granted, prior to 28 March
+    2007.</para>
+
+    <para>Nothing in this License shall be construed as excluding or limiting
+    any implied license or other defenses to infringement that may otherwise
+    be available to you under applicable patent law.</para>
+
+    <bridgehead renderas="sect1">12. No Surrender of Others’
+    Freedom.</bridgehead>
+
+    <para>If conditions are imposed on you (whether by court order, agreement
+    or otherwise) that contradict the conditions of this License, they do not
+    excuse you from the conditions of this License. If you cannot convey a
+    covered work so as to satisfy simultaneously your obligations under this
+    License and any other pertinent obligations, then as a consequence you may
+    not convey it at all. For example, if you agree to terms that obligate you
+    to collect a royalty for further conveying from those to whom you convey
+    the Program, the only way you could satisfy both those terms and this
+    License would be to refrain entirely from conveying the Program.</para>
+
+    <bridgehead renderas="sect1">13. Use with the <acronym>GNU</acronym>
+    Affero General Public License.</bridgehead>
+
+    <para>Notwithstanding any other provision of this License, you have
+    permission to link or combine any covered work with a work licensed under
+    version 3 of the <acronym>GNU</acronym> Affero General Public License into
+    a single combined work, and to convey the resulting work. The terms of
+    this License will continue to apply to the part which is the covered work,
+    but the special requirements of the <acronym>GNU</acronym> Affero General
+    Public License, section 13, concerning interaction through a network will
+    apply to the combination as such.</para>
+
+    <bridgehead renderas="sect1">14. Revised Versions of this
+    License.</bridgehead>
+
+    <para>The Free Software Foundation may publish revised and/or new versions
+    of the <acronym>GNU</acronym> General Public License from time to time.
+    Such new versions will be similar in spirit to the present version, but
+    may differ in detail to address new problems or concerns.</para>
+
+    <para>Each version is given a distinguishing version number. If the
+    Program specifies that a certain numbered version of the
+    <acronym>GNU</acronym> General Public License “or any later version”
+    applies to it, you have the option of following the terms and conditions
+    either of that numbered version or of any later version published by the
+    Free Software Foundation. If the Program does not specify a version number
+    of the <acronym>GNU</acronym> General Public License, you may choose any
+    version ever published by the Free Software Foundation.</para>
+
+    <para>If the Program specifies that a proxy can decide which future
+    versions of the <acronym>GNU</acronym> General Public License can be used,
+    that proxy’s public statement of acceptance of a version permanently
+    authorizes you to choose that version for the Program.</para>
+
+    <para>Later license versions may give you additional or different
+    permissions. However, no additional obligations are imposed on any author
+    or copyright holder as a result of your choosing to follow a later
+    version.</para>
+
+    <bridgehead renderas="sect1">15. Disclaimer of Warranty.</bridgehead>
+
+    <para>THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+    APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+    HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT WARRANTY
+    OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+    THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+    PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+    IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+    ALL NECESSARY SERVICING, REPAIR OR CORRECTION.</para>
+
+    <bridgehead renderas="sect1">16. Limitation of Liability.</bridgehead>
+
+    <para>IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN
+    WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR
+    CONVEYS THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES,
+    INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES
+    ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT
+    LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES
+    SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE
+    WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN
+    ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.</para>
+
+    <bridgehead renderas="sect1">17. Interpretation of Sections 15 and
+    16.</bridgehead>
+
+    <para>If the disclaimer of warranty and limitation of liability provided
+    above cannot be given local legal effect according to their terms,
+    reviewing courts shall apply local law that most closely approximates an
+    absolute waiver of all civil liability in connection with the Program,
+    unless a warranty or assumption of liability accompanies a copy of the
+    Program in return for a fee.</para>
+
+    <bridgehead>END OF TERMS AND CONDITIONS</bridgehead>
+
+    <bridgehead renderas="sect1">How to Apply These Terms to Your New
+    Programs</bridgehead>
+
+    <para>If you develop a new program, and you want it to be of the greatest
+    possible use to the public, the best way to achieve this is to make it
+    free software which everyone can redistribute and change under these
+    terms.</para>
+
+    <para>To do so, attach the following notices to the program. It is safest
+    to attach them to the start of each source file to most effectively state
+    the exclusion of warranty; and each file should have at least the
+    “copyright” line and a pointer to where the full notice is found.</para>
+
+    <screen>
+<replaceable>one line to give the program’s name and a brief idea of what it does.</replaceable>
+Copyright (C) <replaceable>year</replaceable> <replaceable>name of author</replaceable>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the <acronym>GNU</acronym> General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<acronym>GNU</acronym> General Public License for more details.
+
+You should have received a copy of the <acronym>GNU</acronym> General Public License
+along with this program.  If not, see <link
+        xlink:href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</link>.
+  </screen>
+
+    <para>Also add information on how to contact you by electronic and paper
+    mail.</para>
+
+    <para>If the program does terminal interaction, make it output a short
+    notice like this when it starts in an interactive mode:</para>
+
+    <screen>
+<replaceable>program</replaceable> Copyright (C) <replaceable>year</replaceable> <replaceable>name of author</replaceable>
+This program comes with ABSOLUTELY NO WARRANTY; for details type ‘<literal>show w</literal>’.
+This is free software, and you are welcome to redistribute it
+under certain conditions; type ‘<literal>show c</literal>’ for details.
+  </screen>
+
+    <para>The hypothetical commands ‘<literal>show w</literal>’ and
+    ‘<literal>show c</literal>’ should show the appropriate parts of the
+    General Public License. Of course, your program’s commands might be
+    different; for a GUI interface, you would use an “about box”.</para>
+
+    <para>You should also get your employer (if you work as a programmer) or
+    school, if any, to sign a “copyright disclaimer” for the program, if
+    necessary. For more information on this, and how to apply and follow the
+    <acronym>GNU</acronym> <acronym>GPL</acronym>, see <link
+    xlink:href="???">http://www.gnu.org/licenses/</link>.</para>
+
+    <para>The <acronym>GNU</acronym> General Public License does not permit
+    incorporating your program into proprietary programs. If your program is a
+    subroutine library, you may consider it more useful to permit linking
+    proprietary applications with the library. If this is what you want to do,
+    use the <acronym>GNU</acronym> Lesser General Public License instead of
+    this License. But first, please read <link
+    xlink:href="???">http://www.gnu.org/philosophy/why-not-lgpl.html</link>.</para>
+  </appendix>
+</book>
