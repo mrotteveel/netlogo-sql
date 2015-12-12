@@ -14,3 +14,5 @@ Features:
 Requirements:
 * NetLogo 5.0.x
 * Java 6
+
+Downloads available at https://github.com/mrotteveel/netlogo-sql/releases
